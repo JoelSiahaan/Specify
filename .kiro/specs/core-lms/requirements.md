@@ -80,16 +80,17 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 
 #### Acceptance Criteria
 
-1. WHEN a Teacher creates a course with a name and description, THE System SHALL generate a unique 6-character alphanumeric course code and store the course
+1. WHEN a Teacher creates a course with a name and description, THE System SHALL generate a unique course code and store the course
 2. WHEN a course code collision occurs, THE System SHALL regenerate a new unique code
 3. WHEN a Teacher updates an active course, THE System SHALL save the changes
 4. WHEN a Teacher archives a course, THE System SHALL hide it from active course lists and prevent new enrollments
-5. WHEN a Teacher attempts to delete an active course, THE System SHALL prevent deletion and require archiving first
-6. WHEN a Teacher deletes an archived course, THE System SHALL allow deletion only after all students are unenrolled
-7. THE System SHALL provide a bulk unenroll feature for archived courses
-8. THE System SHALL validate that course name is provided
-9. THE System SHALL allow teachers to view all their created courses (active and archived separately)
-10. THE System SHALL allow students to view archived courses in read-only mode
+5. WHEN a Teacher archives a course, THE System SHALL automatically close all open assignments and quizzes to prevent further submissions
+6. WHEN a Teacher attempts to delete an active course, THE System SHALL prevent deletion and require archiving first
+7. WHEN a Teacher deletes an archived course, THE System SHALL permanently remove the course and all related materials, assignments, quizzes, submissions, and grades
+8. THE System SHALL provide a bulk unenroll feature for archived courses
+9. THE System SHALL validate that course name is provided
+10. THE System SHALL allow teachers to view all their created courses (active and archived separately)
+11. THE System SHALL allow students to view archived courses in read-only mode with no submission capabilities
 
 ### Requirement 6: Course Discovery and Enrollment
 
@@ -144,13 +145,16 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 
 1. WHEN a Teacher creates an assignment, THE System SHALL store the assignment with title, description, and due date
 2. WHEN a Teacher sets a due date in the past, THE System SHALL reject it and return an error
-3. THE System SHALL allow teachers to specify submission types (file upload, text submission, or both)
-4. WHEN file upload is enabled, THE System SHALL allow specification of accepted file formats
-5. THE System SHALL support rich text formatting in descriptions
-6. THE System SHALL validate that title, description, and due date are provided
-7. THE System SHALL allow teachers to edit or delete assignments
-8. THE System SHALL allow teachers to view all assignments for a course
-9. THE System SHALL calculate and display time remaining until due date
+3. THE System SHALL display due dates consistently across different user timezones
+4. THE System SHALL allow teachers to specify submission types (file upload, text submission, or both)
+5. WHEN file upload is enabled, THE System SHALL allow specification of accepted file formats
+6. THE System SHALL support rich text formatting in descriptions
+7. THE System SHALL validate that title, description, and due date are provided
+8. WHEN a Teacher attempts to edit an assignment after the due date, THE System SHALL prevent the edit and return an error
+9. THE System SHALL allow teachers to edit assignments before the due date
+10. THE System SHALL allow teachers to delete assignments at any time
+11. THE System SHALL allow teachers to view all assignments for a course
+12. THE System SHALL calculate and display time remaining until due date
 
 ### Requirement 10: Assignment Submission
 
@@ -164,11 +168,13 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 4. WHEN a Student submits without required content, THE System SHALL reject the submission and return an error
 5. WHEN a Student uploads a file in unsupported format, THE System SHALL reject it and return an error
 6. THE System SHALL record the submission timestamp
-7. THE System SHALL allow students to resubmit before grading starts
-8. THE System SHALL prevent resubmission after grading is complete
-9. THE System SHALL allow students to view their own submissions
-10. WHEN a Student submits after the due date, THE System SHALL mark the submission as late
-11. THE System SHALL support PDF, DOCX, and image formats (JPG, PNG) for file uploads
+7. WHEN a Student submits before the due date, THE System SHALL accept the submission
+8. WHEN a Student submits after the due date but before grading starts, THE System SHALL accept the submission and mark it as late
+9. WHEN a Student attempts to submit after grading has started, THE System SHALL reject the submission and return an error
+10. WHEN a Student attempts to resubmit before grading starts, THE System SHALL allow the resubmission and replace the previous submission
+11. WHEN a Student attempts to resubmit after grading has started, THE System SHALL reject the resubmission and return an error
+12. THE System SHALL allow students to view their own submissions
+13. THE System SHALL support PDF, DOCX, and image formats (JPG, PNG) for file uploads
 
 ### Requirement 11: Quiz Creation
 
@@ -177,15 +183,19 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 #### Acceptance Criteria
 
 1. WHEN a Teacher creates a quiz, THE System SHALL store the quiz with title, description, due date, and time limit in minutes
-2. WHEN a Teacher adds an MCQ, THE System SHALL store the question, options, and correct answer
-3. WHEN a Teacher adds an essay question, THE System SHALL store the question text
-4. THE System SHALL require at least one question per quiz
-5. THE System SHALL require at least two options per MCQ
-6. THE System SHALL validate that exactly one option is marked as correct for each MCQ
-7. THE System SHALL support rich text formatting in essay questions
-8. THE System SHALL allow teachers to edit or delete quiz questions
-9. THE System SHALL allow teachers to delete entire quizzes
-10. THE System SHALL allow teachers to view all quizzes for a course
+2. WHEN a Teacher sets a quiz due date in the past, THE System SHALL reject it and return an error
+3. THE System SHALL display quiz due dates consistently across different user timezones
+4. WHEN a Teacher adds an MCQ, THE System SHALL store the question, options, and correct answer
+5. WHEN a Teacher adds an essay question, THE System SHALL store the question text
+6. THE System SHALL require at least one question per quiz
+7. THE System SHALL require at least two options per MCQ
+8. THE System SHALL validate that exactly one option is marked as correct for each MCQ
+9. THE System SHALL support rich text formatting in essay questions
+10. WHEN a quiz has submissions, THE System SHALL prevent editing or deleting questions
+11. WHEN a Teacher attempts to edit a quiz after the due date, THE System SHALL prevent the edit and return an error
+12. THE System SHALL allow teachers to edit quizzes before the due date and before any submissions
+13. THE System SHALL allow teachers to delete entire quizzes at any time
+14. THE System SHALL allow teachers to view all quizzes for a course
 
 ### Requirement 12: Quiz Taking
 
@@ -207,13 +217,16 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 
 #### Acceptance Criteria
 
-1. WHEN a Teacher views a submission, THE System SHALL display all submitted content (files, text, or quiz answers)
-2. WHEN a Teacher assigns a grade, THE System SHALL validate the grade is between 0 and 100
-3. WHEN a Teacher saves a grade, THE System SHALL store the grade with the submission
-4. THE System SHALL allow teachers to edit grades after saving
-5. THE System SHALL allow teachers to add text feedback
-6. THE System SHALL mark the submission as graded
-7. FOR quiz submissions, THE System SHALL allow teachers to assign points per question and calculate the total score
+1. WHEN a Teacher starts grading any submission for an assignment, THE System SHALL automatically close the assignment to prevent further submissions
+2. WHEN a Teacher views a submission, THE System SHALL display all submitted content (files, text, or quiz answers)
+3. WHEN a Teacher assigns a grade, THE System SHALL validate the grade is between 0 and 100
+4. WHEN a Teacher saves a grade, THE System SHALL store the grade with the submission
+5. THE System SHALL allow teachers to edit grades after saving
+6. THE System SHALL allow teachers to add text feedback
+7. THE System SHALL mark the submission as graded
+8. FOR quiz submissions, THE System SHALL allow teachers to manually assign points per question
+9. FOR quiz submissions, WHEN the sum of assigned points does not equal 100, THE System SHALL display a warning to the teacher
+10. FOR quiz submissions, THE System SHALL calculate the total score based on the manually assigned points per question
 
 ### Requirement 14: View Submissions
 
@@ -250,32 +263,33 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 3. THE System SHALL show "Submitted" for items awaiting grading
 4. THE System SHALL show "Graded" with the grade and feedback for completed items
 5. THE System SHALL highlight overdue items that are not submitted
-6. THE System SHALL calculate and display the average grade for the course
-7. WHEN no items are graded, THE System SHALL display an appropriate message
+6. THE System SHALL indicate late submissions with a late marker
+7. THE System SHALL calculate and display the average grade for the course
+8. WHEN no items are graded, THE System SHALL display an appropriate message
 
 ### Requirement 17: Data Persistence
 
-**User Story:** As a system architect, I want data persisted using Prisma and PostgreSQL, so that data is reliably stored.
+**User Story:** As a system architect, I want data reliably stored and maintained, so that no data is lost.
 
 #### Acceptance Criteria
 
-1. WHEN any entity is created, THE System SHALL persist it to PostgreSQL using Prisma
-2. WHEN any entity is updated, THE System SHALL update the database record
-3. WHEN any entity is deleted, THE System SHALL remove the database record
-4. THE System SHALL use Prisma migrations for schema changes
-5. THE System SHALL maintain referential integrity between related entities
+1. WHEN any entity is created, THE System SHALL persist it to the database
+2. WHEN any entity is updated, THE System SHALL update the stored data
+3. WHEN any entity is deleted, THE System SHALL remove it from storage
+4. THE System SHALL maintain data consistency between related entities
+5. THE System SHALL support database schema evolution
 
-### Requirement 18: REST API
+### Requirement 18: API Interface
 
-**User Story:** As a frontend developer, I want a REST API, so that I can build the React interface.
+**User Story:** As a frontend developer, I want a well-defined API, so that I can build the user interface.
 
 #### Acceptance Criteria
 
-1. THE System SHALL expose RESTful endpoints for all operations
-2. WHEN an API request succeeds, THE System SHALL return appropriate HTTP status codes (200, 201)
-3. WHEN an API request fails, THE System SHALL return appropriate HTTP status codes (400, 401, 403, 404, 500)
-4. THE System SHALL accept and return JSON-formatted data
-5. THE System SHALL include error messages in error responses
+1. THE System SHALL expose endpoints for all operations
+2. WHEN an API request succeeds, THE System SHALL return success indicators
+3. WHEN an API request fails, THE System SHALL return error indicators with descriptive messages
+4. THE System SHALL accept and return structured data
+5. THE System SHALL provide consistent response formats
 
 ### Requirement 19: Frontend Interface
 
