@@ -300,3 +300,17 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 3. THE System SHALL prevent unauthorized file access
 4. THE System SHALL validate file types before accepting uploads
 5. THE System SHALL enforce file size limits on all uploads
+
+### Requirement 21: System Availability
+
+**User Story:** As a user, I want the system to be available and reliable, so that I can access it when needed.
+
+#### Acceptance Criteria
+
+1. WHEN the database connection fails, THE System SHALL retry the connection up to 3 times before returning an error
+2. WHEN an API endpoint encounters an error, THE System SHALL log the error with timestamp and context
+3. THE System SHALL return appropriate error responses without exposing internal system details
+4. WHEN the system is under maintenance, THE System SHALL display a maintenance message to users
+5. THE System SHALL handle concurrent user requests without data corruption
+6. WHEN file uploads are in progress, THE System SHALL prevent timeout errors for files under the size limit
+7. THE System SHALL validate database connections before processing requests
