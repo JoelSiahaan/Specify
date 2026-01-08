@@ -10,12 +10,19 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 - **User**: Any authenticated person using the system (Student or Teacher)
 - **Student**: A user with student role who enrolls in courses and submits assignments
 - **Teacher**: A user with teacher role who creates and manages courses
-- **Course**: A learning unit containing materials and assignments
+- **Course**: A learning unit containing materials, assignments, and quizzes
 - **Course_Code**: A unique identifier for course enrollment
+- **Course_Status**: The state of a course (active or archived)
 - **Material**: Educational content (files or text) in a course
-- **Assignment**: A task requiring file submission
-- **Submission**: A student's completed assignment file
+- **Assignment**: A task requiring file upload, text submission, or both
+- **Quiz**: An assessment with multiple choice or essay questions
+- **MCQ**: Multiple choice question with one correct answer
+- **Essay_Question**: Open-ended question requiring text response
+- **Submission**: A student's completed assignment or quiz
 - **Grade**: A numerical score (0-100) for a submission
+- **Submission_Status**: The state of a submission (not submitted, submitted, graded)
+- **Due_Date**: The deadline for submitting an assignment or quiz
+- **Time_Limit**: The maximum duration allowed to complete a quiz
 
 ## Requirements
 
@@ -27,9 +34,11 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 
 1. WHEN a user provides valid credentials, THE System SHALL authenticate the user and create a session
 2. WHEN a user provides invalid credentials, THE System SHALL reject the authentication and return an error
-3. WHEN an authenticated user makes a request, THE System SHALL authorize the request
-4. THE System SHALL assign each user exactly one role (Student or Teacher)
-5. THE System SHALL allow users to log out and end their session
+3. WHEN an unauthenticated user attempts to access protected content, THE System SHALL redirect to the login page
+4. WHEN an authenticated user makes a request, THE System SHALL authorize the request
+5. THE System SHALL assign each user exactly one role (Student or Teacher)
+6. THE System SHALL allow users to log out and end their session
+7. THE System SHALL allow new users to register with email, password, name, and role selection
 
 ### Requirement 2: Role-Based Access Control
 
@@ -63,41 +72,57 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 2. THE System SHALL display the number of enrolled students for each course
 3. THE System SHALL provide links to manage each course
 4. THE System SHALL provide a button to create new courses
+5. WHEN a Teacher has no created courses, THE System SHALL display a message and course creation option
 
-### Requirement 5: Course Creation
+### Requirement 5: Course Creation and Management
 
-**User Story:** As a teacher, I want to create courses, so that I can organize learning content.
-
-#### Acceptance Criteria
-
-1. WHEN a Teacher creates a course with a name and description, THE System SHALL generate a unique course code and store the course
-2. WHEN a Teacher updates a course, THE System SHALL save the changes
-3. WHEN a Teacher deletes a course, THE System SHALL remove the course and all associated content
-4. THE System SHALL validate that course name is provided
-5. THE System SHALL generate a 6-character alphanumeric course code
-
-### Requirement 6: Course Enrollment
-
-**User Story:** As a student, I want to enroll in courses using a course code, so that I can access content.
+**User Story:** As a teacher, I want to create and manage courses, so that I can organize learning content.
 
 #### Acceptance Criteria
 
-1. WHEN a Student provides a valid course code, THE System SHALL enroll the student in that course
-2. WHEN a Student provides an invalid course code, THE System SHALL reject the enrollment and return an error
-3. WHEN a Student is already enrolled, THE System SHALL prevent duplicate enrollment
-4. THE System SHALL display newly enrolled courses on the student dashboard
+1. WHEN a Teacher creates a course with a name and description, THE System SHALL generate a unique 6-character alphanumeric course code and store the course
+2. WHEN a course code collision occurs, THE System SHALL regenerate a new unique code
+3. WHEN a Teacher updates an active course, THE System SHALL save the changes
+4. WHEN a Teacher archives a course, THE System SHALL hide it from active course lists and prevent new enrollments
+5. WHEN a Teacher attempts to delete an active course, THE System SHALL prevent deletion and require archiving first
+6. WHEN a Teacher deletes an archived course, THE System SHALL allow deletion only after all students are unenrolled
+7. THE System SHALL provide a bulk unenroll feature for archived courses
+8. THE System SHALL validate that course name is provided
+9. THE System SHALL allow teachers to view all their created courses (active and archived separately)
+10. THE System SHALL allow students to view archived courses in read-only mode
+
+### Requirement 6: Course Discovery and Enrollment
+
+**User Story:** As a student, I want to discover and enroll in courses, so that I can access learning content.
+
+#### Acceptance Criteria
+
+1. WHEN a Student views the course list, THE System SHALL display only active courses with name, teacher, and description
+2. THE System SHALL NOT include archived courses in search results
+3. THE System SHALL provide a search box to filter active courses by name
+4. THE System SHALL indicate which courses the student is already enrolled in
+5. WHEN a Student provides a valid course code for an active course, THE System SHALL enroll the student in that course
+6. WHEN a Student provides a course code for an archived course, THE System SHALL reject the enrollment and return an error
+7. WHEN a Student provides an invalid course code, THE System SHALL reject the enrollment and return an error
+8. WHEN a Student is already enrolled, THE System SHALL prevent duplicate enrollment
 
 ### Requirement 7: Material Management
 
-**User Story:** As a teacher, I want to add materials to courses, so that students can access learning content.
+**User Story:** As a teacher, I want to add various types of materials to courses, so that students can access learning content.
 
 #### Acceptance Criteria
 
 1. WHEN a Teacher uploads a file to a course, THE System SHALL store the file
-2. WHEN a Teacher adds text content to a course, THE System SHALL store the content
-3. WHEN a Teacher deletes a material, THE System SHALL remove it
-4. THE System SHALL support PDF and image file formats
-5. THE System SHALL enforce a 10MB file size limit
+2. WHEN a Teacher adds text content to a course, THE System SHALL store the content with rich text formatting
+3. WHEN a Teacher adds a video link to a course, THE System SHALL validate and store the URL
+4. WHEN a Teacher provides an invalid URL, THE System SHALL reject it and return an error
+5. WHEN a file upload exceeds size limit, THE System SHALL reject it and return an error
+6. WHEN a Teacher deletes a material, THE System SHALL remove it
+7. THE System SHALL allow teachers to edit existing materials
+8. THE System SHALL support PDF and image file formats (JPG, PNG, GIF)
+9. THE System SHALL enforce a 10MB file size limit for uploads
+10. THE System SHALL NOT allow video file uploads
+11. THE System SHALL allow links to external video platforms (YouTube, Vimeo)
 
 ### Requirement 8: Student Access to Materials
 
@@ -105,84 +130,130 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 
 #### Acceptance Criteria
 
-1. WHEN a Student accesses an enrolled course, THE System SHALL display all materials
+1. WHEN a Student accesses an enrolled course, THE System SHALL display all materials (files, text, and links)
 2. THE System SHALL allow students to download files
-3. THE System SHALL display text content in readable format
-4. WHEN a Student attempts to access a course they are not enrolled in, THE System SHALL deny access
+3. THE System SHALL display text content with formatting in readable format
+4. THE System SHALL display video links as clickable links that open in a new tab
+5. WHEN a Student attempts to access a course they are not enrolled in, THE System SHALL deny access
 
 ### Requirement 9: Assignment Creation
 
-**User Story:** As a teacher, I want to create assignments, so that students can submit work.
+**User Story:** As a teacher, I want to create assignments with due dates, so that students can submit their work within a specified timeframe.
 
 #### Acceptance Criteria
 
 1. WHEN a Teacher creates an assignment, THE System SHALL store the assignment with title, description, and due date
-2. THE System SHALL associate the assignment with a course
-3. THE System SHALL validate that title and description are provided
-4. THE System SHALL allow teachers to edit assignment details
-5. THE System SHALL allow teachers to delete assignments
+2. WHEN a Teacher sets a due date in the past, THE System SHALL reject it and return an error
+3. THE System SHALL allow teachers to specify submission types (file upload, text submission, or both)
+4. WHEN file upload is enabled, THE System SHALL allow specification of accepted file formats
+5. THE System SHALL support rich text formatting in descriptions
+6. THE System SHALL validate that title, description, and due date are provided
+7. THE System SHALL allow teachers to edit or delete assignments
+8. THE System SHALL allow teachers to view all assignments for a course
+9. THE System SHALL calculate and display time remaining until due date
 
 ### Requirement 10: Assignment Submission
 
-**User Story:** As a student, I want to submit assignments, so that I can complete coursework.
+**User Story:** As a student, I want to submit assignments using files or text, so that I can complete coursework in the format requested.
 
 #### Acceptance Criteria
 
-1. WHEN a Student uploads a file for an assignment, THE System SHALL store the file and create a submission record
-2. THE System SHALL record the submission timestamp
-3. THE System SHALL allow students to resubmit before grading
-4. WHEN a Student submits after the due date, THE System SHALL mark the submission as late
-5. THE System SHALL support PDF and common document formats
+1. WHEN an assignment allows file upload, THE System SHALL allow students to upload files in the specified formats
+2. WHEN an assignment allows text submission, THE System SHALL provide a rich text editor for students
+3. WHEN an assignment allows both, THE System SHALL allow students to submit files and text together
+4. WHEN a Student submits without required content, THE System SHALL reject the submission and return an error
+5. WHEN a Student uploads a file in unsupported format, THE System SHALL reject it and return an error
+6. THE System SHALL record the submission timestamp
+7. THE System SHALL allow students to resubmit before grading starts
+8. THE System SHALL prevent resubmission after grading is complete
+9. THE System SHALL allow students to view their own submissions
+10. WHEN a Student submits after the due date, THE System SHALL mark the submission as late
+11. THE System SHALL support PDF, DOCX, and image formats (JPG, PNG) for file uploads
 
-### Requirement 11: Grading
+### Requirement 11: Quiz Creation
 
-**User Story:** As a teacher, I want to grade submissions, so that I can provide scores to students.
-
-#### Acceptance Criteria
-
-1. WHEN a Teacher assigns a grade, THE System SHALL validate the grade is between 0 and 100
-2. WHEN a Teacher saves a grade, THE System SHALL store the grade with the submission
-3. THE System SHALL allow teachers to add text feedback
-4. THE System SHALL mark the submission as graded
-5. THE System SHALL display graded submissions to students
-
-### Requirement 12: View Submissions
-
-**User Story:** As a teacher, I want to view all submissions for an assignment, so that I can grade student work.
+**User Story:** As a teacher, I want to create quizzes with multiple choice and essay questions, so that I can assess student knowledge.
 
 #### Acceptance Criteria
 
-1. WHEN a Teacher views an assignment, THE System SHALL display all student submissions
-2. THE System SHALL show submission status (submitted, graded, late)
+1. WHEN a Teacher creates a quiz, THE System SHALL store the quiz with title, description, due date, and time limit in minutes
+2. WHEN a Teacher adds an MCQ, THE System SHALL store the question, options, and correct answer
+3. WHEN a Teacher adds an essay question, THE System SHALL store the question text
+4. THE System SHALL require at least one question per quiz
+5. THE System SHALL require at least two options per MCQ
+6. THE System SHALL validate that exactly one option is marked as correct for each MCQ
+7. THE System SHALL support rich text formatting in essay questions
+8. THE System SHALL allow teachers to edit or delete quiz questions
+9. THE System SHALL allow teachers to delete entire quizzes
+10. THE System SHALL allow teachers to view all quizzes for a course
+
+### Requirement 12: Quiz Taking
+
+**User Story:** As a student, I want to take quizzes within a time limit, so that I can demonstrate my understanding under timed conditions.
+
+#### Acceptance Criteria
+
+1. WHEN a Student views a quiz before starting, THE System SHALL display quiz title, description, time limit, and number of questions
+2. WHEN a Student starts a quiz before the due date, THE System SHALL display all questions and start a countdown timer
+3. THE System SHALL display remaining time to the student during the quiz
+4. WHEN the time limit expires, THE System SHALL automatically submit the quiz
+5. WHEN a Student submits before the time limit, THE System SHALL accept the submission
+6. WHEN a Student attempts to start a quiz after the due date, THE System SHALL prevent access and display an error
+7. THE System SHALL prevent multiple submissions for the same quiz
+
+### Requirement 13: Grading
+
+**User Story:** As a teacher, I want to grade student submissions, so that I can provide scores and feedback.
+
+#### Acceptance Criteria
+
+1. WHEN a Teacher views a submission, THE System SHALL display all submitted content (files, text, or quiz answers)
+2. WHEN a Teacher assigns a grade, THE System SHALL validate the grade is between 0 and 100
+3. WHEN a Teacher saves a grade, THE System SHALL store the grade with the submission
+4. THE System SHALL allow teachers to edit grades after saving
+5. THE System SHALL allow teachers to add text feedback
+6. THE System SHALL mark the submission as graded
+7. FOR quiz submissions, THE System SHALL allow teachers to assign points per question and calculate the total score
+
+### Requirement 14: View Submissions
+
+**User Story:** As a teacher, I want to view all submissions for an assignment or quiz, so that I can grade student work.
+
+#### Acceptance Criteria
+
+1. WHEN a Teacher views an assignment or quiz, THE System SHALL display all student submissions
+2. THE System SHALL show submission status (not submitted, submitted, graded, late)
 3. THE System SHALL show student names and submission timestamps
-4. THE System SHALL provide links to download submitted files
+4. THE System SHALL provide links to view submitted content
 5. THE System SHALL separate ungraded and graded submissions
 
-### Requirement 13: View Grades
+### Requirement 15: Grade Export
 
-**User Story:** As a student, I want to view my grades, so that I can track my performance.
-
-#### Acceptance Criteria
-
-1. WHEN a Student views a course, THE System SHALL display all graded assignments
-2. THE System SHALL show the grade and feedback for each graded assignment
-3. THE System SHALL show which assignments are pending grading
-4. THE System SHALL calculate and display the average grade for the course
-5. WHEN no assignments are graded, THE System SHALL display an appropriate message
-
-### Requirement 14: Course List
-
-**User Story:** As a student, I want to see available courses, so that I can find courses to enroll in.
+**User Story:** As a teacher, I want to export grades for all students in a course, so that I can analyze performance and maintain records.
 
 #### Acceptance Criteria
 
-1. WHEN a Student views the course list, THE System SHALL display all available courses
-2. THE System SHALL show course name, teacher name, and description
-3. THE System SHALL show the course code for enrollment
-4. THE System SHALL indicate which courses the student is already enrolled in
-5. THE System SHALL provide a search box to filter courses by name
+1. WHEN a Teacher requests a grade export for a course, THE System SHALL generate a CSV file with all student grades
+2. THE System SHALL include student name, email, assignment/quiz name, grade, and submission date in the export
+3. THE System SHALL include average grade per student in the export
+4. THE System SHALL allow teachers to download the exported file
+5. THE System SHALL include both graded and ungraded items in the export (showing "Not Submitted" or "Pending" for ungraded)
 
-### Requirement 15: Data Persistence
+### Requirement 16: Student Progress View
+
+**User Story:** As a student, I want to see my progress and grades, so that I can track my performance.
+
+#### Acceptance Criteria
+
+1. WHEN a Student views a course, THE System SHALL display all assignments and quizzes with their status
+2. THE System SHALL show "Not Submitted" for items without submissions
+3. THE System SHALL show "Submitted" for items awaiting grading
+4. THE System SHALL show "Graded" with the grade and feedback for completed items
+5. THE System SHALL highlight overdue items that are not submitted
+6. THE System SHALL calculate and display the average grade for the course
+7. WHEN no items are graded, THE System SHALL display an appropriate message
+
+### Requirement 17: Data Persistence
 
 **User Story:** As a system architect, I want data persisted using Prisma and PostgreSQL, so that data is reliably stored.
 
@@ -194,7 +265,7 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 4. THE System SHALL use Prisma migrations for schema changes
 5. THE System SHALL maintain referential integrity between related entities
 
-### Requirement 16: REST API
+### Requirement 18: REST API
 
 **User Story:** As a frontend developer, I want a REST API, so that I can build the React interface.
 
@@ -206,7 +277,7 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 4. THE System SHALL accept and return JSON-formatted data
 5. THE System SHALL include error messages in error responses
 
-### Requirement 17: Frontend Interface
+### Requirement 19: Frontend Interface
 
 **User Story:** As a user, I want a clean web interface, so that I can easily use the LMS.
 
@@ -214,11 +285,11 @@ The Learning Management System (LMS) is a web-based platform that enables teache
 
 1. WHEN a user navigates to the application, THE System SHALL display a login page for unauthenticated users
 2. WHEN a user logs in, THE System SHALL display a role-appropriate dashboard
-3. THE System SHALL provide navigation between courses, assignments, and profile
+3. THE System SHALL provide navigation between courses, assignments, quizzes, and profile
 4. THE System SHALL display loading indicators while fetching data
 5. WHEN an error occurs, THE System SHALL display user-friendly error messages
 
-### Requirement 18: Security
+### Requirement 20: Security
 
 **User Story:** As a system architect, I want basic security measures, so that user data is protected.
 
