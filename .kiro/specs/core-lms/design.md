@@ -133,26 +133,16 @@ graph LR
 - Teachers can only grade submissions from their own courses
 - Teachers can only export grades from their own courses
 
-**Validation Pattern**:
-```typescript
-// Service validates ownership
-async updateCourse(courseId: string, teacherId: string, updates: Partial<Course>) {
-  // Query course and check teacherId matches
-  const course = await prisma.course.findUnique({
-    where: { id: courseId }
-  })
-  
-  if (!course) {
-    throw new Error('RESOURCE_NOT_FOUND')
-  }
-  
-  if (course.teacherId !== teacherId) {
-    throw new Error('NOT_COURSE_OWNER') // 403 Forbidden
-  }
-  
-  // Proceed with update
-}
-```
+**Design Approach**:
+- Query resource and check ownership
+- Verify resource exists (return 404 if not)
+- Verify teacherId matches (return 403 if not)
+- Proceed with operation
+
+**Key Considerations**:
+- Always check existence before ownership
+- Clear error codes distinguish "not found" vs "not owner"
+- Prevents teachers from accessing other teachers' resources
 
 #### Level 3: Enrollment-Based Access Control
 
@@ -167,43 +157,19 @@ async updateCourse(courseId: string, teacherId: string, updates: Partial<Course>
 - Students can only take quizzes from enrolled courses
 - Students can only view their own submissions and grades
 
-**Validation Pattern**:
-```typescript
-// Service validates enrollment
-async getMaterial(materialId: string, userId: string, userRole: Role) {
-  const material = await prisma.material.findUnique({
-    where: { id: materialId },
-    include: { course: true }
-  })
-  
-  if (!material) {
-    throw new Error('RESOURCE_NOT_FOUND')
-  }
-  
-  // Teachers can access if they own the course
-  if (userRole === 'TEACHER') {
-    if (material.course.teacherId !== userId) {
-      throw new Error('NOT_COURSE_OWNER') // 403 Forbidden
-    }
-  }
-  
-  // Students can access if enrolled
-  if (userRole === 'STUDENT') {
-    const enrollment = await prisma.enrollment.findFirst({
-      where: { 
-        courseId: material.courseId, 
-        studentId: userId 
-      }
-    })
-    
-    if (!enrollment) {
-      throw new Error('NOT_ENROLLED_IN_COURSE') // 403 Forbidden
-    }
-  }
-  
-  return material
-}
-```
+**Design Approach**:
+- Query resource with course relationship
+- Check resource existence (404 if not found)
+- For teachers: Validate course ownership
+- For students: Query enrollment table to verify enrollment
+- Return 403 if not enrolled or not owner
+
+**Key Considerations**:
+- Enrollment check requires additional database query
+- Cache enrollment status for performance
+- Clear error messages distinguish between "not found" and "not enrolled"
+
+
 
 ### Authorization Flow Diagram
 
@@ -278,92 +244,52 @@ Services use specific query patterns to enforce authorization at the database le
 
 #### Pattern 1: Student Accessing Course Resources
 
-```typescript
-// Query with enrollment join
-const materials = await prisma.material.findMany({
-  where: {
-    course: {
-      enrollments: {
-        some: {
-          studentId: userId
-        }
-      }
-    }
-  }
-})
+**Design Approach**:
+- Query with enrollment join to filter resources
+- Only return resources from courses where student is enrolled
+- Empty result indicates student is not enrolled
 
-// If no results, student is not enrolled
-```
+**Key Considerations**:
+- Database-level filtering for performance
+- Single query validates enrollment and retrieves data
+- Prevents unauthorized access at data layer
 
 #### Pattern 2: Teacher Accessing Course Resources
 
-```typescript
-// Query with ownership filter
-const assignments = await prisma.assignment.findMany({
-  where: {
-    course: {
-      teacherId: userId
-    }
-  }
-})
+**Design Approach**:
+- Query with ownership filter
+- Only return resources from courses owned by teacher
+- Ensures teachers only see their own course data
 
-// Only returns assignments from teacher's courses
-```
+**Key Considerations**:
+- Database-level filtering for security
+- Prevents accidental cross-teacher data access
+- Simplifies service layer logic
 
 #### Pattern 3: Listing Resources with Authorization
 
-```typescript
-// Students: Only enrolled courses
-const courses = await prisma.course.findMany({
-  where: {
-    status: 'ACTIVE',
-    enrollments: {
-      some: {
-        studentId: userId
-      }
-    }
-  }
-})
+**Design Approach**:
+- Students: Filter by enrollment status and active courses only
+- Teachers: Filter by ownership (all statuses)
+- Different query patterns based on role
 
-// Teachers: Only owned courses
-const courses = await prisma.course.findMany({
-  where: {
-    teacherId: userId
-  }
-})
-```
+**Key Considerations**:
+- Role-specific filtering at database level
+- Students see only active courses they're enrolled in
+- Teachers see all their courses (active and archived)
 
 #### Pattern 4: Validating Access Before Operations
 
-```typescript
-// Two-step validation: existence + authorization
-async submitAssignment(assignmentId: string, studentId: string, data: SubmissionData) {
-  // Step 1: Get assignment with course
-  const assignment = await prisma.assignment.findUnique({
-    where: { id: assignmentId },
-    include: { course: true }
-  })
-  
-  if (!assignment) {
-    throw new Error('RESOURCE_NOT_FOUND') // 404
-  }
-  
-  // Step 2: Check enrollment
-  const enrollment = await prisma.enrollment.findFirst({
-    where: {
-      courseId: assignment.courseId,
-      studentId: studentId
-    }
-  })
-  
-  if (!enrollment) {
-    throw new Error('NOT_ENROLLED_IN_COURSE') // 403
-  }
-  
-  // Step 3: Proceed with submission
-  return await prisma.submission.create({ data: {...} })
-}
-```
+**Design Approach**:
+- Two-step validation: existence check then authorization check
+- Step 1: Verify resource exists (return 404 if not)
+- Step 2: Verify user has access (return 403 if not)
+- Step 3: Perform operation
+
+**Key Considerations**:
+- Always check existence before authorization (prevents information leakage)
+- Return 404 for non-existent resources regardless of user's authorization
+- Clear separation between "not found" and "not authorized"
 
 ### Authorization Error Handling
 
@@ -603,7 +529,7 @@ interface GradingService {
   gradeSubmission(submissionId: string, teacherId: string, grade: number, feedback?: string): Promise<Submission>
   updateGrade(submissionId: string, teacherId: string, grade: number, feedback?: string): Promise<Submission>
   gradeQuizQuestion(submissionId: string, questionId: string, points: number, teacherId: string): Promise<void>
-  calculateQuizTotal(submissionId: string): Promise<number>
+  calculateQuizTotal(submissionId: string): Promise<{ total: number, warning: string | null }> // Returns total and warning if sum ≠ 100
   exportGrades(courseId: string, teacherId: string): Promise<string> // Returns CSV content
   getStudentProgress(courseId: string, studentId: string): Promise<ProgressData>
   lockAssignmentForGrading(assignmentId: string): Promise<void> // Sets gradingStarted flag with transaction
@@ -908,61 +834,29 @@ model Answer {
 
 **Challenge**: Prevent race conditions when grading starts or when concurrent operations occur.
 
-**Solution**:
+**Design Approach**:
+
 1. **Assignment Grading Lock**:
-   ```typescript
-   // First grade triggers lock
-   async gradeSubmission(submissionId, teacherId, grade) {
-     return await prisma.$transaction(async (tx) => {
-       const submission = await tx.submission.findUnique({ 
-         where: { id: submissionId },
-         include: { assignment: true }
-       })
-       
-       // Lock assignment if not already locked
-       if (!submission.assignment.gradingStarted) {
-         await tx.assignment.update({
-           where: { id: submission.assignmentId },
-           data: { gradingStarted: true }
-         })
-       }
-       
-       // Save grade
-       return await tx.submission.update({
-         where: { id: submissionId },
-         data: { grade, status: 'GRADED' }
-       })
-     })
-   }
-   ```
+   - Use database transaction to ensure atomicity
+   - When first grade is saved, set `gradingStarted` flag on assignment
+   - Check flag status before allowing new submissions
+   - Transaction prevents race condition between checking and setting flag
 
 2. **Submission Validation**:
-   ```typescript
-   // Check lock before accepting submission
-   async submitAssignment(assignmentId, studentId, data) {
-     const assignment = await prisma.assignment.findUnique({
-       where: { id: assignmentId }
-     })
-     
-     if (assignment.gradingStarted) {
-       throw new Error('ASSIGNMENT_CLOSED')
-     }
-     
-     // Use transaction to prevent race condition
-     return await prisma.$transaction(async (tx) => {
-       // Re-check lock inside transaction
-       const current = await tx.assignment.findUnique({
-         where: { id: assignmentId }
-       })
-       
-       if (current.gradingStarted) {
-         throw new Error('ASSIGNMENT_CLOSED')
-       }
-       
-       return await tx.submission.create({ data: {...} })
-     })
-   }
-   ```
+   - Check `gradingStarted` flag before accepting submission
+   - Use transaction to re-check flag inside transaction scope
+   - Reject submission if flag is set
+   - Return appropriate error code
+
+3. **Quiz Grading**:
+   - Quizzes don't have `gradingStarted` flag (by design)
+   - Once submitted, quiz cannot be resubmitted (enforced by unique constraint)
+   - Teachers can grade at any time after submission
+
+**Key Considerations**:
+- Database transactions ensure atomicity
+- Double-check pattern prevents race conditions
+- Clear error messages for rejected submissions
 
 3. **Quiz Grading**:
    - Quizzes don't have `gradingStarted` flag (by design)
@@ -973,33 +867,22 @@ model Answer {
 
 **Challenge**: Ensure unique course codes even with collisions, but prevent infinite loops.
 
-**Solution**:
-```typescript
-async generateUniqueCourseCode(maxRetries = 5): Promise<string> {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    // Generate 6-character alphanumeric code
-    const code = generateRandomCode(6)
-    
-    // Check uniqueness
-    const existing = await prisma.course.findUnique({
-      where: { courseCode: code }
-    })
-    
-    if (!existing) {
-      return code
-    }
-  }
-  
-  // All retries failed
-  throw new Error('COURSE_CODE_GENERATION_FAILED')
-}
-```
+**Design Approach**:
+- Generate random 6-character alphanumeric code
+- Check uniqueness against database
+- Retry up to 5 times if collision occurs
+- Return error if all retries fail
 
 **Rationale**:
 - 6 characters alphanumeric = 36^6 = 2.1 billion combinations
 - Collision probability is extremely low
 - 5 retries is more than sufficient
 - If all retries fail, it's likely a system issue (return error to user)
+
+**Key Considerations**:
+- Configurable retry limit
+- Clear error message for generation failure
+- Log collision events for monitoring
 
 ### File Upload Timeout and Progress
 
@@ -1027,75 +910,52 @@ async generateUniqueCourseCode(maxRetries = 5): Promise<string> {
 
 **Challenge**: Two teachers (or same teacher in two tabs) grading same submission simultaneously.
 
-**Solution**:
+**Design Approach**:
+
 1. **Optimistic Locking**:
    - Add `version` field to Submission model
    - Increment version on each update
-   - Check version before update:
-   ```typescript
-   const updated = await prisma.submission.updateMany({
-     where: { 
-       id: submissionId,
-       version: currentVersion 
-     },
-     data: { 
-       grade,
-       version: currentVersion + 1 
-     }
-   })
-   
-   if (updated.count === 0) {
-     throw new Error('SUBMISSION_MODIFIED')
-   }
-   ```
+   - Check version before update to detect concurrent modifications
+   - If version mismatch, reject update with error
 
 2. **UI Indication**:
    - Show "Last updated by [teacher] at [time]" on grading page
    - Warn if submission was recently modified
 
+**Key Considerations**:
+- Optimistic locking prevents data loss from concurrent updates
+- Version field tracks modification history
+- Clear error messages guide users to refresh and retry
+
 ### Archive Course Flow
 
 **Challenge**: Archiving must close all assignments/quizzes and prevent submissions atomically.
 
-**Solution**:
-```typescript
-async archiveCourse(courseId: string, teacherId: string): Promise<Course> {
-  return await prisma.$transaction(async (tx) => {
-    // 1. Update course status
-    const course = await tx.course.update({
-      where: { id: courseId, teacherId },
-      data: { status: 'ARCHIVED' }
-    })
-    
-    // 2. Close all assignments
-    await tx.assignment.updateMany({
-      where: { courseId },
-      data: { gradingStarted: true }
-    })
-    
-    // 3. Note: Quizzes are closed by due date check, not by flag
-    // Students cannot start quiz if course is archived (checked in startQuiz)
-    
-    return course
-  })
-}
-```
+**Design Approach**:
 
-**Validation in startQuiz**:
-```typescript
-async startQuiz(quizId: string, studentId: string) {
-  const quiz = await prisma.quiz.findUnique({
-    where: { id: quizId },
-    include: { course: true }
-  })
-  
-  if (quiz.course.status === 'ARCHIVED') {
-    throw new Error('COURSE_ARCHIVED')
-  }
-  
-  // ... rest of logic
-}
-```
+1. **Atomic Operation**:
+   - Use database transaction to ensure all-or-nothing operation
+   - Update course status to ARCHIVED
+   - Close all assignments by setting `gradingStarted` flag
+   - Validate course ownership before operation
+
+2. **Quiz Handling**:
+   - Quizzes are closed by due date check, not by flag
+   - Students cannot start quiz if course is archived (checked at quiz start)
+   - Existing quiz attempts can be completed
+
+**Key Considerations**:
+- Transaction ensures atomicity
+- Prevents race conditions during archiving
+**Key Considerations**:
+- Transaction ensures atomicity
+- Prevents race conditions during archiving
+- Clear separation between assignment and quiz closing mechanisms
+
+3. **Validation in Quiz Start**:
+   - Check course status before allowing quiz start
+   - Reject if course is archived
+   - Return appropriate error code
 
 
 
@@ -1103,17 +963,12 @@ async startQuiz(quizId: string, studentId: string) {
 
 ### Error Response Format
 
-All API errors follow a consistent format:
+All API errors follow a consistent format with error code, message, and optional details for debugging.
 
-```typescript
-interface ErrorResponse {
-  error: {
-    code: string
-    message: string
-    details?: any
-  }
-}
-```
+**Response Structure**:
+- `code`: Machine-readable error identifier
+- `message`: Human-readable error description
+- `details`: Optional additional context (validation errors, field-specific messages)
 
 ### Error Categories
 
@@ -1567,101 +1422,105 @@ The following properties represent the consolidated, non-redundant set of correc
 *For any* quiz submission, teachers should be able to manually assign points to each question, and these points should be stored with the answer.
 **Validates: Requirements 13.8**
 
-**Property 55: Quiz total equals sum of question points**
+**Property 55: Quiz grading displays warning for inconsistent totals**
+*For any* quiz submission where the sum of manually assigned question points does not equal 100, the system should display a warning to the teacher indicating the discrepancy.
+**Validates: Requirements 13.9**
+
+**Property 56: Quiz total equals sum of question points**
 *For any* quiz submission with manually assigned question points, the total grade should equal the sum of all question points.
 **Validates: Requirements 13.10**
 
 ### Submission Viewing Properties
 
-**Property 56: Teachers view all submissions**
+**Property 57: Teachers view all submissions**
 *For any* assignment or quiz, teachers should be able to view all student submissions with status (not submitted, submitted, graded, late), student names, and timestamps.
 **Validates: Requirements 14.1, 14.2, 14.3**
 
-**Property 57: Submission links are provided**
+**Property 58: Submission links are provided**
 *For any* submission, teachers should have access to links to view the submitted content (files, text, or quiz answers).
 **Validates: Requirements 14.4**
 
-**Property 58: Submissions are separated by grading status**
+**Property 59: Submissions are separated by grading status**
 *For any* assignment or quiz, the submission list should correctly separate ungraded and graded submissions.
 **Validates: Requirements 14.5**
 
 ### Grade Export Properties
 
-**Property 59: Grade export generates complete CSV**
+**Property 60: Grade export generates complete CSV**
 *For any* course, exporting grades should generate a CSV file containing all students, all assignments/quizzes, with student name, email, item name, grade (or "Not Submitted"/"Pending"), submission date, and average grade per student.
 **Validates: Requirements 15.1, 15.2, 15.3, 15.5**
 
-**Property 60: Grade export is downloadable**
+**Property 61: Grade export is downloadable**
 *For any* generated grade export, teachers should be able to download the CSV file.
 **Validates: Requirements 15.4**
 
 ### Student Progress Properties
 
-**Property 61: Student progress shows all items**
+**Property 62: Student progress shows all items**
 *For any* student enrolled in a course, viewing progress should display all assignments and quizzes with correct status ("Not Submitted", "Submitted", "Graded"), grades, feedback, overdue indicators, and late markers.
 **Validates: Requirements 16.1, 16.2, 16.3, 16.4, 16.5, 16.6**
 
-**Property 62: Course average is calculated correctly**
+**Property 63: Course average is calculated correctly**
 *For any* student with graded items in a course, the displayed average grade should equal the mean of all graded item scores.
 **Validates: Requirements 16.7**
 
 ### Data Persistence Properties
 
-**Property 63: Entity CRUD operations persist**
+**Property 64: Entity CRUD operations persist**
 *For any* entity type (User, Course, Material, Assignment, Quiz, Submission), create, update, and delete operations should correctly persist changes to the database, and subsequent reads should reflect those changes.
 **Validates: Requirements 17.1, 17.2, 17.3**
 
-**Property 64: Referential integrity is maintained**
+**Property 65: Referential integrity is maintained**
 *For any* related entities (e.g., Course and Enrollments, Assignment and Submissions), operations should maintain referential integrity, with cascade deletes removing related data and foreign key constraints preventing orphaned records.
 **Validates: Requirements 17.4**
 
 ### API Response Properties
 
-**Property 65: Success responses are consistent**
+**Property 66: Success responses are consistent**
 *For any* successful API request, the response should include success indicators and follow a consistent format with the requested data.
 **Validates: Requirements 18.2**
 
-**Property 66: Error responses are consistent**
+**Property 67: Error responses are consistent**
 *For any* failed API request, the response should include an error code, descriptive message, and follow a consistent error format without exposing internal system details.
 **Validates: Requirements 18.3, 18.5, 21.3**
 
 ### Security Properties
 
-**Property 67: Passwords are hashed**
+**Property 68: Passwords are hashed**
 *For any* user registration or password update, the password should never be stored in plain text; only the hashed version should be persisted.
 **Validates: Requirements 20.1**
 
-**Property 68: Input validation prevents injection**
+**Property 69: Input validation prevents injection**
 *For any* user input, the system should sanitize and validate the input to prevent SQL injection, XSS, and other injection attacks.
 **Validates: Requirements 20.2**
 
-**Property 69: File access is authorized**
+**Property 70: File access is authorized**
 *For any* file access request, the system should verify the user is authorized (enrolled in the course or owns the submission) before allowing download.
 **Validates: Requirements 20.3**
 
-**Property 70: File uploads are validated**
+**Property 71: File uploads are validated**
 *For any* file upload, the system should validate file type against allowed types and file size against the 10MB limit, rejecting invalid uploads.
 **Validates: Requirements 20.4, 20.5**
 
 ### System Availability Properties
 
-**Property 71: Database connection retry works**
+**Property 72: Database connection retry works**
 *For any* database connection failure, the system should retry up to 3 times before returning an error to the user.
 **Validates: Requirements 21.1**
 
-**Property 72: Errors are logged**
+**Property 73: Errors are logged**
 *For any* API error, the system should log the error with timestamp, user context, and error details for debugging.
 **Validates: Requirements 21.2**
 
-**Property 73: Concurrent requests don't corrupt data**
+**Property 74: Concurrent requests don't corrupt data**
 *For any* set of concurrent requests modifying the same data, the system should use transactions and locking to prevent data corruption and maintain consistency.
 **Validates: Requirements 21.5**
 
-**Property 74: File uploads don't timeout**
+**Property 75: File uploads don't timeout**
 *For any* file upload under the 10MB size limit, the upload should complete without timeout errors.
 **Validates: Requirements 21.6**
 
-**Property 75: Database connections are validated**
+**Property 76: Database connections are validated**
 *For any* API request, the system should validate the database connection is active before processing the request.
 **Validates: Requirements 21.7**
 
