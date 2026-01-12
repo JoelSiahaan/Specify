@@ -1,5 +1,101 @@
 # Design Document: Learning Management System (LMS)
 
+## Table of Contents
+
+1. [Overview](#overview)
+   - [Key Design Decisions](#key-design-decisions)
+
+2. [Architecture](#architecture)
+   - [Clean Architecture Overview](#clean-architecture-overview)
+   - [Dependency Rule](#dependency-rule)
+   - [System Architecture](#system-architecture)
+   - [Technology Stack](#technology-stack)
+   - [Clean Architecture Layers](#clean-architecture-layers)
+
+3. [Authorization Architecture](#authorization-architecture)
+   - [Overview](#overview-1)
+   - [Authorization Strategy](#authorization-strategy)
+   - [Authorization Flow](#authorization-flow)
+   - [Authorization Policy Design](#authorization-policy-design)
+   - [Access Control Rules](#access-control-rules)
+   - [Key Authorization Design Decisions](#key-authorization-design-decisions)
+
+4. [Transaction Management Strategy](#transaction-management-strategy)
+   - [Overview](#overview-2)
+   - [Transaction Boundary Principles](#transaction-boundary-principles)
+   - [Transaction Patterns](#transaction-patterns)
+   - [Transaction Flow Diagram](#transaction-flow-diagram)
+   - [Critical Transaction Scenarios](#critical-transaction-scenarios)
+   - [Transaction Design Decisions](#transaction-design-decisions)
+
+5. [Data Flow and DTO Mapping](#data-flow-and-dto-mapping)
+   - [Overview](#overview-3)
+   - [DTO Mapping Responsibilities](#dto-mapping-responsibilities)
+   - [Data Flow Patterns](#data-flow-patterns)
+   - [DTO Mapping Flow Diagram](#dto-mapping-flow-diagram)
+   - [Mapper Design Patterns](#mapper-design-patterns)
+   - [DTO Design Decisions](#dto-design-decisions)
+
+6. [Components and Interfaces](#components-and-interfaces)
+   - [Layer Organization](#layer-organization)
+   - [Clean Architecture Layer Responsibilities](#clean-architecture-layer-responsibilities)
+   - [Backend API Endpoints](#backend-api-endpoints)
+   - [Use Case Catalog](#use-case-catalog)
+
+7. [Data Models](#data-models)
+   - [Domain Entities vs Database Schema](#domain-entities-vs-database-schema)
+   - [Database Schema (Prisma)](#database-schema-prisma)
+   - [Key Data Model Decisions](#key-data-model-decisions)
+
+8. [Critical Flows and Edge Cases](#critical-flows-and-edge-cases)
+   - [JWT Logout Flow](#jwt-logout-flow)
+   - [Quiz Timer and Network Issues](#quiz-timer-and-network-issues)
+   - [Grading Lock and Concurrency](#grading-lock-and-concurrency)
+   - [Course Code Generation with Retry Limit](#course-code-generation-with-retry-limit)
+   - [File Upload Timeout and Progress](#file-upload-timeout-and-progress)
+   - [Concurrent Grading Prevention](#concurrent-grading-prevention)
+   - [Archive Course Flow](#archive-course-flow)
+
+9. [Error Handling](#error-handling)
+   - [Error Response Format](#error-response-format)
+   - [Error Categories](#error-categories)
+   - [Error Handling Strategy](#error-handling-strategy)
+   - [Specific Error Scenarios](#specific-error-scenarios)
+
+10. [Testing Strategy](#testing-strategy)
+    - [Testing Approach](#testing-approach)
+    - [Testing Framework](#testing-framework)
+    - [Test Configuration](#test-configuration)
+    - [Testing by Clean Architecture Layer](#testing-by-clean-architecture-layer)
+    - [Unit Testing Focus](#unit-testing-focus)
+    - [Property-Based Testing Focus](#property-based-testing-focus)
+    - [Test Organization](#test-organization)
+    - [Property Test Tagging](#property-test-tagging)
+    - [Integration Testing](#integration-testing)
+    - [End-to-End Testing Considerations](#end-to-end-testing-considerations)
+
+11. [Correctness Properties](#correctness-properties)
+    - [Property Reflection](#property-reflection)
+    - [Authentication and Authorization Properties](#authentication-and-authorization-properties)
+    - [Course Management Properties](#course-management-properties)
+    - [Course Discovery and Enrollment Properties](#course-discovery-and-enrollment-properties)
+    - [Material Management Properties](#material-management-properties)
+    - [Student Material Access Properties](#student-material-access-properties)
+    - [Assignment Management Properties](#assignment-management-properties)
+    - [Assignment Submission Properties](#assignment-submission-properties)
+    - [Quiz Management Properties](#quiz-management-properties)
+    - [Quiz Taking Properties](#quiz-taking-properties)
+    - [Grading Properties](#grading-properties)
+    - [Submission Viewing Properties](#submission-viewing-properties)
+    - [Grade Export Properties](#grade-export-properties)
+    - [Student Progress Properties](#student-progress-properties)
+    - [Data Persistence Properties](#data-persistence-properties)
+    - [API Response Properties](#api-response-properties)
+    - [Security Properties](#security-properties)
+    - [System Availability Properties](#system-availability-properties)
+
+---
+
 ## Overview
 
 The Learning Management System is a web-based platform built with React 19.2 (TypeScript) frontend and a REST API backend using Node.js/Express with Prisma ORM and PostgreSQL database. The system supports two user roles (Student and Teacher) with distinct capabilities for course management, content delivery, and assessment.
@@ -188,10 +284,11 @@ The heart of the application containing business logic and rules. This layer is 
 **Storage Interfaces (Ports)** - Contracts for file storage
 - `IFileStorage`: File upload, download, delete operations
 
-**Domain Events** - Events representing business occurrences
+**Domain Events** - Events representing business occurrences (Future Enhancement)
 - `CourseCreatedEvent`, `CourseArchivedEvent`
 - `AssignmentSubmittedEvent`, `AssignmentGradedEvent`
 - `QuizStartedEvent`, `QuizSubmittedEvent`
+- **Note**: Domain Events are defined in the architecture but not implemented in MVP. They are reserved for future enhancements such as email notifications, audit logging, and event-driven workflows. For MVP, all operations are synchronous without event publishing.
 
 #### **2. Application Layer (Use Cases)**
 
@@ -371,6 +468,326 @@ graph TB
 4. **Flexibility**: Authorization rules can change without modifying use cases or domain entities
 5. **Reusability**: Same policy methods used across multiple use cases
 6. **Dependency Inversion**: Use cases depend on policy interface (port), not concrete implementation
+
+## Transaction Management Strategy
+
+### Overview
+
+The LMS uses database transactions to ensure data consistency and atomicity for multi-step operations. Transaction boundaries are managed at the Application Layer (Use Cases) to maintain clean separation of concerns.
+
+### Transaction Boundary Principles
+
+**Transaction Scope**:
+- **Use Cases** define transaction boundaries (where transactions start and end)
+- **Repositories** execute operations within the transaction context
+- **Domain Entities** remain transaction-agnostic (no transaction logic in domain layer)
+
+**Transaction Responsibility**:
+- **Application Layer (Use Cases)**: Decides which operations need transactions
+- **Infrastructure Layer (Repositories)**: Provides transaction execution mechanism
+- **Domain Layer**: Completely unaware of transactions (maintains purity)
+
+### Transaction Patterns
+
+#### Pattern 1: Single Entity Operations
+**Scope**: Operations affecting one entity (e.g., create course, update assignment)
+
+**Flow**:
+1. Use Case receives request
+2. Repository method executes in implicit transaction (database default)
+3. Single save/update operation
+4. Automatic commit on success, rollback on error
+
+**Examples**:
+- Create course with generated code
+- Update assignment details
+- Delete material
+
+**Transaction Handling**: Repository handles transaction internally (simple operations)
+
+#### Pattern 2: Multi-Entity Operations
+**Scope**: Operations affecting multiple entities or requiring consistency (e.g., archive course, grade submission)
+
+**Flow**:
+1. Use Case initiates explicit transaction
+2. Multiple repository operations execute within transaction scope
+3. All operations succeed → commit
+4. Any operation fails → rollback all changes
+
+**Examples**:
+- **Archive Course**: Update course status + close all assignments + close all quizzes
+- **Grade Submission**: Save grade + update submission status + set grading lock on assignment
+- **Delete Course**: Remove course + cascade delete materials + assignments + submissions + enrollments
+
+**Transaction Handling**: Use Case coordinates transaction across multiple repository calls
+
+#### Pattern 3: Optimistic Locking
+**Scope**: Concurrent modification prevention (e.g., concurrent grading)
+
+**Flow**:
+1. Entity includes version field
+2. Read entity with current version
+3. Modify entity
+4. Save with version check
+5. If version mismatch → reject with concurrency error
+6. If version matches → increment version and save
+
+**Examples**:
+- Concurrent grading of same submission
+- Concurrent course updates
+
+**Transaction Handling**: Database-level optimistic locking with version field
+
+### Transaction Flow Diagram
+
+```mermaid
+graph TB
+    Controller[Controller]
+    UseCase[Use Case]
+    TxManager[Transaction Manager<br/>Infrastructure Layer]
+    Repo1[Repository 1]
+    Repo2[Repository 2]
+    DB[(Database)]
+    
+    Controller -->|DTO| UseCase
+    UseCase -->|Begin Transaction| TxManager
+    TxManager -->|Transaction Context| Repo1
+    TxManager -->|Transaction Context| Repo2
+    Repo1 --> DB
+    Repo2 --> DB
+    DB -->|Success| TxManager
+    TxManager -->|Commit| UseCase
+    UseCase -->|DTO| Controller
+    
+    DB -->|Error| TxManager
+    TxManager -->|Rollback| UseCase
+    UseCase -->|Error| Controller
+```
+
+### Critical Transaction Scenarios
+
+#### Scenario 1: Archive Course (Multi-Entity)
+**Operations**:
+1. Load course entity
+2. Call `course.archive()` (domain logic)
+3. Save course with ARCHIVED status
+4. Update all assignments: set `gradingStarted = true`
+5. (Quizzes closed by due date check, no update needed)
+
+**Transaction Requirement**: All operations must succeed or all must fail (atomicity)
+
+**Rollback Triggers**:
+- Course not found
+- Course already archived
+- Database error during any step
+
+#### Scenario 2: Grade Submission (Multi-Entity with Lock)
+**Operations**:
+1. Load submission entity
+2. Check authorization (policy)
+3. Load assignment entity
+4. Check if `gradingStarted = false` (first grading)
+5. If first grading: set `assignment.gradingStarted = true`
+6. Save grade to submission
+7. Update submission status to GRADED
+
+**Transaction Requirement**: Grading lock must be set atomically with grade save
+
+**Rollback Triggers**:
+- Submission not found
+- Authorization failed
+- Invalid grade value
+- Database error
+
+#### Scenario 3: Submit Assignment (Concurrency Check)
+**Operations**:
+1. Load assignment entity
+2. Check `gradingStarted` flag
+3. If `gradingStarted = true` → reject submission
+4. If `gradingStarted = false` → accept submission
+5. Save submission with timestamp
+
+**Transaction Requirement**: Check and save must be atomic to prevent race conditions
+
+**Concurrency Handling**: Re-check `gradingStarted` flag inside transaction scope
+
+### Transaction Design Decisions
+
+1. **Boundary Location**: Use Cases manage transaction boundaries (Application Layer responsibility)
+2. **Domain Purity**: Domain entities never reference transactions (framework-agnostic)
+3. **Repository Abstraction**: Transaction mechanism abstracted behind repository interface
+4. **Explicit vs Implicit**: Simple operations use implicit transactions, complex operations use explicit
+5. **Error Handling**: All transaction errors trigger rollback and propagate to Use Case
+6. **Testing Strategy**: Use Cases tested with mocked repositories, transaction logic tested in integration tests
+
+## Data Flow and DTO Mapping
+
+### Overview
+
+The LMS uses Data Transfer Objects (DTOs) to decouple external representations (HTTP requests/responses) from internal domain models. Mappers handle bidirectional conversion between DTOs and domain entities.
+
+### DTO Mapping Responsibilities
+
+**Layer Responsibilities**:
+
+| Layer | Responsibility | Direction | Purpose |
+|-------|---------------|-----------|---------|
+| **Presentation (Controllers)** | Parse HTTP request → Input DTO | Request → DTO | Input validation, type safety |
+| **Application (Use Cases)** | Input DTO → Domain Entity | DTO → Entity | Prepare data for business logic |
+| **Application (Use Cases)** | Domain Entity → Output DTO | Entity → DTO | Prepare data for response |
+| **Presentation (Controllers)** | Output DTO → HTTP response | DTO → JSON | Format response |
+
+**Mapper Location**: Application Layer (mappers are application-specific, not domain logic)
+
+### Data Flow Patterns
+
+#### Pattern 1: Create Operation (POST)
+**Flow**: HTTP Request → Input DTO → Domain Entity → Repository → Domain Entity → Output DTO → HTTP Response
+
+**Steps**:
+1. **Controller**: Parse JSON request body → `CreateCourseDTO`
+2. **Controller**: Validate DTO (required fields, format)
+3. **Controller**: Pass DTO to Use Case
+4. **Use Case**: Map DTO → Domain Entity using `CourseMapper.toDomain(dto)`
+5. **Use Case**: Execute business logic (e.g., generate course code)
+6. **Use Case**: Save entity via repository
+7. **Repository**: Return saved entity
+8. **Use Case**: Map Entity → Output DTO using `CourseMapper.toDTO(entity)`
+9. **Use Case**: Return DTO to Controller
+10. **Controller**: Format DTO as JSON response (201 Created)
+
+**Mapping Responsibility**:
+- Controller: Request → DTO (input validation)
+- Use Case: DTO → Entity (before business logic)
+- Use Case: Entity → DTO (after business logic)
+- Controller: DTO → Response (formatting)
+
+#### Pattern 2: Read Operation (GET)
+**Flow**: HTTP Request → Use Case → Repository → Domain Entity → Output DTO → HTTP Response
+
+**Steps**:
+1. **Controller**: Extract ID from URL parameters
+2. **Controller**: Pass ID to Use Case
+3. **Use Case**: Load entity from repository
+4. **Use Case**: Check authorization (policy)
+5. **Use Case**: Map Entity → Output DTO using `CourseMapper.toDTO(entity)`
+6. **Use Case**: Return DTO to Controller
+7. **Controller**: Format DTO as JSON response (200 OK)
+
+**Mapping Responsibility**:
+- Use Case: Entity → DTO (after authorization)
+- Controller: DTO → Response (formatting)
+
+#### Pattern 3: Update Operation (PUT)
+**Flow**: HTTP Request → Input DTO → Domain Entity → Repository → Domain Entity → Output DTO → HTTP Response
+
+**Steps**:
+1. **Controller**: Parse JSON request body → `UpdateCourseDTO`
+2. **Controller**: Validate DTO
+3. **Controller**: Pass DTO to Use Case
+4. **Use Case**: Load existing entity from repository
+5. **Use Case**: Check authorization (policy)
+6. **Use Case**: Apply DTO changes to entity using `CourseMapper.updateEntity(entity, dto)`
+7. **Use Case**: Entity validates changes (domain rules)
+8. **Use Case**: Save updated entity via repository
+9. **Use Case**: Map Entity → Output DTO using `CourseMapper.toDTO(entity)`
+10. **Use Case**: Return DTO to Controller
+11. **Controller**: Format DTO as JSON response (200 OK)
+
+**Mapping Responsibility**:
+- Controller: Request → DTO (input validation)
+- Use Case: DTO → Entity updates (apply changes)
+- Use Case: Entity → DTO (after save)
+- Controller: DTO → Response (formatting)
+
+#### Pattern 4: List Operation (GET with filters)
+**Flow**: HTTP Request → Query Parameters → Repository → Domain Entities → Output DTOs → HTTP Response
+
+**Steps**:
+1. **Controller**: Extract query parameters (filters, pagination)
+2. **Controller**: Create query DTO (optional)
+3. **Controller**: Pass parameters to Use Case
+4. **Use Case**: Load entities from repository (with filters)
+5. **Use Case**: Check authorization for each entity (policy)
+6. **Use Case**: Map Entities → Output DTOs using `CourseMapper.toDTOList(entities)`
+7. **Use Case**: Return DTO list to Controller
+8. **Controller**: Format DTOs as JSON array response (200 OK)
+
+**Mapping Responsibility**:
+- Use Case: Entity List → DTO List (bulk mapping)
+- Controller: DTO List → Response (formatting)
+
+### DTO Mapping Flow Diagram
+
+```mermaid
+graph LR
+    Request[HTTP Request<br/>JSON]
+    Controller[Controller<br/>Parse & Validate]
+    InputDTO[Input DTO<br/>CreateCourseDTO]
+    UseCase[Use Case<br/>Business Logic]
+    Mapper[Mapper<br/>Application Layer]
+    Entity[Domain Entity<br/>Course]
+    Repo[Repository]
+    OutputDTO[Output DTO<br/>CourseResponseDTO]
+    Response[HTTP Response<br/>JSON]
+    
+    Request --> Controller
+    Controller -->|Parse| InputDTO
+    InputDTO --> UseCase
+    UseCase -->|Map DTO→Entity| Mapper
+    Mapper --> Entity
+    Entity --> Repo
+    Repo --> Entity
+    Entity -->|Map Entity→DTO| Mapper
+    Mapper --> OutputDTO
+    OutputDTO --> UseCase
+    UseCase --> Controller
+    Controller -->|Format| Response
+```
+
+### Mapper Design Patterns
+
+#### Mapper Interface Pattern
+**Purpose**: Define contracts for mapping operations
+
+**Methods**:
+- `toDomain(dto)`: Convert DTO to Domain Entity (for create/update)
+- `toDTO(entity)`: Convert Domain Entity to DTO (for read/response)
+- `toDTOList(entities)`: Bulk convert entities to DTOs (for list operations)
+- `updateEntity(entity, dto)`: Apply DTO changes to existing entity (for updates)
+
+#### Mapping Strategies
+
+**Strategy 1: Simple Mapping**
+- Direct field-to-field mapping
+- No complex transformations
+- Example: `name`, `description`, `email`
+
+**Strategy 2: Value Object Mapping**
+- Convert between Value Objects and primitives
+- Example: `CourseCode` → `string`, `Email` → `string`
+
+**Strategy 3: Nested Entity Mapping**
+- Map related entities to nested DTOs
+- Example: `Course` with `Teacher` → `CourseDTO` with `TeacherDTO`
+
+**Strategy 4: Computed Field Mapping**
+- Calculate derived values for DTOs
+- Example: `timeRemaining` calculated from `dueDate`
+
+**Strategy 5: Selective Mapping**
+- Include/exclude fields based on context
+- Example: Hide sensitive fields for non-owners
+
+### DTO Design Decisions
+
+1. **DTO Location**: Application Layer (DTOs are application-specific contracts)
+2. **Mapper Location**: Application Layer (mappers use application logic)
+3. **Validation**: Controllers validate DTO structure, Domain Entities validate business rules
+4. **Immutability**: DTOs are immutable data structures (no business logic)
+5. **Separation**: Input DTOs (requests) separate from Output DTOs (responses)
+6. **Null Handling**: DTOs use optional fields, Domain Entities enforce required fields
+7. **Testing**: Mappers tested with unit tests, full flow tested with integration tests
 
 ## Components and Interfaces
 
