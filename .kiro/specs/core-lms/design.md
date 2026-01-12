@@ -55,13 +55,13 @@
    - [Concurrent Grading Prevention](#concurrent-grading-prevention)
    - [Archive Course Flow](#archive-course-flow)
 
-10. [Error Handling](#error-handling)
+9. [Error Handling](#error-handling)
     - [Error Response Format](#error-response-format)
     - [Error Categories](#error-categories)
     - [Error Handling Strategy](#error-handling-strategy)
     - [Specific Error Scenarios](#specific-error-scenarios)
 
-11. [Testing Strategy](#testing-strategy)
+10. [Testing Strategy](#testing-strategy)
     - [Testing Approach](#testing-approach)
     - [Testing Framework](#testing-framework)
     - [Test Configuration](#test-configuration)
@@ -74,7 +74,7 @@
     - [Security Testing Strategy](#security-testing-strategy)
     - [End-to-End Testing Considerations](#end-to-end-testing-considerations)
 
-12. [Correctness Properties](#correctness-properties)
+11. [Correctness Properties](#correctness-properties)
     - [Property Reflection](#property-reflection)
     - [Authentication and Authorization Properties](#authentication-and-authorization-properties)
     - [Course Management Properties](#course-management-properties)
@@ -243,6 +243,37 @@ graph TB
     style Storage fill:#e1ffe1
 ```
 
+### Dependency Injection Strategy
+
+The LMS uses **TSyringe** for dependency injection to achieve loose coupling, testability, and adherence to the Dependency Inversion Principle. The DI container manages all dependencies and eliminates the need for manual instantiation or Application Service facades.
+
+#### DI Container Configuration
+
+**Location:** `infrastructure/di/container.ts`
+
+**Registration:**
+```typescript
+import { container } from "tsyringe";
+
+// Register interface → implementation bindings
+container.registerSingleton<ICourseRepository>("ICourseRepository", PrismaCourseRepository);
+container.registerSingleton<IFileStorage>("IFileStorage", LocalFileStorage);
+
+// Register use cases and controllers
+container.register(CreateCourseUseCase, { useClass: CreateCourseUseCase });
+container.register(CourseController, { useClass: CourseController });
+```
+
+**Lifecycle:**
+- **Singleton**: Repositories, database connections (shared connection pool)
+- **Transient**: Use Cases (stateless, created per request)
+
+**Benefits:**
+- Loose coupling through interfaces (Dependency Inversion Principle)
+- Easy testing with mock injection
+- Swappable implementations (e.g., Prisma → alternative ORM, LocalFileStorage → S3)
+- Automatic dependency resolution
+
 ### Technology Stack
 
 - **Frontend**: React 19.2 with TypeScript, Vite 7.2
@@ -287,9 +318,7 @@ The heart of the application containing business logic and rules. This layer is 
 
 **Domain Services** - Operations spanning multiple entities
 - `CourseCodeGenerator`: Generate unique course codes
-- `GradingPolicy`: Grading rules and validation
-- `EnrollmentPolicy`: Enrollment eligibility rules
-- `QuizTimingService`: Quiz timer calculations
+- `QuizTimingService`: Quiz timer calculations and validation
 
 **Repository Interfaces (Ports)** - Contracts for data access
 - `ICourseRepository`: Course data operations
@@ -334,15 +363,11 @@ Orchestrates the flow of data between domain and outer layers. Contains applicat
 - `AssignmentMapper`: Map Assignment entity ↔ DTOs
 - `SubmissionMapper`: Map Submission entity ↔ DTOs
 
-**Authorization Policies** - Access control rules
-- `CourseAccessPolicy`: Who can access/modify courses
-- `AssignmentAccessPolicy`: Who can submit/grade assignments
-- `EnrollmentPolicy`: Who can enroll in courses
-
-**Application Services** - Coordinate multiple use cases
-- `CourseApplicationService`: Orchestrate course-related use cases
-- `AssignmentApplicationService`: Orchestrate assignment workflows
-- `GradingApplicationService`: Orchestrate grading workflows
+**Authorization Policies** - Access control rules (pure functions)
+- `IAuthorizationPolicy`: Interface for authorization decisions
+- `AuthorizationPolicy`: Implementation with role-based and resource-based checks
+- Policies receive data from Use Cases, don't query repositories
+- Pure functions: `(user, resource, context) => boolean`
 
 #### **3. Infrastructure Layer (Outer - Implementations)**
 
@@ -454,14 +479,33 @@ graph TB
 - Supports Dependency Inversion Principle
 
 **Policy Implementation** (Application Layer):
-- Queries repositories to check ownership, enrollment, and role
-- Returns boolean decision (authorized or not)
+- Receives necessary data from Use Case (no direct repository queries)
+- Returns boolean decision (authorized or not) based on provided data
+- Pure function: `(user, resource, context) => boolean`
 - No business logic, only access control decisions
 
-**Use Case Integration**:
-- Use cases call policy methods before executing business operations
-- If unauthorized, throw ForbiddenError with specific error code
-- If authorized, proceed with domain entity operations
+**Use Case Integration:**
+```typescript
+// Use Case loads data first, then checks authorization
+async execute(userId: string, courseId: string) {
+  // 1. Load necessary data
+  const user = await this.userRepo.findById(userId);
+  const course = await this.courseRepo.findById(courseId);
+  
+  // 2. Check authorization with loaded data
+  if (!this.policy.canAccessCourse(user, course)) {
+    throw new ForbiddenError('NOT_ENROLLED');
+  }
+  
+  // 3. Execute business logic
+  // ...
+}
+```
+
+**Key Design:**
+- Use Cases orchestrate: load data → check policy → execute logic
+- Policies are stateless pure functions
+- No circular dependencies (policies don't query repositories)
 
 ### Access Control Rules
 
@@ -480,12 +524,13 @@ graph TB
 
 ### Key Authorization Design Decisions
 
-1. **Policy Location**: Application Layer (not Domain Layer) because authorization requires repository queries
-2. **Separation of Concerns**: Authorization logic separated from business logic in domain entities
-3. **Testability**: Policies can be unit tested with mocked repositories
-4. **Flexibility**: Authorization rules can change without modifying use cases or domain entities
-5. **Reusability**: Same policy methods used across multiple use cases
-6. **Dependency Inversion**: Use cases depend on policy interface (port), not concrete implementation
+1. **Policy Location**: Application Layer (authorization is application concern, not domain logic)
+2. **No Repository Dependencies**: Policies receive data from Use Cases, don't query repositories directly
+3. **Separation of Concerns**: Authorization logic separated from business logic in domain entities
+4. **Testability**: Policies are pure functions, easy to unit test without mocks
+5. **Flexibility**: Authorization rules can change without modifying use cases or domain entities
+6. **Reusability**: Same policy methods used across multiple use cases
+7. **Dependency Inversion**: Use cases depend on policy interface (port), not concrete implementation
 
 ## Transaction Management Strategy
 
@@ -495,15 +540,27 @@ The LMS uses database transactions to ensure data consistency and atomicity for 
 
 ### Transaction Boundary Principles
 
-**Transaction Scope**:
-- **Use Cases** define transaction boundaries (where transactions start and end)
-- **Repositories** execute operations within the transaction context
+**Transaction Scope:**
+- **Use Cases** coordinate operations that need transactional consistency
+- **Unit of Work** (Infrastructure Layer) manages transaction lifecycle
+- **Repositories** execute operations within transaction context
 - **Domain Entities** remain transaction-agnostic (no transaction logic in domain layer)
 
-**Transaction Responsibility**:
-- **Application Layer (Use Cases)**: Decides which operations need transactions
-- **Infrastructure Layer (Repositories)**: Provides transaction execution mechanism
+**Transaction Responsibility:**
+- **Application Layer (Use Cases)**: Coordinates operations, calls `unitOfWork.commit()`
+- **Infrastructure Layer (Unit of Work)**: Manages transaction begin/commit/rollback
+- **Infrastructure Layer (Repositories)**: Executes queries within transaction
 - **Domain Layer**: Completely unaware of transactions (maintains purity)
+
+**Unit of Work Pattern:**
+```typescript
+// Use Case coordinates without knowing transaction details
+async execute(data: CreateCourseDTO) {
+  const course = Course.create(data);
+  await this.courseRepo.save(course);
+  await this.unitOfWork.commit(); // Infrastructure handles transaction
+}
+```
 
 ### Transaction Patterns
 
@@ -526,18 +583,30 @@ The LMS uses database transactions to ensure data consistency and atomicity for 
 #### Pattern 2: Multi-Entity Operations
 **Scope**: Operations affecting multiple entities or requiring consistency (e.g., archive course, grade submission)
 
-**Flow**:
-1. Use Case initiates explicit transaction
-2. Multiple repository operations execute within transaction scope
-3. All operations succeed → commit
-4. Any operation fails → rollback all changes
+**Flow:**
+1. Use Case coordinates multiple operations
+2. Unit of Work begins transaction automatically
+3. Multiple repository operations execute within transaction scope
+4. Use Case calls `unitOfWork.commit()`
+5. All operations succeed → commit, any operation fails → rollback
 
-**Examples**:
-- **Archive Course**: Update course status + close all assignments + close all quizzes
+**Examples:**
+- **Archive Course**: Update course status + close all assignments
 - **Grade Submission**: Save grade + update submission status + set grading lock on assignment
 - **Delete Course**: Remove course + cascade delete materials + assignments + submissions + enrollments
 
-**Transaction Handling**: Use Case coordinates transaction across multiple repository calls
+**Transaction Handling:** Unit of Work manages transaction, Use Case coordinates operations
+
+**Prisma Implementation:**
+```typescript
+// Unit of Work with Prisma
+class PrismaUnitOfWork implements IUnitOfWork {
+  async commit() {
+    // Prisma handles transaction internally
+    // All operations since last commit are atomic
+  }
+}
+```
 
 #### Pattern 3: Optimistic Locking
 **Scope**: Concurrent modification prevention (e.g., concurrent grading)
@@ -562,23 +631,26 @@ The LMS uses database transactions to ensure data consistency and atomicity for 
 graph TB
     Controller[Controller]
     UseCase[Use Case]
-    TxManager[Transaction Manager<br/>Infrastructure Layer]
+    UoW[Unit of Work<br/>Infrastructure Layer]
     Repo1[Repository 1]
     Repo2[Repository 2]
-    DB[(Database)]
+    DB[(PostgreSQL)]
     
     Controller -->|DTO| UseCase
-    UseCase -->|Begin Transaction| TxManager
-    TxManager -->|Transaction Context| Repo1
-    TxManager -->|Transaction Context| Repo2
-    Repo1 --> DB
-    Repo2 --> DB
-    DB -->|Success| TxManager
-    TxManager -->|Commit| UseCase
+    UseCase -->|Operation 1| Repo1
+    UseCase -->|Operation 2| Repo2
+    UseCase -->|commit| UoW
+    
+    Repo1 -->|within transaction| DB
+    Repo2 -->|within transaction| DB
+    
+    UoW -->|commit transaction| DB
+    DB -->|Success| UoW
+    UoW -->|Success| UseCase
     UseCase -->|DTO| Controller
     
-    DB -->|Error| TxManager
-    TxManager -->|Rollback| UseCase
+    DB -->|Error| UoW
+    UoW -->|Rollback| UseCase
     UseCase -->|Error| Controller
 ```
 
@@ -631,12 +703,13 @@ graph TB
 
 ### Transaction Design Decisions
 
-1. **Boundary Location**: Use Cases manage transaction boundaries (Application Layer responsibility)
-2. **Domain Purity**: Domain entities never reference transactions (framework-agnostic)
-3. **Repository Abstraction**: Transaction mechanism abstracted behind repository interface
-4. **Explicit vs Implicit**: Simple operations use implicit transactions, complex operations use explicit
-5. **Error Handling**: All transaction errors trigger rollback and propagate to Use Case
-6. **Testing Strategy**: Use Cases tested with mocked repositories, transaction logic tested in integration tests
+1. **Unit of Work Pattern**: Infrastructure layer provides transaction management abstraction
+2. **Use Case Coordination**: Use Cases coordinate operations, call `commit()`, but don't manage transaction details
+3. **Domain Purity**: Domain entities never reference transactions (framework-agnostic)
+4. **Repository Abstraction**: Transaction mechanism abstracted behind Unit of Work interface
+5. **Prisma Integration**: Prisma's implicit transactions for simple operations, explicit for complex
+6. **Error Handling**: All transaction errors trigger automatic rollback and propagate to Use Case
+7. **Testing Strategy**: Use Cases tested with mocked Unit of Work, transaction logic tested in integration tests
 
 ## Data Flow and DTO Mapping
 
@@ -807,7 +880,7 @@ graph LR
 6. **Null Handling**: DTOs use optional fields, Domain Entities enforce required fields
 7. **Testing**: Mappers tested with unit tests, full flow tested with integration tests
 
-## Components and Interfaces
+## 6. Components and Interfaces
 
 ### Layer Organization
 
@@ -880,10 +953,6 @@ src/
 │   ├── policies/            # Authorization Policies
 │   │   ├── IAuthorizationPolicy.ts
 │   │   └── AuthorizationPolicy.ts
-│   └── services/            # Application Services
-│       ├── CourseApplicationService.ts
-│       ├── AssignmentApplicationService.ts
-│       └── GradingApplicationService.ts
 │
 ├── infrastructure/          # Infrastructure Layer
 │   ├── persistence/        # Database Implementation
@@ -1098,7 +1167,7 @@ Complete list of Use Cases organized by feature:
 - `LogoutUserUseCase`: Logout (revoke refresh token)
 - `GetCurrentUserUseCase`: Get current user from JWT
 
-## Data Models
+## 7. Data Models
 
 ### Domain Entities vs Database Schema
 
@@ -1139,7 +1208,31 @@ In Clean Architecture, we separate business logic from persistence concerns:
 
 ### Database Schema Design
 
-The database schema is designed to support Clean Architecture principles with clear entity relationships and data integrity constraints.
+The database schema is implemented using Prisma ORM with PostgreSQL. Prisma provides type-safe database access and handles migrations automatically.
+
+#### Prisma Schema Overview
+
+**Location:** `infrastructure/persistence/prisma/schema.prisma`
+
+**Key Configuration:**
+```prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+```
+
+**Design Principles:**
+- PostgreSQL as primary database (ACID compliance, relational integrity)
+- UUID primary keys for security and distributed compatibility
+- Enum types for type-safe status management
+- Cascade deletes for automatic cleanup
+- Indexes on frequently queried fields
+- Unique constraints to prevent duplicates
 
 #### Entity Relationship Diagram
 
@@ -1330,6 +1423,132 @@ erDiagram
 - Individual question responses within quiz submission
 - Stores both selected option (MCQ) and text answer (essay)
 - Points manually assigned by teacher during grading
+
+#### Prisma Schema Implementation
+
+**Core Models Example:**
+
+```prisma
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  coursesCreated Course[]      @relation("TeacherCourses")
+  enrollments    Enrollment[]
+  submissions    Submission[]
+  refreshTokens  RefreshToken[]
+
+  @@index([email])
+}
+
+model Course {
+  id          String       @id @default(uuid())
+  name        String
+  description String
+  courseCode  String       @unique
+  status      CourseStatus @default(ACTIVE)
+  teacherId   String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  teacher     User         @relation("TeacherCourses", fields: [teacherId], references: [id])
+  enrollments Enrollment[]
+  materials   Material[]
+  assignments Assignment[]
+  quizzes     Quiz[]
+
+  @@index([teacherId])
+  @@index([status])
+  @@index([courseCode])
+}
+
+model Assignment {
+  id             String         @id @default(uuid())
+  courseId       String
+  title          String
+  description    String         @db.Text
+  dueDate        DateTime
+  submissionType SubmissionType
+  allowedFormats String[]
+  gradingStarted Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  // Relations
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+
+  @@index([courseId])
+  @@index([dueDate])
+}
+
+model Submission {
+  id           String           @id @default(uuid())
+  studentId    String
+  assignmentId String?
+  quizId       String?
+  submittedAt  DateTime         @default(now())
+  status       SubmissionStatus @default(SUBMITTED)
+  isLate       Boolean          @default(false)
+  grade        Float?
+  feedback     String?          @db.Text
+  version      Int              @default(1)
+  filePath     String?
+  fileName     String?
+  textContent  String?          @db.Text
+  startedAt    DateTime?
+  completedAt  DateTime?
+
+  // Relations
+  student    User       @relation(fields: [studentId], references: [id])
+  assignment Assignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  quiz       Quiz?      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers    Answer[]
+
+  @@index([studentId])
+  @@index([assignmentId])
+  @@index([quizId])
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+}
+
+enum CourseStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum SubmissionType {
+  FILE
+  TEXT
+  BOTH
+}
+
+enum SubmissionStatus {
+  NOT_SUBMITTED
+  SUBMITTED
+  GRADED
+}
+```
+
+**Database Migrations:**
+- Prisma automatically generates migrations from schema changes
+- Migration files stored in `infrastructure/persistence/prisma/migrations/`
+- Run migrations: `npx prisma migrate dev` (development) or `npx prisma migrate deploy` (production)
+
+**Type Safety:**
+- Prisma Client generates TypeScript types from schema
+- Compile-time type checking for all database operations
+- Auto-completion for queries and relations
 
 #### Data Integrity Constraints
 
