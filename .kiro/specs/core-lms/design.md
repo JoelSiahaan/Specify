@@ -6,67 +6,277 @@ The Learning Management System is a web-based platform built with React 19.2 (Ty
 
 ### Key Design Decisions
 
-1. **JWT Authentication**: Using JSON Web Tokens for stateless, scalable authentication
+1. **Clean Architecture**: Layered architecture with clear separation of concerns and dependency inversion
+   - **Domain Layer**: Business entities and rules (framework-independent)
+   - **Application Layer**: Use cases and application logic
+   - **Infrastructure Layer**: External concerns (database, file storage, etc)
+   - **Presentation Layer**: API controllers and UI components
+   - **Dependency Rule**: Dependencies point inward (outer layers depend on inner layers)
+2. **JWT Authentication**: Using JSON Web Tokens for stateless, scalable authentication
    - **Access Token**: Short-lived (15 minutes), stored in HTTP-only cookie
    - **Refresh Token**: Long-lived (7 days), stored in HTTP-only cookie
    - **Logout**: Client-side token removal (simple, stateless approach for MVP)
    - **Security**: HTTP-only cookies prevent XSS attacks, short access token lifetime limits exposure
-2. **MVC Architecture**: Model-View-Controller pattern for clear separation of concerns
-   - Models: Prisma schema and database operations
-   - Views: React components
-   - Controllers: Express route handlers
-3. **Role-based Access Control**: Middleware-based authorization at the API layer
-4. **File Storage**: Local filesystem with configurable path (easily migrated to cloud storage)
-5. **Rich Text Support**: Store HTML content with sanitization to prevent XSS
-6. **Timezone Handling**: Store all timestamps in UTC, convert to user timezone in frontend
-7. **Course Lifecycle**: Active → Archived → Deleted (with safeguards at each stage)
-8. **Grading Lock**: First grading action closes assignment to prevent late submissions
-9. **Manual Grading Only**: All quiz questions (MCQ and essay) require manual point assignment
+3. **Repository Pattern**: Abstract data access through interfaces (Ports)
+   - Domain layer defines repository interfaces
+   - Infrastructure layer implements with Prisma
+   - Easy to swap database implementations
+4. **Use Case Driven**: Each feature is a discrete use case
+   - Single Responsibility: One use case = one business operation
+   - Testable: Easy to test in isolation
+   - Composable: Use cases can orchestrate other use cases
+5. **Domain-Driven Design**: Rich domain models with business logic
+   - Entities contain business rules and validation
+   - Value Objects for immutable concepts
+   - Domain Services for operations spanning multiple entities
+6. **Role-based Access Control**: Policy-based authorization in application layer
+7. **File Storage Abstraction**: Storage interface with multiple implementations
+   - Local filesystem for MVP
+   - Easy to extend to S3/cloud storage
+8. **Rich Text Support**: Store HTML content with sanitization to prevent XSS
+9. **Timezone Handling**: Store all timestamps in UTC, convert to user timezone in frontend
+10. **Course Lifecycle**: Active → Archived → Deleted (with safeguards at each stage)
+11. **Grading Lock**: First grading action closes assignment to prevent late submissions
+12. **Manual Grading Only**: All quiz questions (MCQ and essay) require manual point assignment
 
 ## Architecture
+
+### Clean Architecture Overview
+
+The LMS follows Clean Architecture principles with four distinct layers, each with clear responsibilities and dependencies flowing inward:
+
+```mermaid
+graph TB
+    subgraph Presentation["🎨 Presentation Layer (Outer)"]
+        UI[React Components]
+        API[REST API Controllers]
+    end
+    
+    subgraph Application["📋 Application Layer"]
+        UC[Use Cases/Interactors]
+        DTO[DTOs & Mappers]
+        Policies[Authorization Policies]
+    end
+    
+    subgraph Domain["💎 Domain Layer (Core)"]
+        Entities[Domain Entities]
+        ValueObjects[Value Objects]
+        DomainServices[Domain Services]
+        RepoInterfaces[Repository Interfaces]
+        StorageInterfaces[Storage Interfaces]
+    end
+    
+    subgraph Infrastructure["🔧 Infrastructure Layer (Outer)"]
+        RepoImpl[Repository Implementations]
+        Prisma[Prisma ORM]
+        FileStorage[File Storage Service]
+        DB[(PostgreSQL)]
+        FS[File System]
+    end
+    
+    UI -->|uses| UC
+    API -->|uses| UC
+    UC -->|uses| Entities
+    UC -->|uses| DomainServices
+    UC -->|uses| RepoInterfaces
+    UC -->|uses| StorageInterfaces
+    RepoImpl -.implements.-> RepoInterfaces
+    FileStorage -.implements.-> StorageInterfaces
+    RepoImpl -->|uses| Prisma
+    Prisma --> DB
+    FileStorage --> FS
+    
+    style Domain fill:#e1f5ff
+    style Application fill:#fff4e1
+    style Presentation fill:#f0f0f0
+    style Infrastructure fill:#ffe1e1
+```
+
+### Dependency Rule
+
+**Critical Principle**: Dependencies only point inward. Inner layers know nothing about outer layers.
+
+- ✅ **Application Layer** can depend on **Domain Layer**
+- ✅ **Infrastructure Layer** can depend on **Domain Layer** (implements interfaces)
+- ✅ **Presentation Layer** can depend on **Application Layer**
+- ❌ **Domain Layer** NEVER depends on outer layers
+- ❌ **Domain Layer** NEVER depends on frameworks (Prisma, Express, React)
 
 ### System Architecture
 
 ```mermaid
 graph TB
-    Client[React Frontend<br/>Views]
-    Router[Express Router<br/>Controllers]
+    Client[React Frontend<br/>SPA]
+    Router[Express Router<br/>Thin Controllers]
     Auth[JWT Auth<br/>Middleware]
-    RBAC[RBAC<br/>Middleware]
-    Services[Business Logic<br/>Services]
-    Models[Prisma Models<br/>Data Access]
+    UseCases[Use Cases<br/>Application Logic]
+    Entities[Domain Entities<br/>Business Rules]
+    Repos[Repository<br/>Interfaces]
+    RepoImpl[Prisma<br/>Repositories]
+    Storage[Storage<br/>Interface]
+    StorageImpl[File Storage<br/>Implementation]
     DB[(PostgreSQL<br/>Database)]
-    FS[File Storage]
+    FS[File System<br/>or S3]
     
     Client -->|HTTP/JSON + JWT| Router
     Router --> Auth
-    Auth --> RBAC
-    RBAC --> Services
-    Services --> Models
-    Models --> DB
-    Services --> FS
+    Auth --> UseCases
+    UseCases --> Entities
+    UseCases --> Repos
+    UseCases --> Storage
+    RepoImpl -.implements.-> Repos
+    StorageImpl -.implements.-> Storage
+    RepoImpl --> DB
+    StorageImpl --> FS
+    
+    style Entities fill:#e1f5ff
+    style UseCases fill:#fff4e1
+    style Repos fill:#e1ffe1
+    style Storage fill:#e1ffe1
 ```
 
 ### Technology Stack
 
 - **Frontend**: React 19.2 with TypeScript, Vite 7.2
-- **Backend**: Node.js with Express (MVC pattern)
-- **ORM**: Prisma
+- **Backend**: Node.js with Express
+- **Architecture**: Clean Architecture with DDD principles
+- **ORM**: Prisma (abstracted behind repository interfaces)
 - **Database**: PostgreSQL
 - **Authentication**: JWT (JSON Web Tokens) with HTTP-only cookies
-- **File Storage**: Local filesystem (configurable)
+- **File Storage**: Abstracted interface (Local filesystem for MVP, extensible to S3)
+- **Dependency Injection**: InversifyJS or TSyringe
+- **Validation**: Zod or Joi for DTO validation
 
-### MVC Architecture Pattern
+### Clean Architecture Layers
 
-The application follows the Model-View-Controller (MVC) pattern:
+The application is organized into four distinct layers, each with specific responsibilities:
 
-#### **Model Layer** (Prisma + Database)
-- Prisma schema defines data models
-- Database operations and queries
-- Data validation and constraints
-- Transaction management
+#### **1. Domain Layer (Core - Innermost)**
 
-#### **View Layer** (React Components)
+The heart of the application containing business logic and rules. This layer is **completely independent** of frameworks, databases, and external concerns.
+
+**Components:**
+
+**Domain Entities** - Rich objects with business logic and validation
+- `Course`: Course lifecycle, validation, business rules
+- `Assignment`: Due date logic, submission rules, grading state
+- `Quiz`: Time limit logic, question management
+- `Submission`: Submission state, late submission logic
+- `Enrollment`: Enrollment validation
+- `User`: User identity and role management
+
+**Value Objects** - Immutable objects representing concepts
+- `CourseCode`: Unique course identifier with validation
+- `Email`: Email address with validation
+- `Grade`: Grade value (0-100) with validation
+- `TimeLimit`: Quiz time limit with validation
+
+**Domain Services** - Operations spanning multiple entities
+- `CourseCodeGenerator`: Generate unique course codes
+- `GradingPolicy`: Grading rules and validation
+- `EnrollmentPolicy`: Enrollment eligibility rules
+- `QuizTimingService`: Quiz timer calculations
+
+**Repository Interfaces (Ports)** - Contracts for data access
+- `ICourseRepository`: Course data operations
+- `IAssignmentRepository`: Assignment data operations
+- `IQuizRepository`: Quiz data operations
+- `ISubmissionRepository`: Submission data operations
+- `IEnrollmentRepository`: Enrollment data operations
+- `IUserRepository`: User data operations
+
+**Storage Interfaces (Ports)** - Contracts for file storage
+- `IFileStorage`: File upload, download, delete operations
+
+**Domain Events** - Events representing business occurrences
+- `CourseCreatedEvent`, `CourseArchivedEvent`
+- `AssignmentSubmittedEvent`, `AssignmentGradedEvent`
+- `QuizStartedEvent`, `QuizSubmittedEvent`
+
+#### **2. Application Layer (Use Cases)**
+
+Orchestrates the flow of data between domain and outer layers. Contains application-specific business rules.
+
+**Components:**
+
+**Use Cases (Interactors)** - Single-purpose application operations
+- `CreateCourseUseCase`: Create new course with validation
+- `EnrollStudentUseCase`: Enroll student in course
+- `SubmitAssignmentUseCase`: Submit assignment with validation
+- `GradeSubmissionUseCase`: Grade submission and close assignment
+- `StartQuizUseCase`: Start quiz attempt with timer
+- `SubmitQuizUseCase`: Submit quiz answers
+- `ArchiveCourseUseCase`: Archive course and close assignments
+- `ExportGradesUseCase`: Export grades to CSV
+
+**DTOs (Data Transfer Objects)** - Data structures for layer communication
+- `CreateCourseDTO`, `CourseResponseDTO`
+- `SubmitAssignmentDTO`, `SubmissionResponseDTO`
+- `StartQuizDTO`, `QuizAttemptDTO`
+
+**Mappers** - Convert between DTOs and domain entities
+- `CourseMapper`: Map Course entity ↔ DTOs
+- `AssignmentMapper`: Map Assignment entity ↔ DTOs
+- `SubmissionMapper`: Map Submission entity ↔ DTOs
+
+**Authorization Policies** - Access control rules
+- `CourseAccessPolicy`: Who can access/modify courses
+- `AssignmentAccessPolicy`: Who can submit/grade assignments
+- `EnrollmentPolicy`: Who can enroll in courses
+
+**Application Services** - Coordinate multiple use cases
+- `CourseApplicationService`: Orchestrate course-related use cases
+- `AssignmentApplicationService`: Orchestrate assignment workflows
+- `GradingApplicationService`: Orchestrate grading workflows
+
+#### **3. Infrastructure Layer (Outer - Implementations)**
+
+Implements interfaces defined in domain layer. Contains framework-specific code.
+
+**Components:**
+
+**Repository Implementations** - Concrete data access using Prisma
+- `PrismaCourseRepository implements ICourseRepository`
+- `PrismaAssignmentRepository implements IAssignmentRepository`
+- `PrismaQuizRepository implements IQuizRepository`
+- `PrismaSubmissionRepository implements ISubmissionRepository`
+- `PrismaEnrollmentRepository implements IEnrollmentRepository`
+- `PrismaUserRepository implements IUserRepository`
+
+**Storage Implementations** - Concrete file storage
+- `LocalFileStorage implements IFileStorage`: Local filesystem storage
+- `S3FileStorage implements IFileStorage`: AWS S3 storage (future)
+
+**External Services** - Third-party integrations
+- `JWTAuthenticationService`: JWT token generation/validation
+- `BCryptPasswordService`: Password hashing
+- `EmailService`: Email notifications (future)
+
+**Database Configuration** - Prisma setup and migrations
+- Prisma schema definition
+- Database connection management
+- Migration scripts
+
+#### **4. Presentation Layer (Outer - User Interface)**
+
+Handles user interaction and HTTP communication. Thin layer that delegates to application layer.
+
+**Components:**
+
+**REST API Controllers** - HTTP request handlers (thin)
+- `AuthController`: Login, register, logout endpoints
+- `CourseController`: Course CRUD endpoints
+- `AssignmentController`: Assignment CRUD and submission endpoints
+- `QuizController`: Quiz CRUD and attempt endpoints
+- `GradingController`: Grading and export endpoints
+
+**Middleware** - Cross-cutting concerns
+- `AuthenticationMiddleware`: JWT validation
+- `ErrorHandlerMiddleware`: Centralized error handling
+- `ValidationMiddleware`: Request validation
+- `LoggingMiddleware`: Request/response logging
+
+**React Components** - Frontend UI (separate SPA)
 - Authentication views (Login, Register)
 - Role-specific dashboards (Student, Teacher)
 - Course management interfaces
@@ -74,136 +284,71 @@ The application follows the Model-View-Controller (MVC) pattern:
 - Grading and progress interfaces
 - Reusable UI components
 
-#### **Controller Layer** (Express Routes + Middleware)
-- Route handlers process HTTP requests
-- JWT authentication middleware
-- Role-based access control middleware
-- Input validation and sanitization
-- Response formatting
-- Error handling
-
-#### **Service Layer** (Business Logic)
-- Authentication service (JWT generation, password hashing)
-- Course service (CRUD, enrollment, archiving)
-- Material service (file upload, content management)
-- Assignment service (creation, submission, validation)
-- Quiz service (creation, taking, timing)
-- Grading service (scoring, feedback, export)
-- File service (upload, download, validation)
+**API Documentation** - OpenAPI/Swagger specs
 
 ## Authorization Architecture
 
 ### Overview
 
-The LMS implements a three-level authorization strategy to ensure users can only access resources they are permitted to view or modify. Authorization is enforced at multiple layers: middleware for role-based access, and service layer for resource-specific access control.
+The LMS implements authorization using **Policy-based access control** in the Application Layer. Authorization policies are separated from business logic and can be easily tested and modified.
 
-### Authorization Levels
+### Authorization Strategy
 
-#### Level 1: Role-Based Access Control (RBAC)
+Authorization is enforced at **two levels**:
 
-**Enforced by**: RBAC Middleware at API layer
+1. **Application Layer (Use Cases)**: Business-level authorization
+   - Use cases check authorization policies before executing business logic
+   - Policies are injected dependencies (supports testing and flexibility)
+   - Clear separation between authorization checks and business operations
 
-**Purpose**: Ensure users can only access endpoints appropriate for their role.
+2. **Presentation Layer (Middleware)**: Technical-level authentication
+   - JWT token validation
+   - User identity and role extraction
+   - Request context preparation
 
-**Rules**:
-- **Teacher-only endpoints**: Create/update/delete courses, materials, assignments, quizzes; grade submissions; export grades
-- **Student-only endpoints**: Enroll in courses, submit assignments, take quizzes, view own progress
-- **Shared endpoints**: View courses, materials, assignments, quizzes (with different access levels)
-
-**Implementation**:
-```mermaid
-graph LR
-    Request[HTTP Request] --> Auth[Auth Middleware]
-    Auth -->|Valid JWT| RBAC[RBAC Middleware]
-    Auth -->|Invalid| Reject1[401 Unauthorized]
-    RBAC -->|Role Match| Controller[Controller]
-    RBAC -->|Role Mismatch| Reject2[403 Forbidden - FORBIDDEN_ROLE]
-    Controller --> Service[Service Layer]
-```
-
-#### Level 2: Resource Ownership Validation
-
-**Enforced by**: Service Layer
-
-**Purpose**: Ensure teachers can only modify resources they own.
-
-**Rules**:
-- Teachers can only update/delete/archive courses they created
-- Teachers can only create materials/assignments/quizzes in their own courses
-- Teachers can only grade submissions from their own courses
-- Teachers can only export grades from their own courses
-
-**Design Approach**:
-- Query resource and check ownership
-- Verify resource exists (return 404 if not)
-- Verify teacherId matches (return 403 if not)
-- Proceed with operation
-
-**Key Considerations**:
-- Always check existence before ownership
-- Clear error codes distinguish "not found" vs "not owner"
-- Prevents teachers from accessing other teachers' resources
-
-#### Level 3: Enrollment-Based Access Control
-
-**Enforced by**: Service Layer
-
-**Purpose**: Ensure students can only access resources from courses they are enrolled in.
-
-**Rules**:
-- Students can only view course details if enrolled
-- Students can only access materials from enrolled courses
-- Students can only view/submit assignments from enrolled courses
-- Students can only take quizzes from enrolled courses
-- Students can only view their own submissions and grades
-
-**Design Approach**:
-- Query resource with course relationship
-- Check resource existence (404 if not found)
-- For teachers: Validate course ownership
-- For students: Query enrollment table to verify enrollment
-- Return 403 if not enrolled or not owner
-
-**Key Considerations**:
-- Enrollment check requires additional database query
-- Cache enrollment status for performance
-- Clear error messages distinguish between "not found" and "not enrolled"
-
-
-
-### Authorization Flow Diagram
+### Authorization Flow
 
 ```mermaid
 graph TB
     Request[HTTP Request with JWT]
-    Auth[Auth Middleware<br/>Extract & Validate JWT]
-    RBAC[RBAC Middleware<br/>Check Role vs Endpoint]
-    Controller[Controller<br/>Parse & Validate Input]
-    Service[Service Layer<br/>Check Resource Access]
-    DB[(Database<br/>Query with Filters)]
+    AuthMiddleware[Authentication Middleware<br/>Validate JWT & Extract User]
+    Controller[Controller<br/>Parse Request to DTO]
+    UseCase[Use Case<br/>Execute Business Logic]
+    Policy[Authorization Policy<br/>Check Access Rules]
+    Domain[Domain Entity<br/>Business Rules]
+    Repo[Repository<br/>Data Access]
     
-    Request --> Auth
-    Auth -->|Valid Token| RBAC
-    Auth -->|Missing/Invalid/Expired| Reject1[401 Unauthorized<br/>AUTH_TOKEN_*]
+    Request --> AuthMiddleware
+    AuthMiddleware -->|Valid Token| Controller
+    AuthMiddleware -->|Invalid| Reject1[401 Unauthorized]
     
-    RBAC -->|Role Matches| Controller
-    RBAC -->|Role Mismatch| Reject2[403 Forbidden<br/>FORBIDDEN_ROLE]
+    Controller --> UseCase
+    UseCase --> Policy
+    Policy -->|Authorized| Domain
+    Policy -->|Not Authorized| Reject2[403 Forbidden]
     
-    Controller --> Service
-    
-    Service -->|Check Ownership| OwnerCheck{Is Owner?}
-    Service -->|Check Enrollment| EnrollCheck{Is Enrolled?}
-    
-    OwnerCheck -->|Yes| DB
-    OwnerCheck -->|No| Reject3[403 Forbidden<br/>NOT_COURSE_OWNER]
-    
-    EnrollCheck -->|Yes| DB
-    EnrollCheck -->|No| Reject4[403 Forbidden<br/>NOT_ENROLLED_IN_COURSE]
-    
-    DB --> Response[200 OK<br/>Return Data]
+    Domain --> Repo
+    Repo --> Response[200 OK]
 ```
 
-### Access Control Matrix
+### Authorization Policy Design
+
+**Policy Interface** (Application Layer):
+- Defines authorization methods as contracts (e.g., `canAccessCourse`, `canModifyCourse`, `canGradeSubmission`)
+- Use cases depend on policy interface, not concrete implementation
+- Supports Dependency Inversion Principle
+
+**Policy Implementation** (Application Layer):
+- Queries repositories to check ownership, enrollment, and role
+- Returns boolean decision (authorized or not)
+- No business logic, only access control decisions
+
+**Use Case Integration**:
+- Use cases call policy methods before executing business operations
+- If unauthorized, throw ForbiddenError with specific error code
+- If authorized, proceed with domain entity operations
+
+### Access Control Rules
 
 | Resource | Student (Enrolled) | Student (Not Enrolled) | Teacher (Owner) | Teacher (Not Owner) |
 |----------|-------------------|------------------------|-----------------|---------------------|
@@ -218,336 +363,344 @@ graph TB
 | **Grades (Export)** | ❌ 403 FORBIDDEN_ROLE | ❌ 403 FORBIDDEN_ROLE | ✅ Export | ❌ 403 NOT_OWNER |
 | **Enrollment** | ✅ Enroll (if not enrolled) | ✅ Enroll | ❌ 403 FORBIDDEN_ROLE | ❌ 403 FORBIDDEN_ROLE |
 
-### Service Layer Responsibilities
+### Key Authorization Design Decisions
 
-The service layer is the primary enforcement point for resource-level authorization. Each service method must:
-
-1. **Validate Resource Existence**: Check if the requested resource exists before authorization
-2. **Validate Ownership** (for teachers): Ensure teacher owns the course/resource
-3. **Validate Enrollment** (for students): Ensure student is enrolled in the course
-4. **Validate Self-Access** (for personal data): Ensure users only access their own data
-5. **Throw Appropriate Errors**: Return specific error codes for different authorization failures
-
-**Service Authorization Responsibilities**:
-
-| Service | Authorization Checks |
-|---------|---------------------|
-| **CourseService** | - `getCourse()`: Validate teacher ownership OR student enrollment<br/>- `updateCourse()`: Validate teacher ownership<br/>- `archiveCourse()`: Validate teacher ownership<br/>- `deleteCourse()`: Validate teacher ownership + archived status |
-| **MaterialService** | - `getMaterial()`: Validate teacher ownership OR student enrollment<br/>- `createMaterial()`: Validate teacher ownership of course<br/>- `updateMaterial()`: Validate teacher ownership of course<br/>- `deleteMaterial()`: Validate teacher ownership of course |
-| **AssignmentService** | - `getAssignment()`: Validate teacher ownership OR student enrollment<br/>- `submitAssignment()`: Validate student enrollment<br/>- `listSubmissions()`: Validate teacher ownership |
-| **QuizService** | - `getQuiz()`: Validate teacher ownership OR student enrollment<br/>- `startQuiz()`: Validate student enrollment + course not archived<br/>- `submitQuiz()`: Validate student enrollment + active attempt |
-| **GradingService** | - `gradeSubmission()`: Validate teacher owns submission's course<br/>- `exportGrades()`: Validate teacher owns course<br/>- `getStudentProgress()`: Validate student is requesting own progress OR teacher owns course |
-
-### Data Access Patterns
-
-Services use specific query patterns to enforce authorization at the database level:
-
-#### Pattern 1: Student Accessing Course Resources
-
-**Design Approach**:
-- Query with enrollment join to filter resources
-- Only return resources from courses where student is enrolled
-- Empty result indicates student is not enrolled
-
-**Key Considerations**:
-- Database-level filtering for performance
-- Single query validates enrollment and retrieves data
-- Prevents unauthorized access at data layer
-
-#### Pattern 2: Teacher Accessing Course Resources
-
-**Design Approach**:
-- Query with ownership filter
-- Only return resources from courses owned by teacher
-- Ensures teachers only see their own course data
-
-**Key Considerations**:
-- Database-level filtering for security
-- Prevents accidental cross-teacher data access
-- Simplifies service layer logic
-
-#### Pattern 3: Listing Resources with Authorization
-
-**Design Approach**:
-- Students: Filter by enrollment status and active courses only
-- Teachers: Filter by ownership (all statuses)
-- Different query patterns based on role
-
-**Key Considerations**:
-- Role-specific filtering at database level
-- Students see only active courses they're enrolled in
-- Teachers see all their courses (active and archived)
-
-#### Pattern 4: Validating Access Before Operations
-
-**Design Approach**:
-- Two-step validation: existence check then authorization check
-- Step 1: Verify resource exists (return 404 if not)
-- Step 2: Verify user has access (return 403 if not)
-- Step 3: Perform operation
-
-**Key Considerations**:
-- Always check existence before authorization (prevents information leakage)
-- Return 404 for non-existent resources regardless of user's authorization
-- Clear separation between "not found" and "not authorized"
-
-### Authorization Error Handling
-
-#### Error Categories
-
-**Authentication Errors (401 Unauthorized)**:
-- `AUTH_TOKEN_MISSING`: No JWT token provided
-- `AUTH_TOKEN_INVALID`: JWT signature invalid or malformed
-- `AUTH_TOKEN_EXPIRED`: JWT access token expired (need refresh)
-- `AUTH_REFRESH_TOKEN_EXPIRED`: Refresh token expired (need re-login)
-- `AUTH_REFRESH_TOKEN_INVALID`: Refresh token invalid or not found
-
-**Authorization Errors (403 Forbidden)**:
-- `FORBIDDEN_ROLE`: User role not allowed for this endpoint
-- `NOT_COURSE_OWNER`: Teacher attempting to access/modify another teacher's course
-- `NOT_ENROLLED_IN_COURSE`: Student attempting to access course they're not enrolled in
-- `FORBIDDEN_RESOURCE`: Generic resource access denied
-
-**Resource Errors (404 Not Found)**:
-- `RESOURCE_NOT_FOUND`: Requested resource does not exist
-
-#### Error Response Flow
-
-```mermaid
-graph TB
-    Operation[Service Operation]
-    Check1{Resource<br/>Exists?}
-    Check2{User Has<br/>Access?}
-    Success[Return Data]
-    Error404[404 Not Found<br/>RESOURCE_NOT_FOUND]
-    Error403[403 Forbidden<br/>NOT_ENROLLED/NOT_OWNER]
-    
-    Operation --> Check1
-    Check1 -->|No| Error404
-    Check1 -->|Yes| Check2
-    Check2 -->|No| Error403
-    Check2 -->|Yes| Success
-```
-
-**Error Response Format**:
-```json
-{
-  "error": {
-    "code": "NOT_ENROLLED_IN_COURSE",
-    "message": "You must be enrolled in this course to access this resource"
-  }
-}
-```
-
-**Security Principle**: Always check resource existence before authorization to prevent information leakage. Return 404 for non-existent resources regardless of user's authorization status.
+1. **Policy Location**: Application Layer (not Domain Layer) because authorization requires repository queries
+2. **Separation of Concerns**: Authorization logic separated from business logic in domain entities
+3. **Testability**: Policies can be unit tested with mocked repositories
+4. **Flexibility**: Authorization rules can change without modifying use cases or domain entities
+5. **Reusability**: Same policy methods used across multiple use cases
+6. **Dependency Inversion**: Use cases depend on policy interface (port), not concrete implementation
 
 ## Components and Interfaces
 
-### Frontend Components
+### Layer Organization
 
-#### Authentication Components
-- `LoginPage`: Email/password login form
-- `RegisterPage`: User registration with role selection
-- `ProtectedRoute`: HOC for route protection based on authentication
+```
+src/
+├── domain/                    # Domain Layer (Core)
+│   ├── entities/             # Domain Entities
+│   │   ├── Course.ts
+│   │   ├── Assignment.ts
+│   │   ├── Quiz.ts
+│   │   ├── Submission.ts
+│   │   ├── Enrollment.ts
+│   │   └── User.ts
+│   ├── value-objects/        # Value Objects
+│   │   ├── CourseCode.ts
+│   │   ├── Email.ts
+│   │   ├── Grade.ts
+│   │   └── TimeLimit.ts
+│   ├── services/             # Domain Services
+│   │   ├── CourseCodeGenerator.ts
+│   │   ├── GradingPolicy.ts
+│   │   └── QuizTimingService.ts
+│   ├── repositories/         # Repository Interfaces (Ports)
+│   │   ├── ICourseRepository.ts
+│   │   ├── IAssignmentRepository.ts
+│   │   ├── IQuizRepository.ts
+│   │   ├── ISubmissionRepository.ts
+│   │   ├── IEnrollmentRepository.ts
+│   │   └── IUserRepository.ts
+│   ├── storage/              # Storage Interfaces (Ports)
+│   │   └── IFileStorage.ts
+│   ├── events/               # Domain Events
+│   │   ├── CourseEvents.ts
+│   │   ├── AssignmentEvents.ts
+│   │   └── QuizEvents.ts
+│   └── errors/               # Domain Errors
+│       └── DomainErrors.ts
+│
+├── application/              # Application Layer
+│   ├── use-cases/           # Use Cases (Interactors)
+│   │   ├── course/
+│   │   │   ├── CreateCourseUseCase.ts
+│   │   │   ├── UpdateCourseUseCase.ts
+│   │   │   ├── ArchiveCourseUseCase.ts
+│   │   │   ├── DeleteCourseUseCase.ts
+│   │   │   └── GetCourseUseCase.ts
+│   │   ├── enrollment/
+│   │   │   ├── EnrollStudentUseCase.ts
+│   │   │   └── BulkUnenrollUseCase.ts
+│   │   ├── assignment/
+│   │   │   ├── CreateAssignmentUseCase.ts
+│   │   │   ├── SubmitAssignmentUseCase.ts
+│   │   │   └── ListSubmissionsUseCase.ts
+│   │   ├── quiz/
+│   │   │   ├── CreateQuizUseCase.ts
+│   │   │   ├── StartQuizUseCase.ts
+│   │   │   └── SubmitQuizUseCase.ts
+│   │   └── grading/
+│   │       ├── GradeSubmissionUseCase.ts
+│   │       └── ExportGradesUseCase.ts
+│   ├── dtos/                # Data Transfer Objects
+│   │   ├── CourseDTO.ts
+│   │   ├── AssignmentDTO.ts
+│   │   ├── QuizDTO.ts
+│   │   └── SubmissionDTO.ts
+│   ├── mappers/             # Entity ↔ DTO Mappers
+│   │   ├── CourseMapper.ts
+│   │   ├── AssignmentMapper.ts
+│   │   └── SubmissionMapper.ts
+│   ├── policies/            # Authorization Policies
+│   │   ├── IAuthorizationPolicy.ts
+│   │   └── AuthorizationPolicy.ts
+│   └── services/            # Application Services
+│       ├── CourseApplicationService.ts
+│       ├── AssignmentApplicationService.ts
+│       └── GradingApplicationService.ts
+│
+├── infrastructure/          # Infrastructure Layer
+│   ├── persistence/        # Database Implementation
+│   │   ├── prisma/
+│   │   │   ├── schema.prisma
+│   │   │   └── migrations/
+│   │   └── repositories/   # Repository Implementations
+│   │       ├── PrismaCourseRepository.ts
+│   │       ├── PrismaAssignmentRepository.ts
+│   │       ├── PrismaQuizRepository.ts
+│   │       ├── PrismaSubmissionRepository.ts
+│   │       ├── PrismaEnrollmentRepository.ts
+│   │       └── PrismaUserRepository.ts
+│   ├── storage/            # File Storage Implementation
+│   │   ├── LocalFileStorage.ts
+│   │   └── S3FileStorage.ts
+│   ├── auth/               # Authentication Services
+│   │   ├── JWTService.ts
+│   │   └── PasswordService.ts
+│   └── di/                 # Dependency Injection
+│       └── container.ts
+│
+└── presentation/           # Presentation Layer
+    ├── api/               # REST API
+    │   ├── controllers/   # HTTP Controllers (thin)
+    │   │   ├── AuthController.ts
+    │   │   ├── CourseController.ts
+    │   │   ├── AssignmentController.ts
+    │   │   ├── QuizController.ts
+    │   │   └── GradingController.ts
+    │   ├── middleware/    # HTTP Middleware
+    │   │   ├── AuthenticationMiddleware.ts
+    │   │   ├── ErrorHandlerMiddleware.ts
+    │   │   └── ValidationMiddleware.ts
+    │   ├── routes/        # Route Definitions
+    │   │   └── index.ts
+    │   └── validators/    # Request Validators
+    │       └── schemas.ts
+    └── web/              # React Frontend (separate)
+        └── (React components)
+```
 
-#### Dashboard Components
-- `StudentDashboard`: Display enrolled courses, upcoming deadlines
-- `TeacherDashboard`: Display created courses, student counts, create course button
+### Clean Architecture Layer Responsibilities
 
-#### Course Components
-- `CourseList`: Browse and search active courses
-- `CourseDetail`: View course materials, assignments, quizzes
-- `CourseForm`: Create/edit course (teacher only)
-- `EnrollmentForm`: Enroll using course code
+**Domain Layer**:
+- **Entities**: Rich objects with business logic (Course, Assignment, Quiz, Submission)
+  - Enforce business rules through methods (e.g., `course.archive()`, `assignment.startGrading()`)
+  - Validate their own state
+  - Provide factory methods for creation and reconstitution
+- **Value Objects**: Immutable objects representing domain concepts (CourseCode, Email)
+- **Repository Interfaces**: Define contracts for data access (ports)
+- **Domain Services**: Complex business logic spanning multiple entities (CourseCodeGenerator)
+- **Domain Events**: Represent significant business occurrences (CourseCreated, CourseArchived)
 
-#### Material Components
-- `MaterialList`: Display all materials in a course
-- `MaterialForm`: Add/edit materials (file, text, video link)
-- `MaterialViewer`: Render different material types
+**Application Layer**:
+- **Use Cases**: Orchestrate business workflows (CreateCourseUseCase, SubmitAssignmentUseCase)
+  - One use case per user action
+  - Check authorization before executing
+  - Coordinate between domain entities and repositories
+  - Handle transactions (Unit of Work pattern)
+- **Authorization Policies**: Check access control rules
+- **DTOs**: Data transfer objects for input/output
+- **Mappers**: Convert between domain entities and DTOs
 
-#### Assignment Components
-- `AssignmentList`: Display assignments with status
-- `AssignmentForm`: Create/edit assignment (teacher only)
-- `AssignmentSubmission`: Submit files or text
-- `SubmissionViewer`: View student submissions (teacher)
+**Infrastructure Layer**:
+- **Repository Implementations**: Concrete implementations using Prisma
+  - Map between domain entities and database models
+  - Handle database transactions
+- **File Storage**: Local filesystem or S3 implementations
+- **Authentication Services**: JWT token generation and validation
+- **Dependency Injection**: Container configuration
 
-#### Quiz Components
-- `QuizList`: Display quizzes with status
-- `QuizForm`: Create/edit quiz with questions (teacher only)
-- `QuizTaker`: Take quiz with timer
-- `QuizGrader`: Grade quiz submissions (teacher)
-
-#### Grading Components
-- `GradingInterface`: Assign grades and feedback
-- `GradeExport`: Export grades to CSV
-- `StudentProgress`: View grades and progress
+**Presentation Layer**:
+- **Controllers**: Thin HTTP handlers
+  - Parse requests to DTOs
+  - Delegate to use cases
+  - Format responses
+- **Middleware**: Authentication, validation, error handling
+- **Route Definitions**: Map URLs to controllers
+- **Validators**: Request schema validation
 
 ### Backend API Endpoints
 
+All API endpoints are thin wrappers that delegate to Use Cases in the Application Layer.
+
 #### Authentication
-```typescript
-POST   /api/auth/register        // Register new user
-POST   /api/auth/login           // Login user, returns JWT in HTTP-only cookies
-POST   /api/auth/refresh         // Refresh JWT access token using refresh token cookie
-POST   /api/auth/logout          // Logout user (client-side cookie removal)
-GET    /api/auth/me              // Get current user from JWT
+```
+POST   /api/auth/register        // RegisterUserUseCase
+POST   /api/auth/login           // LoginUserUseCase
+POST   /api/auth/refresh         // RefreshTokenUseCase
+POST   /api/auth/logout          // LogoutUserUseCase
+GET    /api/auth/me              // GetCurrentUserUseCase
 ```
 
 #### Courses
-```typescript
-GET    /api/courses              // List active courses (student: all, teacher: own)
-GET    /api/courses/archived     // List archived courses (teacher only)
-POST   /api/courses              // Create course (teacher only)
-GET    /api/courses/:id          // Get course details
-PUT    /api/courses/:id          // Update course (teacher only)
-DELETE /api/courses/:id          // Delete archived course (teacher only)
-POST   /api/courses/:id/archive  // Archive course (teacher only)
-POST   /api/courses/enroll       // Enroll in course (student only)
-POST   /api/courses/:id/unenroll-bulk // Bulk unenroll (teacher only)
+```
+GET    /api/courses              // ListCoursesUseCase
+GET    /api/courses/archived     // ListArchivedCoursesUseCase (teacher only)
+POST   /api/courses              // CreateCourseUseCase (teacher only)
+GET    /api/courses/:id          // GetCourseUseCase
+PUT    /api/courses/:id          // UpdateCourseUseCase (teacher only)
+DELETE /api/courses/:id          // DeleteCourseUseCase (teacher only)
+POST   /api/courses/:id/archive  // ArchiveCourseUseCase (teacher only)
+POST   /api/courses/enroll       // EnrollStudentUseCase (student only)
+POST   /api/courses/:id/unenroll-bulk // BulkUnenrollUseCase (teacher only)
 ```
 
 #### Materials
-```typescript
-GET    /api/courses/:courseId/materials     // List materials
-POST   /api/courses/:courseId/materials     // Create material (teacher only)
-GET    /api/materials/:id                   // Get material
-PUT    /api/materials/:id                   // Update material (teacher only)
-DELETE /api/materials/:id                   // Delete material (teacher only)
-GET    /api/materials/:id/download          // Download file
+```
+GET    /api/courses/:courseId/materials     // ListMaterialsUseCase
+POST   /api/courses/:courseId/materials     // CreateMaterialUseCase (teacher only)
+GET    /api/materials/:id                   // GetMaterialUseCase
+PUT    /api/materials/:id                   // UpdateMaterialUseCase (teacher only)
+DELETE /api/materials/:id                   // DeleteMaterialUseCase (teacher only)
+GET    /api/materials/:id/download          // DownloadMaterialUseCase
 ```
 
 #### Assignments
-```typescript
-GET    /api/courses/:courseId/assignments   // List assignments
-POST   /api/courses/:courseId/assignments   // Create assignment (teacher only)
-GET    /api/assignments/:id                 // Get assignment
-PUT    /api/assignments/:id                 // Update assignment (teacher only)
-DELETE /api/assignments/:id                 // Delete assignment (teacher only)
-GET    /api/assignments/:id/submissions     // List submissions (teacher only)
-POST   /api/assignments/:id/submit          // Submit assignment (student only)
+```
+GET    /api/courses/:courseId/assignments   // ListAssignmentsUseCase
+POST   /api/courses/:courseId/assignments   // CreateAssignmentUseCase (teacher only)
+GET    /api/assignments/:id                 // GetAssignmentUseCase
+PUT    /api/assignments/:id                 // UpdateAssignmentUseCase (teacher only)
+DELETE /api/assignments/:id                 // DeleteAssignmentUseCase (teacher only)
+GET    /api/assignments/:id/submissions     // ListSubmissionsUseCase (teacher only)
+POST   /api/assignments/:id/submit          // SubmitAssignmentUseCase (student only)
 ```
 
 #### Quizzes
-```typescript
-GET    /api/courses/:courseId/quizzes       // List quizzes
-POST   /api/courses/:courseId/quizzes       // Create quiz (teacher only)
-GET    /api/quizzes/:id                     // Get quiz
-PUT    /api/quizzes/:id                     // Update quiz (teacher only)
-DELETE /api/quizzes/:id                     // Delete quiz (teacher only)
-POST   /api/quizzes/:id/start               // Start quiz (student only)
-POST   /api/quizzes/:id/autosave            // Auto-save answers during quiz (student only)
-POST   /api/quizzes/:id/submit              // Submit quiz (student only)
-GET    /api/quizzes/:id/submissions         // List submissions (teacher only)
+```
+GET    /api/courses/:courseId/quizzes       // ListQuizzesUseCase
+POST   /api/courses/:courseId/quizzes       // CreateQuizUseCase (teacher only)
+GET    /api/quizzes/:id                     // GetQuizUseCase
+PUT    /api/quizzes/:id                     // UpdateQuizUseCase (teacher only)
+DELETE /api/quizzes/:id                     // DeleteQuizUseCase (teacher only)
+POST   /api/quizzes/:id/start               // StartQuizUseCase (student only)
+POST   /api/quizzes/:id/autosave            // AutoSaveQuizAnswersUseCase (student only)
+POST   /api/quizzes/:id/submit              // SubmitQuizUseCase (student only)
+GET    /api/quizzes/:id/submissions         // ListQuizSubmissionsUseCase (teacher only)
 ```
 
 #### Grading
 ```typescript
-GET    /api/submissions/:id                 // Get submission details
-POST   /api/submissions/:id/grade           // Grade submission (teacher only)
-PUT    /api/submissions/:id/grade           // Update grade (teacher only)
-GET    /api/courses/:id/grades/export       // Export grades CSV (teacher only)
-GET    /api/courses/:id/progress            // Get student progress (student only)
+GET    /api/submissions/:id                 // GetSubmissionUseCase
+POST   /api/submissions/:id/grade           // GradeSubmissionUseCase (teacher only)
+PUT    /api/submissions/:id/grade           // UpdateGradeUseCase (teacher only)
+GET    /api/courses/:id/grades/export       // ExportGradesUseCase (teacher only)
+GET    /api/courses/:id/progress            // GetStudentProgressUseCase (student only)
 ```
 
-### Service Interfaces
+### Use Case Catalog
 
-#### AuthService
-```typescript
-interface AuthService {
-  register(email: string, password: string, name: string, role: 'STUDENT' | 'TEACHER'): Promise<User>
-  login(email: string, password: string): Promise<{ user: User, accessToken: string, refreshToken: string }>
-  logout(): void // Client-side only for MVP
-  refreshToken(refreshToken: string): Promise<{ accessToken: string }>
-  validateToken(token: string): Promise<User | null>
-  hashPassword(password: string): Promise<string>
-  verifyPassword(password: string, hash: string): Promise<boolean>
-  generateAccessToken(userId: string, role: string): string // 15 min expiry
-  generateRefreshToken(userId: string): string // 7 days expiry
-}
-```
+Complete list of Use Cases organized by feature:
 
-#### CourseService
-```typescript
-interface CourseService {
-  createCourse(teacherId: string, name: string, description: string): Promise<Course>
-  generateUniqueCourseCode(maxRetries?: number): Promise<string> // Default 5 retries
-  getCourse(courseId: string, userId: string): Promise<Course>
-  updateCourse(courseId: string, teacherId: string, updates: Partial<Course>): Promise<Course>
-  archiveCourse(courseId: string, teacherId: string): Promise<Course>
-  deleteCourse(courseId: string, teacherId: string): Promise<void>
-  listActiveCourses(userId: string, role: string): Promise<Course[]>
-  listArchivedCourses(teacherId: string): Promise<Course[]>
-  searchCourses(query: string, userId: string): Promise<Course[]>
-  enrollStudent(studentId: string, courseCode: string): Promise<Enrollment>
-  bulkUnenroll(courseId: string, teacherId: string): Promise<number>
-}
-```
+#### Course Management
+- `CreateCourseUseCase`: Create new course with unique code
+- `UpdateCourseUseCase`: Update course details (before due date)
+- `GetCourseUseCase`: Get course details with authorization
+- `ListCoursesUseCase`: List courses (filtered by role and enrollment)
+- `ListArchivedCoursesUseCase`: List archived courses (teacher only)
+- `ArchiveCourseUseCase`: Archive course and close all assignments/quizzes
+- `DeleteCourseUseCase`: Delete archived course (cascade delete)
+- `SearchCoursesUseCase`: Search active courses by name
 
-#### MaterialService
-```typescript
-interface MaterialService {
-  createMaterial(courseId: string, teacherId: string, data: MaterialData): Promise<Material>
-  updateMaterial(materialId: string, teacherId: string, data: Partial<MaterialData>): Promise<Material>
-  deleteMaterial(materialId: string, teacherId: string): Promise<void>
-  listMaterials(courseId: string, userId: string): Promise<Material[]>
-  getMaterial(materialId: string, userId: string): Promise<Material>
-}
-```
+#### Enrollment
+- `EnrollStudentUseCase`: Enroll student using course code
+- `BulkUnenrollUseCase`: Bulk unenroll students from archived course
+- `GetEnrollmentStatusUseCase`: Check if student is enrolled
 
-#### AssignmentService
-```typescript
-interface AssignmentService {
-  createAssignment(courseId: string, teacherId: string, data: AssignmentData): Promise<Assignment>
-  updateAssignment(assignmentId: string, teacherId: string, data: Partial<AssignmentData>): Promise<Assignment>
-  deleteAssignment(assignmentId: string, teacherId: string): Promise<void>
-  listAssignments(courseId: string, userId: string): Promise<Assignment[]>
-  getAssignment(assignmentId: string, userId: string): Promise<Assignment>
-  submitAssignment(assignmentId: string, studentId: string, data: SubmissionData): Promise<Submission>
-  listSubmissions(assignmentId: string, teacherId: string): Promise<Submission[]>
-}
-```
+#### Material Management
+- `CreateMaterialUseCase`: Create material (file, text, or video link)
+- `UpdateMaterialUseCase`: Update material content
+- `DeleteMaterialUseCase`: Delete material
+- `ListMaterialsUseCase`: List all materials in course
+- `GetMaterialUseCase`: Get material details
+- `DownloadMaterialUseCase`: Download file material
 
-#### QuizService
-```typescript
-interface QuizService {
-  createQuiz(courseId: string, teacherId: string, data: QuizData): Promise<Quiz>
-  updateQuiz(quizId: string, teacherId: string, data: Partial<QuizData>): Promise<Quiz>
-  deleteQuiz(quizId: string, teacherId: string): Promise<void>
-  listQuizzes(courseId: string, userId: string): Promise<Quiz[]>
-  getQuiz(quizId: string, userId: string): Promise<Quiz>
-  startQuiz(quizId: string, studentId: string): Promise<QuizAttempt>
-  autoSaveAnswers(attemptId: string, answers: Partial<Answer>[]): Promise<void> // Auto-save during quiz
-  submitQuiz(quizId: string, studentId: string, answers: Answer[]): Promise<Submission>
-  autoSubmitOnTimeout(attemptId: string): Promise<Submission> // Auto-submit when timer expires
-  listSubmissions(quizId: string, teacherId: string): Promise<Submission[]>
-}
-```
+#### Assignment Management
+- `CreateAssignmentUseCase`: Create assignment with due date
+- `UpdateAssignmentUseCase`: Update assignment (before due date)
+- `DeleteAssignmentUseCase`: Delete assignment
+- `ListAssignmentsUseCase`: List assignments with status
+- `GetAssignmentUseCase`: Get assignment details
+- `SubmitAssignmentUseCase`: Submit assignment (file/text)
+- `ResubmitAssignmentUseCase`: Resubmit before grading starts
+- `ListSubmissionsUseCase`: List all submissions for assignment
 
-#### GradingService
-```typescript
-interface GradingService {
-  gradeSubmission(submissionId: string, teacherId: string, grade: number, feedback?: string): Promise<Submission>
-  updateGrade(submissionId: string, teacherId: string, grade: number, feedback?: string): Promise<Submission>
-  gradeQuizQuestion(submissionId: string, questionId: string, points: number, teacherId: string): Promise<void>
-  calculateQuizTotal(submissionId: string): Promise<{ total: number, warning: string | null }> // Returns total and warning if sum ≠ 100
-  exportGrades(courseId: string, teacherId: string): Promise<string> // Returns CSV content
-  getStudentProgress(courseId: string, studentId: string): Promise<ProgressData>
-  lockAssignmentForGrading(assignmentId: string): Promise<void> // Sets gradingStarted flag with transaction
-}
-```
+#### Quiz Management
+- `CreateQuizUseCase`: Create quiz with questions
+- `UpdateQuizUseCase`: Update quiz (before due date and submissions)
+- `DeleteQuizUseCase`: Delete quiz
+- `ListQuizzesUseCase`: List quizzes with status
+- `GetQuizUseCase`: Get quiz details
+- `StartQuizUseCase`: Start quiz attempt with timer
+- `AutoSaveQuizAnswersUseCase`: Auto-save answers during quiz
+- `SubmitQuizUseCase`: Submit quiz answers
+- `AutoSubmitQuizOnTimeoutUseCase`: Auto-submit when timer expires
+- `ListQuizSubmissionsUseCase`: List all quiz submissions
 
-#### FileService
-```typescript
-interface FileService {
-  uploadFile(file: Buffer, filename: string, mimeType: string): Promise<string> // Returns file path
-  deleteFile(filePath: string): Promise<void>
-  validateFileType(mimeType: string, allowedTypes: string[]): boolean
-  validateFileSize(size: number, maxSize: number): boolean
-  getFile(filePath: string): Promise<Buffer>
-}
-```
+#### Grading
+- `GradeSubmissionUseCase`: Grade submission and close assignment
+- `UpdateGradeUseCase`: Update existing grade
+- `GradeQuizQuestionUseCase`: Assign points to quiz question
+- `CalculateQuizTotalUseCase`: Calculate total quiz score with warning
+- `ExportGradesUseCase`: Export all grades to CSV
+- `GetStudentProgressUseCase`: Get student's grades and progress
+
+#### Authentication
+- `RegisterUserUseCase`: Register new user with role
+- `LoginUserUseCase`: Login and generate JWT tokens
+- `RefreshTokenUseCase`: Refresh access token
+- `LogoutUserUseCase`: Logout (revoke refresh token)
+- `GetCurrentUserUseCase`: Get current user from JWT
 
 ## Data Models
+
+### Domain Entities vs Database Schema
+
+In Clean Architecture, we separate business logic from persistence concerns:
+
+**Domain Entities** (Domain Layer):
+- Rich objects containing business logic and invariants
+- Framework-agnostic (no dependency on Prisma or database)
+- Enforce business rules through methods (e.g., `course.archive()`, `assignment.startGrading()`)
+- Use Value Objects for complex types (CourseCode, Email, etc.)
+- Provide factory methods for creation and reconstitution from database
+- Encapsulate state changes and validation
+
+**Database Schema** (Infrastructure Layer):
+- Anemic data structures for persistence only
+- Prisma-specific models optimized for database performance
+- No business logic, only data storage and relations
+- Includes indexes, constraints, and cascade rules
+
+**Mapping Responsibility**:
+- Repository implementations handle bidirectional mapping
+- Domain → Database: Extract primitive values from entities
+- Database → Domain: Reconstitute entities using factory methods
+- Ensures domain layer never depends on infrastructure
+
+**Key Design Principles**:
+1. **Business Logic Location**: All business rules live in Domain Entities, not in database models
+2. **Validation**: Domain entities validate their own state, database only enforces constraints
+3. **Immutability**: Value Objects are immutable, entities control their own state changes
+4. **Reconstitution**: Entities provide factory methods to rebuild from database data
+5. **No Leakage**: Database concerns (Prisma types, SQL) never leak into Domain Layer
+
+**Example Design Decisions**:
+- Course entity has `archive()` method that validates state and changes status
+- Assignment entity has `startGrading()` method that sets grading lock
+- CourseCode is a Value Object that handles generation and validation
+- Repositories map between rich domain entities and anemic database models
 
 ### Database Schema (Prisma)
 
@@ -1061,7 +1214,7 @@ All API errors follow a consistent format with error code, message, and optional
 
 ### Testing Approach
 
-The LMS will use a dual testing approach combining unit tests for specific examples and property-based tests for universal correctness properties. This ensures both concrete functionality and general correctness across all inputs.
+The LMS uses a dual testing approach combining unit tests for specific examples and property-based tests for universal correctness properties. This ensures both concrete functionality and general correctness across all inputs.
 
 ### Testing Framework
 
@@ -1076,6 +1229,72 @@ The LMS will use a dual testing approach combining unit tests for specific examp
 - **Test Isolation**: Each test uses fresh database state
 - **Mock Strategy**: Minimize mocking, prefer integration testing
 - **Coverage Target**: 80% code coverage minimum
+
+### Testing by Clean Architecture Layer
+
+#### Domain Layer Testing
+**Focus**: Pure business logic without external dependencies
+
+**Approach**:
+- Unit tests for Domain Entities (Course, Assignment, Quiz, Submission, etc.)
+- Test business rule enforcement (e.g., `course.archive()` validates state)
+- Test Value Objects (CourseCode generation, Email validation)
+- Test Domain Services (CourseCodeGenerator uniqueness logic)
+- **No mocks needed** - domain layer has no external dependencies
+
+**Example Test Scenarios**:
+- Course entity: Archive active course succeeds, archive archived course fails
+- Assignment entity: Start grading sets lock, cannot accept submission after lock
+- CourseCode value object: Generate valid 6-character code, validate format
+- Domain Service: Generate unique code with retry logic
+
+#### Application Layer Testing
+**Focus**: Use Case orchestration and business workflows
+
+**Approach**:
+- Test Use Cases with mocked repositories and policies
+- Verify correct repository method calls
+- Test authorization policy enforcement
+- Test transaction boundaries (Unit of Work)
+- Mock infrastructure dependencies (repositories, file storage)
+
+**Example Test Scenarios**:
+- CreateCourseUseCase: Calls repository.save with correct entity
+- ArchiveCourseUseCase: Loads course, calls archive(), saves in transaction
+- GradeSubmissionUseCase: Checks authorization, locks assignment, saves grade
+- SubmitAssignmentUseCase: Validates grading lock before accepting submission
+
+#### Infrastructure Layer Testing
+**Focus**: Integration with external systems
+
+**Approach**:
+- Integration tests with real database (test database or in-memory)
+- Test repository implementations (Prisma repositories)
+- Test file storage implementations (local or S3)
+- Verify database transactions and constraints
+- Test error handling for external failures
+
+**Example Test Scenarios**:
+- PrismaCourseRepository: Save and retrieve course entity correctly
+- Repository mapping: Domain entity ↔ Database model conversion
+- File storage: Upload, retrieve, delete files
+- Transaction rollback on error
+
+#### Presentation Layer Testing
+**Focus**: API endpoints and request/response handling
+
+**Approach**:
+- API integration tests with Supertest
+- Test request validation and error responses
+- Test authentication and authorization middleware
+- Verify correct HTTP status codes
+- Test with valid and invalid inputs
+
+**Example Test Scenarios**:
+- POST /api/courses: Returns 201 with course data for valid input
+- PUT /api/courses/:id: Returns 403 for non-owner teacher
+- POST /api/assignments/:id/submit: Returns 400 if grading started
+- GET /api/courses: Returns only active courses for students
 
 ### Unit Testing Focus
 
@@ -1105,20 +1324,35 @@ Property tests validate universal properties across all inputs:
 
 ```
 src/
-  services/
-    __tests__/
-      auth.test.ts           # Unit tests
-      auth.properties.test.ts # Property tests
-      course.test.ts
-      course.properties.test.ts
-  api/
-    __tests__/
-      auth.api.test.ts       # API integration tests
-      course.api.test.ts
-  components/
-    __tests__/
-      LoginPage.test.tsx     # Component tests
-      CourseList.test.tsx
+  domain/
+    entities/
+      __tests__/
+        Course.test.ts              # Domain entity unit tests
+        Assignment.test.ts
+        Course.properties.test.ts   # Property-based tests
+    services/
+      __tests__/
+        CourseCodeGenerator.test.ts
+  application/
+    use-cases/
+      course/
+        __tests__/
+          CreateCourseUseCase.test.ts    # Use case tests with mocks
+          ArchiveCourseUseCase.test.ts
+  infrastructure/
+    persistence/
+      repositories/
+        __tests__/
+          PrismaCourseRepository.test.ts # Integration tests
+  presentation/
+    api/
+      controllers/
+        __tests__/
+          CourseController.test.ts       # API integration tests
+    components/
+      __tests__/
+        LoginPage.test.tsx               # Component tests
+        CourseList.test.tsx
 ```
 
 ### Property Test Tagging
