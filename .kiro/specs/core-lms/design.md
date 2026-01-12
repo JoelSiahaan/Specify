@@ -39,23 +39,14 @@
 6. [Components and Interfaces](#components-and-interfaces)
    - [Layer Organization](#layer-organization)
    - [Clean Architecture Layer Responsibilities](#clean-architecture-layer-responsibilities)
-   - [Backend API Endpoints](#backend-api-endpoints)
-   - [Use Case Catalog](#use-case-catalog)
+   - [API Design Principles](#api-design-principles)
 
-7. [Configuration Management](#configuration-management)
-   - [Overview](#overview-4)
-   - [Configuration Strategy](#configuration-strategy)
-   - [Configuration Categories](#configuration-categories)
-   - [Validation Strategy](#validation-strategy)
-   - [Environment Separation Strategy](#environment-separation-strategy)
-   - [Security Design](#security-design)
-
-8. [Data Models](#data-models)
+7. [Data Models](#data-models)
    - [Domain Entities vs Database Schema](#domain-entities-vs-database-schema)
-   - [Database Schema (Prisma)](#database-schema-prisma)
+   - [Database Schema Design](#database-schema-design)
    - [Key Data Model Decisions](#key-data-model-decisions)
 
-9. [Critical Flows and Edge Cases](#critical-flows-and-edge-cases)
+8. [Critical Flows and Edge Cases](#critical-flows-and-edge-cases)
    - [JWT Logout Flow](#jwt-logout-flow)
    - [Quiz Timer and Network Issues](#quiz-timer-and-network-issues)
    - [Grading Lock and Concurrency](#grading-lock-and-concurrency)
@@ -120,6 +111,8 @@ The Learning Management System is a web-based platform built with React 19.2 (Ty
 2. **JWT Authentication**: Using JSON Web Tokens for stateless, scalable authentication
    - **Access Token**: Short-lived (15 minutes), stored in HTTP-only cookie
    - **Refresh Token**: Long-lived (7 days), stored in HTTP-only cookie
+   - **Secret Requirements**: Minimum 32 characters, cryptographically random, access ≠ refresh
+   - **Cookie Policy**: SameSite=Strict, HTTP-only, Secure flag in production
    - **Logout**: Client-side token removal (simple, stateless approach for MVP)
    - **Security**: HTTP-only cookies prevent XSS attacks, short access token lifetime limits exposure
 3. **Repository Pattern**: Abstract data access through interfaces (Ports)
@@ -138,11 +131,21 @@ The Learning Management System is a web-based platform built with React 19.2 (Ty
 7. **File Storage Abstraction**: Storage interface with multiple implementations
    - Local filesystem for MVP
    - Easy to extend to S3/cloud storage
+   - **File Size Limit**: 10MB maximum per file (as per requirements)
+   - **Allowed Formats**: PDF, DOCX, images (JPG, PNG, GIF) for uploads
+   - **Video Links**: External only (YouTube, Vimeo) - no video file uploads
 8. **Rich Text Support**: Store HTML content with sanitization to prevent XSS
+   - Client-side: DOMPurify for user input sanitization
+   - Server-side: sanitize-html for stored content validation
 9. **Timezone Handling**: Store all timestamps in UTC, convert to user timezone in frontend
 10. **Course Lifecycle**: Active → Archived → Deleted (with safeguards at each stage)
 11. **Grading Lock**: First grading action closes assignment to prevent late submissions
 12. **Manual Grading Only**: All quiz questions (MCQ and essay) require manual point assignment
+13. **Course Code Generation**: 6-character alphanumeric codes with collision retry
+   - Format: Random alphanumeric (A-Z, 0-9)
+   - Uniqueness: Database constraint ensures no duplicates
+   - Collision Handling: Retry up to 5 times, fail if all retries exhausted
+   - Probability: 36^6 = 2.1 billion combinations (collision extremely rare)
 
 ## Architecture
 
@@ -248,9 +251,15 @@ graph TB
 - **ORM**: Prisma (abstracted behind repository interfaces)
 - **Database**: PostgreSQL
 - **Authentication**: JWT (JSON Web Tokens) with HTTP-only cookies
+- **Password Hashing**: BCrypt (industry standard, sufficient security for MVP)
 - **File Storage**: Abstracted interface (Local filesystem for MVP, extensible to S3)
-- **Dependency Injection**: C or TSyringe
-- **Validation**: Zod or Joi for DTO validation
+- **File Upload**: Multer (Express middleware for multipart/form-data)
+- **Dependency Injection**: TSyringe (TypeScript-first, decorator-based)
+- **Validation**: Zod (TypeScript type inference, schema-first validation)
+- **HTML Sanitization**: DOMPurify (client-side) + sanitize-html (server-side)
+- **CORS**: cors package with SameSite=Strict cookies
+- **Logging**: Winston (structured logging, multiple transports)
+- **Property Testing**: fast-check ^3.0.0 (minimum 100 iterations per test)
 
 ### Clean Architecture Layers
 
@@ -1088,231 +1097,6 @@ Complete list of Use Cases organized by feature:
 - `RefreshTokenUseCase`: Refresh access token
 - `LogoutUserUseCase`: Logout (revoke refresh token)
 - `GetCurrentUserUseCase`: Get current user from JWT
-
-## Configuration Management
-
-### Overview
-
-Configuration management is critical for system reliability and security. The LMS uses environment-based configuration with clear separation between development, testing, and production environments. All sensitive values (secrets, keys, credentials) are externalized and never committed to version control.
-
-### Configuration Strategy
-
-**Design Principles**:
-- **Environment-Based**: Different configurations for dev, test, production environments
-- **Externalized Secrets**: No secrets in code or version control (12-factor app principle)
-- **Type-Safe Validation**: Configuration validated at startup with clear error messages
-- **Fail-Fast**: Invalid configuration prevents application start (prevents runtime errors)
-- **Layered Precedence**: Clear hierarchy for configuration sources
-
-**Configuration Sources** (in order of precedence):
-1. Environment variables (highest priority - platform/deployment specific)
-2. `.env` file (local development only, gitignored)
-3. Default values (lowest priority, for non-sensitive values only)
-
-**Configuration Loading Strategy**:
-- Load configuration at application bootstrap (before any business logic)
-- Parse and validate all values with type checking
-- Fail immediately with descriptive error if validation fails
-- Cache validated configuration for runtime access
-
-### Configuration Categories
-
-The system requires configuration across several categories, each with specific validation rules:
-
-#### Database Configuration
-**Purpose**: Database connection and pooling settings
-
-**Required Values**:
-- Primary database connection string (PostgreSQL format)
-- Test database connection string (separate from production)
-
-**Validation Rules**:
-- Must be valid PostgreSQL connection URL format
-- Connection must be testable at startup
-- SSL required for production environments
-
-**Environment Separation**:
-- Development: Local database instance
-- Test: Isolated test database (reset between test runs)
-- Production: Cloud-hosted database with connection pooling
-
-#### Authentication Configuration
-**Purpose**: JWT token generation and validation
-
-**Required Values**:
-- Access token secret (minimum 32 characters)
-- Refresh token secret (minimum 32 characters, different from access)
-- Access token expiration duration
-- Refresh token expiration duration
-
-**Validation Rules**:
-- Secrets must meet minimum length requirement
-- Secrets must be cryptographically random
-- Access and refresh secrets must be different
-- Access expiration must be shorter than refresh expiration
-- Expiration format must be parseable (e.g., "15m", "7d")
-
-**Security Requirements**:
-- Different secrets per environment
-- Periodic rotation policy (recommended: 90 days)
-- No secrets in version control or logs
-
-#### Application Configuration
-**Purpose**: Runtime behavior and environment settings
-
-**Required Values**:
-- Environment mode (development, test, production)
-- Server port
-- Frontend URL (for CORS)
-- Backend URL (for absolute URLs)
-
-**Validation Rules**:
-- Environment mode must be valid enum value
-- Port must be valid port number
-- URLs must be valid HTTP/HTTPS format
-- CORS origin must match frontend URL in production
-
-#### File Storage Configuration
-**Purpose**: File upload and storage settings
-
-**Required Values**:
-- Storage type (local or cloud)
-- Storage location (path or bucket name)
-- Maximum file size limit
-
-**Validation Rules**:
-- Storage type must be supported value
-- Local storage path must be writable
-- Cloud storage credentials must be valid (if using cloud)
-- File size limit must match business requirements (10MB)
-
-**Storage Strategy**:
-- Development: Local filesystem for simplicity
-- Production: Cloud storage (S3) for scalability and reliability
-
-#### Optional Configuration
-**Purpose**: Non-critical features with sensible defaults
-
-**Categories**:
-- CORS settings (default: permissive in dev, strict in production)
-- Logging configuration (level, format)
-- Rate limiting (window, max requests)
-
-**Default Strategy**:
-- Provide safe defaults for development
-- Require explicit configuration for production
-
-### Validation Strategy
-
-**Startup Validation Approach**:
-- All configuration loaded and validated before application starts
-- Validation failures prevent server startup (fail-fast principle)
-- Clear error messages indicating which configuration is invalid and why
-- No partial startup with invalid configuration
-
-**Validation Levels**:
-
-1. **Syntax Validation**: Check format and type correctness
-   - URL format validation
-   - Port number range validation
-   - Duration format parsing
-   - Enum value validation
-
-2. **Semantic Validation**: Check logical consistency
-   - Access token expiration < refresh token expiration
-   - Different secrets for access and refresh tokens
-   - Minimum length requirements for secrets
-   - File size limits match business requirements
-
-3. **Connectivity Validation**: Test external dependencies
-   - Database connection test
-   - File storage accessibility test
-   - Cloud service credential validation (if applicable)
-
-**Validation Error Handling**:
-- Log specific configuration error with field name
-- Provide guidance on valid values or format
-- Exit process with non-zero exit code
-- Never expose secret values in error messages
-
-**Runtime Validation**:
-- Configuration is immutable after startup (no runtime changes)
-- Re-validation only on application restart
-- Configuration changes require deployment/restart
-
-### Environment Separation Strategy
-
-**Environment Isolation Principles**:
-- Each environment has completely separate configuration
-- No shared secrets or credentials between environments
-- Clear boundaries between development, testing, and production
-- Configuration changes isolated to specific environment
-
-**Development Environment**:
-- **Purpose**: Local development with rapid iteration
-- **Database**: Local PostgreSQL instance
-- **Storage**: Local filesystem
-- **Security**: Relaxed (permissive CORS, debug logging)
-- **Configuration Source**: `.env` file (gitignored)
-
-**Test Environment**:
-- **Purpose**: Automated testing with isolation
-- **Database**: Separate test database (reset between runs)
-- **Storage**: Temporary directory (cleaned after tests)
-- **Security**: Minimal (no external access)
-- **Configuration Source**: `.env.test` file or CI environment variables
-
-**Production Environment**:
-- **Purpose**: Live system serving real users
-- **Database**: Cloud-hosted with connection pooling and SSL
-- **Storage**: Cloud storage (S3) for scalability
-- **Security**: Strict (HTTPS only, exact CORS origin, minimal logging)
-- **Configuration Source**: Platform environment variables (Heroku, AWS, etc.)
-
-**Configuration Differences by Environment**:
-
-| Aspect | Development | Test | Production |
-|--------|-------------|------|------------|
-| Database | Local PostgreSQL | Isolated test DB | Cloud PostgreSQL |
-| Storage | Local filesystem | Temp directory | Cloud (S3) |
-| CORS | Permissive (*) | No restrictions | Strict (exact origin) |
-| Logging | Debug level | Minimal | Info/Warn level |
-| JWT Expiration | Standard | Short (faster tests) | Standard |
-| HTTPS | Optional | Not required | Required |
-| Secrets | Simple | Simple | Cryptographically strong |
-
-### Security Design
-
-**Secret Management Principles**:
-- **No Secrets in Code**: All secrets externalized to environment variables
-- **No Secrets in Version Control**: `.env` files gitignored, `.env.example` has placeholders only
-- **Secret Rotation Policy**: Secrets should be rotatable without code changes
-- **Environment Isolation**: Different secrets for each environment
-- **Minimum Privilege**: Each environment has only necessary credentials
-
-**Secret Generation Requirements**:
-- Use cryptographically secure random generation
-- Minimum length requirements enforced (32 characters for JWT secrets)
-- Uniqueness validation (access secret ≠ refresh secret)
-- No predictable patterns or weak values
-
-**Access Control Strategy**:
-- Production secrets accessible only to authorized personnel
-- Platform-managed secrets (AWS Secrets Manager, Heroku Config Vars)
-- Audit logging for secret access
-- Immediate revocation capability if compromised
-
-**Logging Security**:
-- Never log secret values (even in debug mode)
-- Mask sensitive data in error messages
-- Configuration validation errors show field names, not values
-- Separate audit logs for configuration changes
-
-**Configuration Documentation**:
-- `.env.example` file documents all configuration keys
-- Comments explain purpose and valid value ranges
-- Security implications documented for sensitive settings
-- No actual secrets in documentation
 
 ## Data Models
 
