@@ -42,12 +42,20 @@
    - [Backend API Endpoints](#backend-api-endpoints)
    - [Use Case Catalog](#use-case-catalog)
 
-7. [Data Models](#data-models)
+7. [Configuration Management](#configuration-management)
+   - [Overview](#overview-4)
+   - [Configuration Strategy](#configuration-strategy)
+   - [Configuration Categories](#configuration-categories)
+   - [Validation Strategy](#validation-strategy)
+   - [Environment Separation Strategy](#environment-separation-strategy)
+   - [Security Design](#security-design)
+
+8. [Data Models](#data-models)
    - [Domain Entities vs Database Schema](#domain-entities-vs-database-schema)
    - [Database Schema (Prisma)](#database-schema-prisma)
    - [Key Data Model Decisions](#key-data-model-decisions)
 
-8. [Critical Flows and Edge Cases](#critical-flows-and-edge-cases)
+9. [Critical Flows and Edge Cases](#critical-flows-and-edge-cases)
    - [JWT Logout Flow](#jwt-logout-flow)
    - [Quiz Timer and Network Issues](#quiz-timer-and-network-issues)
    - [Grading Lock and Concurrency](#grading-lock-and-concurrency)
@@ -56,13 +64,13 @@
    - [Concurrent Grading Prevention](#concurrent-grading-prevention)
    - [Archive Course Flow](#archive-course-flow)
 
-9. [Error Handling](#error-handling)
-   - [Error Response Format](#error-response-format)
-   - [Error Categories](#error-categories)
-   - [Error Handling Strategy](#error-handling-strategy)
-   - [Specific Error Scenarios](#specific-error-scenarios)
+10. [Error Handling](#error-handling)
+    - [Error Response Format](#error-response-format)
+    - [Error Categories](#error-categories)
+    - [Error Handling Strategy](#error-handling-strategy)
+    - [Specific Error Scenarios](#specific-error-scenarios)
 
-10. [Testing Strategy](#testing-strategy)
+11. [Testing Strategy](#testing-strategy)
     - [Testing Approach](#testing-approach)
     - [Testing Framework](#testing-framework)
     - [Test Configuration](#test-configuration)
@@ -72,9 +80,10 @@
     - [Test Organization](#test-organization)
     - [Property Test Tagging](#property-test-tagging)
     - [Integration Testing](#integration-testing)
+    - [Security Testing Strategy](#security-testing-strategy)
     - [End-to-End Testing Considerations](#end-to-end-testing-considerations)
 
-11. [Correctness Properties](#correctness-properties)
+12. [Correctness Properties](#correctness-properties)
     - [Property Reflection](#property-reflection)
     - [Authentication and Authorization Properties](#authentication-and-authorization-properties)
     - [Course Management Properties](#course-management-properties)
@@ -240,7 +249,7 @@ graph TB
 - **Database**: PostgreSQL
 - **Authentication**: JWT (JSON Web Tokens) with HTTP-only cookies
 - **File Storage**: Abstracted interface (Local filesystem for MVP, extensible to S3)
-- **Dependency Injection**: InversifyJS or TSyringe
+- **Dependency Injection**: C or TSyringe
 - **Validation**: Zod or Joi for DTO validation
 
 ### Clean Architecture Layers
@@ -1080,6 +1089,231 @@ Complete list of Use Cases organized by feature:
 - `LogoutUserUseCase`: Logout (revoke refresh token)
 - `GetCurrentUserUseCase`: Get current user from JWT
 
+## Configuration Management
+
+### Overview
+
+Configuration management is critical for system reliability and security. The LMS uses environment-based configuration with clear separation between development, testing, and production environments. All sensitive values (secrets, keys, credentials) are externalized and never committed to version control.
+
+### Configuration Strategy
+
+**Design Principles**:
+- **Environment-Based**: Different configurations for dev, test, production environments
+- **Externalized Secrets**: No secrets in code or version control (12-factor app principle)
+- **Type-Safe Validation**: Configuration validated at startup with clear error messages
+- **Fail-Fast**: Invalid configuration prevents application start (prevents runtime errors)
+- **Layered Precedence**: Clear hierarchy for configuration sources
+
+**Configuration Sources** (in order of precedence):
+1. Environment variables (highest priority - platform/deployment specific)
+2. `.env` file (local development only, gitignored)
+3. Default values (lowest priority, for non-sensitive values only)
+
+**Configuration Loading Strategy**:
+- Load configuration at application bootstrap (before any business logic)
+- Parse and validate all values with type checking
+- Fail immediately with descriptive error if validation fails
+- Cache validated configuration for runtime access
+
+### Configuration Categories
+
+The system requires configuration across several categories, each with specific validation rules:
+
+#### Database Configuration
+**Purpose**: Database connection and pooling settings
+
+**Required Values**:
+- Primary database connection string (PostgreSQL format)
+- Test database connection string (separate from production)
+
+**Validation Rules**:
+- Must be valid PostgreSQL connection URL format
+- Connection must be testable at startup
+- SSL required for production environments
+
+**Environment Separation**:
+- Development: Local database instance
+- Test: Isolated test database (reset between test runs)
+- Production: Cloud-hosted database with connection pooling
+
+#### Authentication Configuration
+**Purpose**: JWT token generation and validation
+
+**Required Values**:
+- Access token secret (minimum 32 characters)
+- Refresh token secret (minimum 32 characters, different from access)
+- Access token expiration duration
+- Refresh token expiration duration
+
+**Validation Rules**:
+- Secrets must meet minimum length requirement
+- Secrets must be cryptographically random
+- Access and refresh secrets must be different
+- Access expiration must be shorter than refresh expiration
+- Expiration format must be parseable (e.g., "15m", "7d")
+
+**Security Requirements**:
+- Different secrets per environment
+- Periodic rotation policy (recommended: 90 days)
+- No secrets in version control or logs
+
+#### Application Configuration
+**Purpose**: Runtime behavior and environment settings
+
+**Required Values**:
+- Environment mode (development, test, production)
+- Server port
+- Frontend URL (for CORS)
+- Backend URL (for absolute URLs)
+
+**Validation Rules**:
+- Environment mode must be valid enum value
+- Port must be valid port number
+- URLs must be valid HTTP/HTTPS format
+- CORS origin must match frontend URL in production
+
+#### File Storage Configuration
+**Purpose**: File upload and storage settings
+
+**Required Values**:
+- Storage type (local or cloud)
+- Storage location (path or bucket name)
+- Maximum file size limit
+
+**Validation Rules**:
+- Storage type must be supported value
+- Local storage path must be writable
+- Cloud storage credentials must be valid (if using cloud)
+- File size limit must match business requirements (10MB)
+
+**Storage Strategy**:
+- Development: Local filesystem for simplicity
+- Production: Cloud storage (S3) for scalability and reliability
+
+#### Optional Configuration
+**Purpose**: Non-critical features with sensible defaults
+
+**Categories**:
+- CORS settings (default: permissive in dev, strict in production)
+- Logging configuration (level, format)
+- Rate limiting (window, max requests)
+
+**Default Strategy**:
+- Provide safe defaults for development
+- Require explicit configuration for production
+
+### Validation Strategy
+
+**Startup Validation Approach**:
+- All configuration loaded and validated before application starts
+- Validation failures prevent server startup (fail-fast principle)
+- Clear error messages indicating which configuration is invalid and why
+- No partial startup with invalid configuration
+
+**Validation Levels**:
+
+1. **Syntax Validation**: Check format and type correctness
+   - URL format validation
+   - Port number range validation
+   - Duration format parsing
+   - Enum value validation
+
+2. **Semantic Validation**: Check logical consistency
+   - Access token expiration < refresh token expiration
+   - Different secrets for access and refresh tokens
+   - Minimum length requirements for secrets
+   - File size limits match business requirements
+
+3. **Connectivity Validation**: Test external dependencies
+   - Database connection test
+   - File storage accessibility test
+   - Cloud service credential validation (if applicable)
+
+**Validation Error Handling**:
+- Log specific configuration error with field name
+- Provide guidance on valid values or format
+- Exit process with non-zero exit code
+- Never expose secret values in error messages
+
+**Runtime Validation**:
+- Configuration is immutable after startup (no runtime changes)
+- Re-validation only on application restart
+- Configuration changes require deployment/restart
+
+### Environment Separation Strategy
+
+**Environment Isolation Principles**:
+- Each environment has completely separate configuration
+- No shared secrets or credentials between environments
+- Clear boundaries between development, testing, and production
+- Configuration changes isolated to specific environment
+
+**Development Environment**:
+- **Purpose**: Local development with rapid iteration
+- **Database**: Local PostgreSQL instance
+- **Storage**: Local filesystem
+- **Security**: Relaxed (permissive CORS, debug logging)
+- **Configuration Source**: `.env` file (gitignored)
+
+**Test Environment**:
+- **Purpose**: Automated testing with isolation
+- **Database**: Separate test database (reset between runs)
+- **Storage**: Temporary directory (cleaned after tests)
+- **Security**: Minimal (no external access)
+- **Configuration Source**: `.env.test` file or CI environment variables
+
+**Production Environment**:
+- **Purpose**: Live system serving real users
+- **Database**: Cloud-hosted with connection pooling and SSL
+- **Storage**: Cloud storage (S3) for scalability
+- **Security**: Strict (HTTPS only, exact CORS origin, minimal logging)
+- **Configuration Source**: Platform environment variables (Heroku, AWS, etc.)
+
+**Configuration Differences by Environment**:
+
+| Aspect | Development | Test | Production |
+|--------|-------------|------|------------|
+| Database | Local PostgreSQL | Isolated test DB | Cloud PostgreSQL |
+| Storage | Local filesystem | Temp directory | Cloud (S3) |
+| CORS | Permissive (*) | No restrictions | Strict (exact origin) |
+| Logging | Debug level | Minimal | Info/Warn level |
+| JWT Expiration | Standard | Short (faster tests) | Standard |
+| HTTPS | Optional | Not required | Required |
+| Secrets | Simple | Simple | Cryptographically strong |
+
+### Security Design
+
+**Secret Management Principles**:
+- **No Secrets in Code**: All secrets externalized to environment variables
+- **No Secrets in Version Control**: `.env` files gitignored, `.env.example` has placeholders only
+- **Secret Rotation Policy**: Secrets should be rotatable without code changes
+- **Environment Isolation**: Different secrets for each environment
+- **Minimum Privilege**: Each environment has only necessary credentials
+
+**Secret Generation Requirements**:
+- Use cryptographically secure random generation
+- Minimum length requirements enforced (32 characters for JWT secrets)
+- Uniqueness validation (access secret ≠ refresh secret)
+- No predictable patterns or weak values
+
+**Access Control Strategy**:
+- Production secrets accessible only to authorized personnel
+- Platform-managed secrets (AWS Secrets Manager, Heroku Config Vars)
+- Audit logging for secret access
+- Immediate revocation capability if compromised
+
+**Logging Security**:
+- Never log secret values (even in debug mode)
+- Mask sensitive data in error messages
+- Configuration validation errors show field names, not values
+- Separate audit logs for configuration changes
+
+**Configuration Documentation**:
+- `.env.example` file documents all configuration keys
+- Comments explain purpose and valid value ranges
+- Security implications documented for sensitive settings
+- No actual secrets in documentation
+
 ## Data Models
 
 ### Domain Entities vs Database Schema
@@ -1119,225 +1353,234 @@ In Clean Architecture, we separate business logic from persistence concerns:
 - CourseCode is a Value Object that handles generation and validation
 - Repositories map between rich domain entities and anemic database models
 
-### Database Schema (Prisma)
+### Database Schema Design
 
-```prisma
-model User {
-  id            String        @id @default(uuid())
-  email         String        @unique
-  passwordHash  String
-  name          String
-  role          Role
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  
-  // Relations
-  createdCourses Course[]     @relation("TeacherCourses")
-  enrollments    Enrollment[]
-  submissions    Submission[]
-  refreshTokens  RefreshToken[]
-}
+The database schema is designed to support Clean Architecture principles with clear entity relationships and data integrity constraints.
 
-enum Role {
-  STUDENT
-  TEACHER
-}
+#### Entity Relationship Diagram
 
-model RefreshToken {
-  id        String   @id @default(uuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId])
-  @@index([token]) // For token validation lookup
-}
-
-model Course {
-  id          String        @id @default(uuid())
-  name        String
-  description String
-  courseCode  String        @unique
-  status      CourseStatus  @default(ACTIVE)
-  teacherId   String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  
-  // Relations
-  teacher     User          @relation("TeacherCourses", fields: [teacherId], references: [id])
-  enrollments Enrollment[]
-  materials   Material[]
-  assignments Assignment[]
-  quizzes     Quiz[]
-  
-  @@index([teacherId])
-  @@index([status])
-}
-
-enum CourseStatus {
-  ACTIVE
-  ARCHIVED
-}
-
-model Enrollment {
-  id         String   @id @default(uuid())
-  studentId  String
-  courseId   String
-  enrolledAt DateTime @default(now())
-  
-  student User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  course  Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  
-  @@unique([studentId, courseId])
-  @@index([studentId])
-  @@index([courseId])
-}
-
-model Material {
-  id          String       @id @default(uuid())
-  courseId    String
-  type        MaterialType
-  title       String
-  content     String?      // For TEXT type or video URL
-  filePath    String?      // For FILE type
-  fileName    String?
-  fileSize    Int?
-  mimeType    String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  
-  @@index([courseId])
-}
-
-enum MaterialType {
-  FILE
-  TEXT
-  VIDEO_LINK
-}
-
-model Assignment {
-  id              String           @id @default(uuid())
-  courseId        String
-  title           String
-  description     String
-  dueDate         DateTime
-  submissionType  SubmissionType
-  allowedFormats  String[]         // For file uploads
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  gradingStarted  Boolean          @default(false)
-  
-  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  submissions Submission[]
-  
-  @@index([courseId])
-  @@index([dueDate])
-}
-
-enum SubmissionType {
-  FILE
-  TEXT
-  BOTH
-}
-
-model Quiz {
-  id          String       @id @default(uuid())
-  courseId    String
-  title       String
-  description String
-  dueDate     DateTime
-  timeLimit   Int          // In minutes
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  
-  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  questions   Question[]
-  submissions Submission[]
-  
-  @@index([courseId])
-  @@index([dueDate])
-}
-
-model Question {
-  id           String       @id @default(uuid())
-  quizId       String
-  type         QuestionType
-  questionText String
-  options      String[]     // For MCQ
-  correctAnswer Int?        // Index for MCQ
-  order        Int
-  createdAt    DateTime     @default(now())
-  
-  quiz    Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  answers Answer[]
-  
-  @@index([quizId])
-}
-
-enum QuestionType {
-  MCQ
-  ESSAY
-}
-
-model Submission {
-  id            String           @id @default(uuid())
-  studentId     String
-  assignmentId  String?
-  quizId        String?
-  submittedAt   DateTime         @default(now())
-  status        SubmissionStatus @default(SUBMITTED)
-  isLate        Boolean          @default(false)
-  grade         Float?
-  feedback      String?
-  version       Int              @default(1) // For optimistic locking
-  
-  // For assignment submissions
-  filePath      String?
-  fileName      String?
-  textContent   String?
-  
-  // For quiz submissions
-  startedAt     DateTime?
-  completedAt   DateTime?
-  
-  student    User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  assignment Assignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  quiz       Quiz?       @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  answers    Answer[]
-  
-  @@index([studentId])
-  @@index([assignmentId])
-  @@index([quizId])
-}
-
-enum SubmissionStatus {
-  NOT_SUBMITTED
-  SUBMITTED
-  GRADED
-}
-
-model Answer {
-  id           String   @id @default(uuid())
-  submissionId String
-  questionId   String
-  answerText   String?  // For essay or MCQ (stores selected option text)
-  selectedOption Int?   // For MCQ (index)
-  points       Float?   // Manually assigned by teacher
-  createdAt    DateTime @default(now())
-  
-  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  question   Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  
-  @@unique([submissionId, questionId])
-  @@index([submissionId])
-  @@index([questionId])
-}
+```mermaid
+erDiagram
+    User ||--o{ Course : creates
+    User ||--o{ Enrollment : enrolls
+    User ||--o{ Submission : submits
+    User ||--o{ RefreshToken : has
+    
+    Course ||--o{ Enrollment : has
+    Course ||--o{ Material : contains
+    Course ||--o{ Assignment : contains
+    Course ||--o{ Quiz : contains
+    
+    Assignment ||--o{ Submission : receives
+    Quiz ||--o{ Question : contains
+    Quiz ||--o{ Submission : receives
+    
+    Submission ||--o{ Answer : contains
+    Question ||--o{ Answer : answered_by
+    
+    User {
+        uuid id PK
+        string email UK
+        string passwordHash
+        string name
+        enum role
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    RefreshToken {
+        uuid id PK
+        uuid userId FK
+        string token UK
+        datetime expiresAt
+        datetime createdAt
+    }
+    
+    Course {
+        uuid id PK
+        string name
+        string description
+        string courseCode UK
+        enum status
+        uuid teacherId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Enrollment {
+        uuid id PK
+        uuid studentId FK
+        uuid courseId FK
+        datetime enrolledAt
+    }
+    
+    Material {
+        uuid id PK
+        uuid courseId FK
+        enum type
+        string title
+        string content
+        string filePath
+        string fileName
+        int fileSize
+        string mimeType
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Assignment {
+        uuid id PK
+        uuid courseId FK
+        string title
+        string description
+        datetime dueDate
+        enum submissionType
+        array allowedFormats
+        boolean gradingStarted
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Quiz {
+        uuid id PK
+        uuid courseId FK
+        string title
+        string description
+        datetime dueDate
+        int timeLimit
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Question {
+        uuid id PK
+        uuid quizId FK
+        enum type
+        string questionText
+        array options
+        int correctAnswer
+        int order
+        datetime createdAt
+    }
+    
+    Submission {
+        uuid id PK
+        uuid studentId FK
+        uuid assignmentId FK
+        uuid quizId FK
+        datetime submittedAt
+        enum status
+        boolean isLate
+        float grade
+        string feedback
+        int version
+        string filePath
+        string fileName
+        string textContent
+        datetime startedAt
+        datetime completedAt
+    }
+    
+    Answer {
+        uuid id PK
+        uuid submissionId FK
+        uuid questionId FK
+        string answerText
+        int selectedOption
+        float points
+        datetime createdAt
+    }
 ```
+
+#### Entity Descriptions
+
+**User**
+- Primary entity for authentication and authorization
+- Role determines access level (STUDENT or TEACHER)
+- Password stored as BCrypt hash
+- One-to-many relationships with courses, enrollments, submissions
+
+**RefreshToken**
+- Manages JWT refresh tokens for authentication
+- Enables token revocation on logout
+- Expires after configured duration (7 days default)
+
+**Course**
+- Central entity for course management
+- Status tracks lifecycle (ACTIVE or ARCHIVED)
+- Unique courseCode for enrollment
+- Owned by teacher, accessible to enrolled students
+
+**Enrollment**
+- Junction entity linking students to courses
+- Unique constraint prevents duplicate enrollments
+- Tracks enrollment timestamp
+
+**Material**
+- Supports three types: FILE, TEXT, VIDEO_LINK
+- Conditional fields based on type (filePath for files, content for text/links)
+- Cascade deletes when course is deleted
+
+**Assignment**
+- Supports flexible submission types (FILE, TEXT, or BOTH)
+- gradingStarted flag prevents late submissions
+- Due date enforcement with late submission tracking
+
+**Quiz**
+- Time-limited assessments with multiple questions
+- Strict due date enforcement (no late submissions)
+- Contains ordered questions
+
+**Question**
+- Two types: MCQ (multiple choice) or ESSAY
+- MCQ stores options array and correct answer index
+- Order field maintains question sequence
+
+**Submission**
+- Polymorphic entity for both assignment and quiz submissions
+- Version field enables optimistic locking for concurrent grading prevention
+- Tracks submission timing (submitted, started, completed)
+- Stores grade and feedback from teacher
+
+**Answer**
+- Individual question responses within quiz submission
+- Stores both selected option (MCQ) and text answer (essay)
+- Points manually assigned by teacher during grading
+
+#### Data Integrity Constraints
+
+**Primary Keys**:
+- All entities use UUID for security and distributed compatibility
+
+**Unique Constraints**:
+- User.email: Prevent duplicate accounts
+- Course.courseCode: Ensure unique enrollment codes
+- RefreshToken.token: Prevent token collision
+- Enrollment(studentId, courseId): Prevent duplicate enrollments
+- Answer(submissionId, questionId): One answer per question per submission
+
+**Foreign Key Constraints**:
+- All relationships enforced with foreign keys
+- Cascade delete for dependent entities (materials, assignments, submissions)
+- Referential integrity maintained at database level
+
+**Indexes**:
+- User.email: Fast authentication lookup
+- Course.teacherId: Teacher's course queries
+- Course.status: Active/archived course filtering
+- Assignment.courseId, Quiz.courseId: Course content queries
+- Assignment.dueDate, Quiz.dueDate: Due date filtering
+- Submission.studentId: Student submission queries
+- Submission.assignmentId, Submission.quizId: Submission lookups
+- RefreshToken.token: Token validation lookup
+
+**Enumerations**:
+- Role: STUDENT, TEACHER
+- CourseStatus: ACTIVE, ARCHIVED
+- MaterialType: FILE, TEXT, VIDEO_LINK
+- SubmissionType: FILE, TEXT, BOTH
+- QuestionType: MCQ, ESSAY
+- SubmissionStatus: NOT_SUBMITTED, SUBMITTED, GRADED
 
 ### Key Data Model Decisions
 
@@ -1803,6 +2046,156 @@ test('valid user credentials authenticate and create valid session', async () =>
 - **File Operations**: Test upload, download, and deletion
 - **Authentication Flow**: Test login, session management, logout
 - **Authorization Flow**: Test role-based access control
+
+### Security Testing Strategy
+
+Security testing is integrated across all Clean Architecture layers to validate security requirements (Requirement 20) and ensure protection against common vulnerabilities.
+
+#### Security Testing Principles
+
+**Defense in Depth**: Security validated at multiple layers
+- **Domain Layer**: Input validation and business rule enforcement
+- **Application Layer**: Authorization policy enforcement
+- **Infrastructure Layer**: SQL injection prevention, secure data access
+- **Presentation Layer**: Authentication, file upload security, CSRF protection
+
+**Security by Design**: Security tests written alongside functional tests, not as afterthought
+
+**Continuous Validation**: Security tests run in CI/CD pipeline on every commit
+
+#### Security Test Coverage by Layer
+
+**Domain Layer Security Tests**:
+- **Input Validation**: Reject malicious inputs (XSS attempts, SQL injection strings, path traversal)
+- **Business Rule Enforcement**: Validate domain constraints prevent security violations
+- **Value Object Validation**: Ensure immutable security-critical values (Email, CourseCode)
+- **Test Approach**: Pure unit tests, no mocks needed
+
+**Application Layer Security Tests**:
+- **Authorization Enforcement**: Verify policy checks before business operations
+- **Input Sanitization**: Validate HTML sanitization for rich text fields
+- **Transaction Security**: Ensure atomic operations prevent partial state corruption
+- **Test Approach**: Unit tests with mocked repositories, focus on authorization flow
+
+**Infrastructure Layer Security Tests**:
+- **SQL Injection Prevention**: Verify parameterized queries reject malicious SQL
+- **Password Hashing**: Confirm BCrypt hashing, never plain text storage
+- **Data Access Control**: Validate row-level security (users only access own data)
+- **File System Security**: Prevent path traversal, validate file permissions
+- **Test Approach**: Integration tests with real database, verify Prisma security
+
+**Presentation Layer Security Tests**:
+- **Authentication**: Validate JWT token verification (expired, tampered, missing tokens)
+- **Authorization**: Verify role-based endpoint access control
+- **File Upload Security**: Reject dangerous file types (.exe, .sh), enforce size limits
+- **CSRF Protection**: Validate SameSite cookie policy prevents cross-site requests
+- **Input Validation**: Verify request validation rejects malicious payloads
+- **Test Approach**: API integration tests with Supertest, simulate attacks
+
+#### Security Test Scenarios
+
+**Authentication Security** (Requirement 1, 20.1):
+- Valid credentials create session with hashed password
+- Invalid credentials rejected without information leakage
+- Expired JWT tokens rejected with appropriate error
+- Tampered JWT tokens detected and rejected
+- Refresh token revocation prevents new access tokens
+
+**Authorization Security** (Requirement 2):
+- Students cannot access teacher-only endpoints (403 Forbidden)
+- Teachers cannot modify other teachers' resources (403 Not Owner)
+- Unauthenticated requests rejected (401 Unauthorized)
+- Authorization checked before business logic execution
+
+**Input Validation Security** (Requirement 20.2):
+- XSS attempts in text fields rejected or sanitized
+- SQL injection strings in queries safely handled by Prisma
+- Path traversal attempts in file paths blocked
+- Oversized payloads rejected at API layer
+- Malformed JSON requests return validation errors
+
+**File Upload Security** (Requirement 20.3, 20.4, 20.5):
+- Executable files (.exe, .sh, .bat) rejected
+- Files exceeding 10MB limit rejected
+- Unsupported file types (video files) rejected
+- File access requires authorization (enrolled student or owner teacher)
+- Path traversal in file download prevented
+
+**Data Protection Security** (Requirement 20.1, 20.3):
+- Passwords hashed with BCrypt before storage
+- Password hashes never exposed in API responses
+- Users cannot access other users' submissions
+- File downloads require proper authorization
+- Sensitive data excluded from error messages
+
+#### Security Testing Flow
+
+```
+Security Test Execution Flow:
+
+1. Domain Layer Tests (Pure Unit)
+   ↓ Validate input rejection
+   
+2. Application Layer Tests (Mocked)
+   ↓ Verify authorization enforcement
+   
+3. Infrastructure Layer Tests (Integration)
+   ↓ Confirm SQL injection prevention
+   
+4. Presentation Layer Tests (API Integration)
+   ↓ Validate authentication & file security
+   
+5. Manual Security Review
+   ↓ Penetration testing scenarios
+   
+6. CI/CD Security Gates
+   ↓ Automated security test suite
+```
+
+#### Security Test Matrix
+
+| Security Requirement | Test Layer | Test Type | Validation Method |
+|---------------------|------------|-----------|-------------------|
+| Password Hashing (20.1) | Infrastructure | Integration | Verify BCrypt, never plain text |
+| SQL Injection (20.2) | Infrastructure | Integration | Malicious SQL in queries |
+| XSS Prevention (20.2) | Application + Presentation | Unit + Integration | Malicious scripts in inputs |
+| File Type Validation (20.4) | Presentation | Integration | Upload dangerous file types |
+| File Size Limits (20.5) | Presentation | Integration | Upload oversized files |
+| Unauthorized Access (20.3) | Application + Presentation | Unit + Integration | Access other users' resources |
+| JWT Security | Presentation | Integration | Expired, tampered, missing tokens |
+| CSRF Protection | Presentation | Integration | Cross-site request attempts |
+| Authorization | Application | Unit | Role-based access control |
+
+#### Security Testing Tools
+
+**Static Analysis**:
+- ESLint security plugins for code scanning
+- TypeScript strict mode for type safety
+- Dependency vulnerability scanning (npm audit)
+
+**Dynamic Testing**:
+- Jest for unit and integration tests
+- Supertest for API security testing
+- Manual penetration testing for critical flows
+
+**Continuous Monitoring**:
+- Security tests in CI/CD pipeline
+- Automated vulnerability scanning
+- Regular security test suite execution
+
+#### Security Test Maintenance
+
+**Test Updates**: Security tests updated when:
+- New security requirements added
+- New attack vectors discovered
+- Security vulnerabilities reported
+- Authentication/authorization logic changes
+
+**Coverage Requirements**:
+- All security requirements (Req 20) have corresponding tests
+- All authentication endpoints have security tests
+- All file upload endpoints have security tests
+- All authorization policies have security tests
 
 ### End-to-End Testing Considerations
 
