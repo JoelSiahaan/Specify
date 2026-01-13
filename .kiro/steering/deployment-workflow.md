@@ -23,6 +23,28 @@ This document defines the deployment strategy and infrastructure setup for the p
 
 ---
 
+## ⚠️ Configuration Checklist (Before Deployment)
+
+**REQUIRED - Must be configured:**
+- [ ] **Domain Name**: Replace `lms.example.com` with your actual domain in:
+  - `nginx.conf` (2 locations)
+  - `.env.production` (FRONTEND_URL, CORS_ORIGIN)
+- [ ] **GitHub Repository**: Already configured → `https://github.com/JoelSiahaan/Specify.git`
+- [ ] **File Storage**: Already configured → Local filesystem (`STORAGE_TYPE=local`)
+- [ ] **JWT Secrets**: Generate with `openssl rand -base64 32` (2 secrets needed)
+- [ ] **Database Password**: Set secure password in `.env.production`
+
+**PENDING DECISIONS - Decide before deployment:**
+- [ ] **Sentry Monitoring**: Do you want error tracking? (Optional, free tier available)
+  - If YES: Sign up at sentry.io and add `SENTRY_DSN` to `.env.production`
+  - If NO: Leave commented out (Winston logging will be used)
+
+**NOT NEEDED - Excluded from initial deployment:**
+- ❌ **Email/SMTP**: Not implemented in initial version
+- ❌ **AWS S3**: Using local filesystem instead
+
+---
+
 ## Table of Contents
 
 1. [Deployment Architecture](#deployment-architecture)
@@ -432,7 +454,66 @@ volumes:
 
 ## 3. Reverse Proxy
 
+### Domain Configuration
+
+**Before Deployment**: You must configure your domain name in the Nginx configuration.
+
+**Steps:**
+
+1. **Choose Your Domain**: Decide on your domain name (e.g., `lms.myschool.edu`, `belajar.sekolahku.id`)
+
+2. **Update nginx.conf**: Replace all occurrences of `lms.example.com` with your actual domain:
+   ```bash
+   # Find and replace in nginx.conf
+   sed -i 's/lms.example.com/your-actual-domain.com/g' nginx.conf
+   ```
+
+3. **DNS Configuration**: Point your domain to your server's IP address:
+   ```
+   Type: A Record
+   Name: @ (or subdomain like 'lms')
+   Value: Your server IP (e.g., 192.168.1.100)
+   TTL: 3600
+   ```
+
+4. **Verify DNS**: Wait for DNS propagation (5-60 minutes), then verify:
+   ```bash
+   nslookup your-domain.com
+   # Should return your server IP
+   ```
+
+5. **Generate SSL Certificate**: After DNS is configured:
+   ```bash
+   sudo certbot certonly --standalone -d your-domain.com
+   ```
+   
+   Certbot will automatically create certificates at:
+   - `/etc/letsencrypt/live/your-domain.com/fullchain.pem`
+   - `/etc/letsencrypt/live/your-domain.com/privkey.pem`
+
+6. **Update nginx.conf SSL Paths** (if you used a different domain):
+   ```nginx
+   ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+   ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+   ```
+
+**Alternative: Using Environment Variables** (Advanced):
+
+You can use environment variables in nginx.conf with `envsubst`:
+
+```bash
+# Create nginx.conf.template
+server_name ${DOMAIN_NAME};
+ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
+
+# Generate actual config
+export DOMAIN_NAME=your-domain.com
+envsubst < nginx.conf.template > nginx.conf
+```
+
 ### Nginx Configuration
+
+**IMPORTANT**: Replace `lms.example.com` with your actual domain name before deployment.
 
 ```nginx
 # nginx.conf
@@ -442,7 +523,7 @@ limit_req_zone $binary_remote_addr zone=auth_limit:10m rate=5r/m;
 
 server {
     listen 80;
-    server_name lms.example.com;
+    server_name lms.example.com;  # ← REPLACE with your domain (e.g., belajar.sekolahku.id)
     
     # Redirect HTTP to HTTPS
     return 301 https://$server_name$request_uri;
@@ -450,11 +531,12 @@ server {
 
 server {
     listen 443 ssl http2;
-    server_name lms.example.com;
+    server_name lms.example.com;  # ← REPLACE with your domain (e.g., belajar.sekolahku.id)
 
     # SSL Configuration (Let's Encrypt)
-    ssl_certificate /etc/letsencrypt/live/lms.example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/lms.example.com/privkey.pem;
+    # After running certbot, these paths will automatically use your domain
+    ssl_certificate /etc/letsencrypt/live/lms.example.com/fullchain.pem;  # ← Auto-updated by certbot
+    ssl_certificate_key /etc/letsencrypt/live/lms.example.com/privkey.pem;  # ← Auto-updated by certbot
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
     ssl_prefer_server_ciphers on;
@@ -670,54 +752,114 @@ jobs:
 
 ## 5. Environment Configuration
 
+### Secrets Generation
+
+**IMPORTANT**: Generate cryptographically secure secrets before deployment.
+
+**Step 1: Generate JWT Secrets**
+```bash
+# Generate Access Token Secret (32+ characters)
+openssl rand -base64 32
+
+# Generate Refresh Token Secret (32+ characters)
+openssl rand -base64 32
+
+# Example output:
+# 8xK9mP2nQ5rT7vW1yZ3aB4cD6eF8gH0iJ2kL4mN6oP8q
+```
+
+**Step 2: Generate Database Password**
+```bash
+# Generate secure database password
+openssl rand -base64 24
+
+# Example output:
+# 3nR5tY7uI9oP1aS3dF5gH7jK9l
+```
+
+**Step 3: Update .env.production**
+```bash
+# Copy generated secrets to .env.production
+nano .env.production
+
+# Replace placeholders:
+JWT_ACCESS_SECRET=<paste_first_secret_here>
+JWT_REFRESH_SECRET=<paste_second_secret_here>
+DB_PASSWORD=<paste_database_password_here>
+```
+
+**⚠️ SECURITY WARNING**:
+- Never commit `.env.production` to Git
+- Store secrets securely (password manager, vault)
+- Rotate secrets regularly (every 90 days recommended)
+
+### Domain Configuration
+
+**IMPORTANT**: Update these values with your actual domain before deployment.
+
+```bash
+# .env.production
+# ========================================
+# CONFIGURATION REMINDERS
+# ========================================
+# TODO: Set your domain name before deployment
+# TODO: Generate JWT secrets (see instructions below)
+# TODO: Decide on Sentry monitoring (optional)
+# ========================================
+
+# Domain Configuration
+DOMAIN_NAME=lms.example.com  # ⚠️ TODO: REPLACE with your actual domain
+
+# Application
+NODE_ENV=production
+PORT=3000
+FRONTEND_URL=https://lms.example.com  # ⚠️ TODO: REPLACE with your actual domain
+
+# CORS
+CORS_ORIGIN=https://lms.example.com  # ⚠️ TODO: REPLACE with your actual domain
+```
+
 ### Environment Variables
 
 ```bash
 # .env.production
+# ========================================
+# Production Environment Configuration
+# ========================================
+
 # Database
-DATABASE_URL=postgresql://lms_user:${DB_PASSWORD}@postgres:5432/lms_prod
+DATABASE_URL=postgresql://lms_user:${DB_PASSWORD}@postgres:5432/lms_prod?connection_limit=10&pool_timeout=30
 DATABASE_POOL_MIN=2
 DATABASE_POOL_MAX=10
 
 # JWT Secrets (minimum 32 characters, cryptographically random)
-# Generate with: openssl rand -base64 32
+# ⚠️ TODO: Generate secrets with: openssl rand -base64 32
 JWT_ACCESS_SECRET=<generate_with_openssl_rand_base64_32>
 JWT_REFRESH_SECRET=<generate_with_openssl_rand_base64_32>
 JWT_ACCESS_EXPIRY=15m
 JWT_REFRESH_EXPIRY=7d
 
-# File Storage
-STORAGE_TYPE=local  # or 's3' for cloud storage
+# File Storage (Local Filesystem)
+STORAGE_TYPE=local
 UPLOAD_DIR=/app/uploads
 MAX_FILE_SIZE=10485760  # 10MB in bytes
-
-# S3 Configuration (if STORAGE_TYPE=s3)
-S3_BUCKET=lms-uploads
-S3_REGION=us-east-1
-S3_ACCESS_KEY=<aws_access_key>
-S3_SECRET_KEY=<aws_secret_key>
 
 # Application
 NODE_ENV=production
 PORT=3000
-FRONTEND_URL=https://lms.example.com
+FRONTEND_URL=https://lms.example.com  # ⚠️ TODO: REPLACE with your domain
 
 # CORS
-CORS_ORIGIN=https://lms.example.com
+CORS_ORIGIN=https://lms.example.com  # ⚠️ TODO: REPLACE with your domain
 
 # Logging
 LOG_LEVEL=info
 LOG_FORMAT=json
 
-# Monitoring (optional)
-SENTRY_DSN=<sentry_dsn>
-SENTRY_ENVIRONMENT=production
-
-# Email (future enhancement)
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=noreply@lms.example.com
-SMTP_PASSWORD=<smtp_password>
+# Monitoring (Optional - Sentry for error tracking)
+# ⚠️ TODO: Decide if you want to use Sentry (free tier available)
+# SENTRY_DSN=<your_sentry_dsn>
+# SENTRY_ENVIRONMENT=production
 ```
 
 ---
@@ -1060,25 +1202,32 @@ sudo sh get-docker.sh
 sudo apt-get install docker-compose-plugin
 
 # 3. Clone repository
-git clone https://github.com/your-org/lms.git
-cd lms
+git clone https://github.com/JoelSiahaan/Specify.git
+cd Specify
 
 # 4. Configure environment variables
 cp .env.example .env.production
 nano .env.production  # Edit with production values
 
-# 5. Generate SSL certificate (Let's Encrypt)
-sudo apt-get install certbot
-sudo certbot certonly --standalone -d lms.example.com
+# 5. Update nginx.conf with your domain
+nano nginx.conf  # Replace lms.example.com with your actual domain
 
-# 6. Build and start services
+# 6. Generate SSL certificate (Let's Encrypt)
+sudo apt-get install certbot
+sudo certbot certonly --standalone -d your-domain.com  # Use your actual domain
+
+# 7. Update nginx.conf SSL paths (if domain changed)
+# Certbot creates certificates at: /etc/letsencrypt/live/your-domain.com/
+nano nginx.conf  # Update SSL certificate paths if needed
+
+# 8. Build and start services
 docker-compose -f docker-compose.prod.yml up -d
 
 # 7. Run database migrations
 docker-compose exec backend npx prisma migrate deploy
 
 # 8. Verify deployment
-curl https://lms.example.com/health
+curl https://your-domain.com/health  # Use your actual domain
 ```
 
 ### Rolling Update
