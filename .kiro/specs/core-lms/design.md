@@ -113,7 +113,7 @@ The Learning Management System is a web-based platform built with React 19.2 (Ty
    - **Refresh Token**: Long-lived (7 days), stored in HTTP-only cookie
    - **Secret Requirements**: Minimum 32 characters, cryptographically random, access ≠ refresh
    - **Cookie Policy**: SameSite=Strict, HTTP-only, Secure flag in production
-   - **Logout**: Client-side token removal (simple, stateless approach for MVP)
+   - **Logout**: Client-side token removal (simple, stateless approach for initial implementation)
    - **Security**: HTTP-only cookies prevent XSS attacks, short access token lifetime limits exposure
 3. **Repository Pattern**: Abstract data access through interfaces (Ports)
    - Domain layer defines repository interfaces
@@ -129,7 +129,7 @@ The Learning Management System is a web-based platform built with React 19.2 (Ty
    - Domain Services for operations spanning multiple entities
 6. **Role-based Access Control**: Policy-based authorization in application layer
 7. **File Storage Abstraction**: Storage interface with multiple implementations
-   - Local filesystem for MVP
+   - Local filesystem for initial deployment
    - Easy to extend to S3/cloud storage
    - **File Size Limit**: 10MB maximum per file (as per requirements)
    - **Allowed Formats**: PDF, DOCX, images (JPG, PNG, GIF) for uploads
@@ -286,12 +286,12 @@ The LMS implements JWT-based authentication with HTTP-only cookies to achieve:
 - **Horizontal Scalability**: No server-side session storage enables multi-server deployment without sticky sessions
 - **Security**: HTTP-only cookies prevent XSS attacks, short access token lifetime (15 minutes) limits exposure window
 - **User Experience**: Refresh tokens (7 days) enable seamless re-authentication without frequent login prompts
-- **Logout Strategy**: Client-side token removal (simple, stateless approach suitable for MVP)
+- **Logout Strategy**: Client-side token removal (simple, stateless approach suitable for production at this scale)
 
 **2. File Storage Abstraction (Interface Pattern)**
 
 File storage is abstracted behind `IFileStorage` interface to support:
-- **MVP Simplicity**: Local filesystem implementation requires no external dependencies or cloud accounts
+- **Initial Simplicity**: Local filesystem implementation requires no external dependencies or cloud accounts
 - **Production Scalability**: Easy migration to S3/cloud storage by swapping implementation without code changes
 - **Clean Architecture**: Domain layer remains framework-agnostic, infrastructure layer handles storage details
 - **Testability**: Mock storage implementation for unit tests without file system dependencies
@@ -362,7 +362,7 @@ The heart of the application containing business logic and rules. This layer is 
 - `CourseCreatedEvent`, `CourseArchivedEvent`
 - `AssignmentSubmittedEvent`, `AssignmentGradedEvent`
 - `QuizStartedEvent`, `QuizSubmittedEvent`
-- **Note**: Domain Events are defined in the architecture but not implemented in MVP. They are reserved for future enhancements such as email notifications, audit logging, and event-driven workflows. For MVP, all operations are synchronous without event publishing.
+- **Note**: Domain Events are defined in the architecture but not implemented in the initial version. They are reserved for future enhancements such as email notifications, audit logging, and event-driven workflows. For the initial implementation, all operations are synchronous without event publishing.
 
 #### **2. Application Layer (Use Cases)**
 
@@ -1742,8 +1742,8 @@ enum SubmissionStatus {
    - Allow cancellation
    
 3. **Chunked Upload** (Future Enhancement):
-   - For MVP, single upload with extended timeout
-   - For production, consider chunked upload for files > 5MB
+   - For initial implementation, single upload with extended timeout
+   - For future scaling, consider chunked upload for files > 5MB
 
 4. **Retry Mechanism**:
    - Frontend retries failed uploads once automatically
@@ -1912,7 +1912,7 @@ For detailed security testing approach, test scenarios, and security test matrix
 
 ### End-to-End Testing Considerations
 
-While E2E testing is not part of the MVP scope, the following scenarios should be validated manually:
+While E2E testing is not part of the initial implementation scope, the following scenarios should be validated manually:
 
 1. Complete student enrollment and assignment submission flow
 2. Complete teacher course creation and grading flow
@@ -2023,7 +2023,7 @@ Security Test Execution Flow:
 
 ### End-to-End Testing Considerations
 
-While E2E testing is not part of the MVP scope, the following scenarios should be validated manually:
+While E2E testing is not part of the initial implementation scope, the following scenarios should be validated manually:
 
 1. Complete student enrollment and assignment submission flow
 2. Complete teacher course creation and grading flow

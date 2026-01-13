@@ -14,7 +14,7 @@
 - **Password Hashing**: BCrypt (industry standard)
 - **ORM**: Prisma (PostgreSQL)
 - **Database**: PostgreSQL
-- **File Storage**: Local filesystem (MVP) or cloud storage (S3, etc.)
+- **File Storage**: Local filesystem (initial deployment) or cloud storage (S3, etc.)
 - **File Upload**: Multer (Express middleware for multipart/form-data)
 - **Dependency Injection**: TSyringe (TypeScript-first, decorator-based)
 - **Validation**: Zod (TypeScript type inference, schema-first validation)

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Learning Management System (LMS) is a web-based platform that enables teachers to create courses, share materials, and create assignments, while allowing students to enroll, access content, and submit work. This MVP focuses on core learning and assessment features with a simple, functional interface.
+The Learning Management System (LMS) is a web-based platform that enables teachers to create courses, share materials, and create assignments, while allowing students to enroll, access content, and submit work. This production-grade system focuses on core learning and assessment features with a simple, functional interface designed for 50+ concurrent users.
 
 ## Glossary
 

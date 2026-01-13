@@ -43,7 +43,7 @@ The LMS implements **Defense in Depth** security strategy, validating security a
 1. **Login**: Generate access + refresh tokens, set HTTP-only cookies
 2. **Request**: Access token validated on every protected endpoint
 3. **Refresh**: Expired access token refreshed using valid refresh token
-4. **Logout**: Client-side cookie removal (stateless approach for MVP)
+4. **Logout**: Client-side cookie removal (stateless approach for production at this scale)
 
 **Security Trade-offs:**
 - ✅ **Benefit**: Stateless, horizontally scalable, no server-side session storage
@@ -59,7 +59,7 @@ The LMS implements **Defense in Depth** security strategy, validating security a
 
 **Password Requirements:**
 - Minimum length enforced at application layer
-- Complexity requirements (optional for MVP, recommended for production)
+- Complexity requirements (recommended for production)
 - Password reset flow (future enhancement)
 
 **Security Rules:**
@@ -263,8 +263,8 @@ The LMS implements **Defense in Depth** security strategy, validating security a
 ### File Storage Security
 
 **Storage Location:**
-- **MVP**: Local filesystem outside web root
-- **Production**: Cloud storage (S3) with signed URLs
+- **Initial Deployment**: Local filesystem outside web root
+- **Production Scaling**: Cloud storage (S3) with signed URLs
 
 **File Naming:**
 - **Format**: `{uuid}.{extension}` (e.g., `a1b2c3d4-e5f6-7890.pdf`)

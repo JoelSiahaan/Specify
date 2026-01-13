@@ -1,15 +1,15 @@
 # Product Overview
 
 ## Product Name
-Learning Management System (LMS) - MVP
+Learning Management System (LMS)
 
 ## Problem Statement
 Students need a simple platform to access learning materials, complete assignments and quizzes, while teachers need an easy way to share materials, create assessments, and grade student work.
 
-This MVP focuses on core learning and assessment features with course management, designed to be built in 1 month.
+This production-grade LMS focuses on core learning and assessment features with course management, designed with scalability, security, and maintainability in mind.
 
-## Why This MVP?
-This MVP prioritizes the essential teaching and learning workflow: content delivery, assessment, and feedback. By focusing on manual grading and simple course management, we can deliver a functional LMS quickly while maintaining quality and reliability. Automated features like auto-grading and notifications are deferred to future iterations.
+## Why This Approach?
+This LMS prioritizes the essential teaching and learning workflow: content delivery, assessment, and feedback. By focusing on manual grading and simple course management, we deliver a focused feature set while maintaining production-grade quality, reliability, and scalability. The architecture supports future enhancements like automated grading and notifications without requiring major rewrites.
 
 ## Target Users
 - **Students**: Enroll in courses, access materials, submit assignments and quizzes, track grades
@@ -71,13 +71,14 @@ This MVP prioritizes the essential teaching and learning workflow: content deliv
 - **Consistency Guiderails**: System warns but doesn't block inconsistent grading
 - **Feedback-Focused**: Text feedback encouraged for all submissions
 
-## Core Features (MVP)
+## Core Features
 
 ### Authentication & Access Control
 - Secure login with email and password
 - User registration with role selection (Student or Teacher)
 - Role-based access control for all features
-- Session management with logout capability
+- Session management with JWT tokens and HTTP-only cookies
+- Secure logout capability
 
 ### Course Management
 - Create courses with auto-generated unique course codes
@@ -150,7 +151,7 @@ This MVP prioritizes the essential teaching and learning workflow: content deliv
 
 ## Non-Goals (Future Enhancements)
 - Admin panel and user management
-- Automated grading for MCQ (all grading is manual in MVP)
+- Automated grading for MCQ (all grading is manual in initial version)
 - In-app notifications
 - Announcements or discussion forums
 - Video streaming or live classes
@@ -186,10 +187,10 @@ This MVP prioritizes the essential teaching and learning workflow: content deliv
 ## Constraints
 
 ### Scope Constraints
-- Web-based application only (no mobile native apps)
-- Timeline: 1 month for MVP
-- Two roles only: Student and Teacher (no admin role)
-- Manual grading only (no automated grading)
+- Web-based application (responsive design for mobile browsers)
+- Initial deployment: Single region
+- Two roles: Student and Teacher (admin features deferred)
+- Manual grading workflow (automated grading deferred)
 
 ### Content Constraints
 - File uploads: Max 10MB per file

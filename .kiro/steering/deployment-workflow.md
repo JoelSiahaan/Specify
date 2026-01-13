@@ -1,0 +1,1174 @@
+# Deployment Workflow
+
+## Purpose
+
+This document defines the deployment strategy and infrastructure setup for the production-grade LMS. The deployment is designed for **50+ concurrent users** with focus on reliability, security, and maintainability without unnecessary complexity.
+
+---
+
+## Scope & Scale
+
+**Target Scale**:
+- 50+ concurrent users
+- API response time < 500ms
+- Single region deployment
+- Small to medium educational institution
+
+**Production-Grade Principles**:
+- ✅ Reliable (99% uptime)
+- ✅ Secure (HTTPS, authentication, backups)
+- ✅ Monitored (logging, error tracking)
+- ✅ Maintainable (Docker, automated deployment)
+- ❌ NOT over-engineered (no Kubernetes, no multi-region, no CDN)
+
+---
+
+## Table of Contents
+
+1. [Deployment Architecture](#deployment-architecture)
+2. [Containerization](#containerization)
+3. [Reverse Proxy](#reverse-proxy)
+4. [CI/CD Pipeline](#cicd-pipeline)
+5. [Environment Configuration](#environment-configuration)
+6. [Database Management](#database-management)
+7. [File Storage](#file-storage)
+8. [Monitoring & Logging](#monitoring--logging)
+9. [Security](#security)
+10. [Backup & Recovery](#backup--recovery)
+11. [Deployment Procedures](#deployment-procedures)
+
+---
+
+## 1. Deployment Architecture
+
+### Simple Production Architecture
+
+```
+                    ┌─────────────────┐
+                    │   Users (50+)   │
+                    └────────┬────────┘
+                             │ HTTPS
+                    ┌────────▼────────┐
+                    │  Nginx (443)    │
+                    │  - SSL/TLS      │
+                    │  - Static files │
+                    │  - Reverse proxy│
+                    └────────┬────────┘
+                             │
+                    ┌────────▼────────┐
+                    │  Backend (3000) │
+                    │  Express + Node │
+                    └────────┬────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+     ┌────────▼────────┐ ┌──▼───────────┐ ┌▼──────────┐
+     │   PostgreSQL    │ │ File Storage │ │  (Future) │
+     │   (5432)        │ │ Local/S3     │ │   Redis   │
+     └─────────────────┘ └──────────────┘ └───────────┘
+```
+
+### Single Server Deployment
+
+**Why Single Server?**
+- 50 concurrent users easily handled by single server
+- Simpler to manage and debug
+- Lower cost
+- Can scale vertically if needed (upgrade server specs)
+
+**Server Specifications** (Recommended):
+- **CPU**: 2-4 cores
+- **RAM**: 4-8 GB
+- **Storage**: 50-100 GB SSD
+- **Network**: 100 Mbps
+- **Cost**: ~$20-40/month (DigitalOcean, Linode, Hetzner)
+
+**Components on Single Server**:
+- Nginx (reverse proxy + static files)
+- Node.js backend (Express API)
+- PostgreSQL database
+- File storage (local or S3)
+- Docker containers for isolation
+
+---
+
+## 2. Containerization
+
+### Docker Configuration
+
+#### Backend Dockerfile
+
+```dockerfile
+# backend/Dockerfile
+# ========================================
+# Optimized Multi-Stage Dockerfile
+# Node.js TypeScript Backend
+# ========================================
+
+ARG NODE_VERSION=18.20.5-alpine
+FROM node:${NODE_VERSION} AS base
+
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs && \
+    chown -R nodejs:nodejs /app
+
+# ========================================
+# Dependencies Stage
+# ========================================
+FROM base AS deps
+
+# Copy package files
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Install production dependencies with cache mounting
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm ci --omit=dev && \
+    npm cache clean --force
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Set proper ownership
+RUN chown -R nodejs:nodejs /app
+
+# ========================================
+# Build Dependencies Stage
+# ========================================
+FROM base AS build-deps
+
+# Copy package files
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Install all dependencies with cache mounting
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm ci --no-audit --no-fund && \
+    npm cache clean --force
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Set proper ownership
+RUN chown -R nodejs:nodejs /app
+
+# ========================================
+# Build Stage
+# ========================================
+FROM build-deps AS build
+
+# Copy source code
+COPY --chown=nodejs:nodejs . .
+
+# Build TypeScript
+RUN npm run build
+
+# ========================================
+# Production Stage
+# ========================================
+ARG NODE_VERSION=18.20.5-alpine
+FROM node:${NODE_VERSION} AS production
+
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs && \
+    chown -R nodejs:nodejs /app
+
+# Set optimized environment variables
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=512 --no-warnings" \
+    NPM_CONFIG_LOGLEVEL=silent
+
+# Copy production dependencies from deps stage
+COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=deps --chown=nodejs:nodejs /app/package*.json ./
+COPY --from=deps --chown=nodejs:nodejs /app/prisma ./prisma
+
+# Copy built application from build stage
+COPY --from=build --chown=nodejs:nodejs /app/dist ./dist
+
+# Switch to non-root user
+USER nodejs
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Start production server
+CMD ["node", "dist/main.js"]
+```
+
+#### Frontend Dockerfile
+
+```dockerfile
+# frontend/Dockerfile
+# ========================================
+# Optimized Multi-Stage Dockerfile
+# React TypeScript Frontend
+# ========================================
+
+ARG NODE_VERSION=18.20.5-alpine
+FROM node:${NODE_VERSION} AS base
+
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs && \
+    chown -R nodejs:nodejs /app
+
+# ========================================
+# Dependencies Stage
+# ========================================
+FROM base AS deps
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies with cache mounting
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm ci && \
+    npm cache clean --force
+
+# Set proper ownership
+RUN chown -R nodejs:nodejs /app
+
+# ========================================
+# Build Stage
+# ========================================
+FROM deps AS build
+
+# Copy source code
+COPY --chown=nodejs:nodejs . .
+
+# Build for production
+RUN npm run build
+
+# ========================================
+# Production Stage with Nginx
+# ========================================
+ARG NGINX_VERSION=1.27-alpine
+FROM nginx:${NGINX_VERSION} AS production
+
+# Copy built files from build stage
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Create non-root user for nginx
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid
+
+USER nginx
+
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost:80/ || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+#### Docker Compose (Production)
+
+```yaml
+# docker-compose.prod.yml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: lms-postgres
+    restart: on-failure:3
+    environment:
+      POSTGRES_DB: lms_prod
+      POSTGRES_USER: lms_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lms_user -d lms_prod"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - lms-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        NODE_VERSION: 18.20.5-alpine
+    container_name: lms-backend
+    restart: on-failure:3
+    environment:
+      DATABASE_URL: postgresql://lms_user:${DB_PASSWORD}@postgres:5432/lms_prod?connection_limit=10&pool_timeout=30
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      NODE_ENV: production
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: lms-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./frontend/dist:/usr/share/nginx/html
+      - ./ssl:/etc/letsencrypt
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  postgres_data:
+  uploads:
+
+networks:
+  lms-network:
+    driver: bridge
+```
+
+#### Docker Compose (Development)
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: lms_dev
+      POSTGRES_USER: lms_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lms_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://lms_user:${DB_PASSWORD}@postgres:5432/lms_dev
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:3000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+  uploads:
+```
+
+---
+
+## 3. Reverse Proxy
+
+### Nginx Configuration
+
+```nginx
+# nginx.conf
+# Rate limiting
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+limit_req_zone $binary_remote_addr zone=auth_limit:10m rate=5r/m;
+
+server {
+    listen 80;
+    server_name lms.example.com;
+    
+    # Redirect HTTP to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name lms.example.com;
+
+    # SSL Configuration (Let's Encrypt)
+    ssl_certificate /etc/letsencrypt/live/lms.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/lms.example.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    # Security Headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+
+    # Gzip Compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css text/xml text/javascript application/json application/javascript application/xml+rss application/x-javascript;
+
+    # Frontend (Static Files)
+    location / {
+        root /usr/share/nginx/html;
+        try_files $uri $uri/ /index.html;
+        
+        # Cache static assets
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+
+    # Backend API
+    location /api {
+        limit_req zone=api_limit burst=20 nodelay;
+        
+        proxy_pass http://backend:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # Buffer settings
+        proxy_buffering on;
+        proxy_buffer_size 4k;
+        proxy_buffers 8 4k;
+        proxy_busy_buffers_size 8k;
+    }
+
+    # Auth endpoints (stricter rate limiting)
+    location /api/auth {
+        limit_req zone=auth_limit burst=5 nodelay;
+        
+        proxy_pass http://backend:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Health check endpoint
+    location /health {
+        access_log off;
+        proxy_pass http://backend:3000/health;
+    }
+}
+```
+
+---
+
+## 4. CI/CD Pipeline
+
+### GitHub Actions Workflow
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: lms_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linter
+        run: npm run lint
+      
+      - name: Run type check
+        run: npm run type-check
+      
+      - name: Run unit tests
+        run: npm run test:unit
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/lms_test
+      
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/lms_test
+      
+      - name: Run property-based tests
+        run: npm run test:property
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/lms_test
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Log in to Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      
+      - name: Build and push Backend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}-backend
+          labels: ${{ steps.meta.outputs.labels }}
+      
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}-frontend
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Deploy to production
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /opt/lms
+            docker-compose pull
+            docker-compose up -d
+            docker-compose exec -T backend npx prisma migrate deploy
+```
+
+---
+
+## 5. Environment Configuration
+
+### Environment Variables
+
+```bash
+# .env.production
+# Database
+DATABASE_URL=postgresql://lms_user:${DB_PASSWORD}@postgres:5432/lms_prod
+DATABASE_POOL_MIN=2
+DATABASE_POOL_MAX=10
+
+# JWT Secrets (minimum 32 characters, cryptographically random)
+# Generate with: openssl rand -base64 32
+JWT_ACCESS_SECRET=<generate_with_openssl_rand_base64_32>
+JWT_REFRESH_SECRET=<generate_with_openssl_rand_base64_32>
+JWT_ACCESS_EXPIRY=15m
+JWT_REFRESH_EXPIRY=7d
+
+# File Storage
+STORAGE_TYPE=local  # or 's3' for cloud storage
+UPLOAD_DIR=/app/uploads
+MAX_FILE_SIZE=10485760  # 10MB in bytes
+
+# S3 Configuration (if STORAGE_TYPE=s3)
+S3_BUCKET=lms-uploads
+S3_REGION=us-east-1
+S3_ACCESS_KEY=<aws_access_key>
+S3_SECRET_KEY=<aws_secret_key>
+
+# Application
+NODE_ENV=production
+PORT=3000
+FRONTEND_URL=https://lms.example.com
+
+# CORS
+CORS_ORIGIN=https://lms.example.com
+
+# Logging
+LOG_LEVEL=info
+LOG_FORMAT=json
+
+# Monitoring (optional)
+SENTRY_DSN=<sentry_dsn>
+SENTRY_ENVIRONMENT=production
+
+# Email (future enhancement)
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=noreply@lms.example.com
+SMTP_PASSWORD=<smtp_password>
+```
+
+---
+
+## 6. Database Management
+
+### Migration Strategy
+
+```bash
+# Run migrations
+npx prisma migrate deploy
+
+# Rollback (manual)
+# 1. Identify migration to rollback to
+# 2. Create rollback SQL script
+# 3. Execute in transaction
+```
+
+### Backup Strategy
+
+```bash
+# Automated daily backups
+0 2 * * * pg_dump -U lms_user lms_prod | gzip > /backups/lms_$(date +\%Y\%m\%d).sql.gz
+
+# Retention policy
+# - Daily backups: 7 days
+# - Weekly backups: 4 weeks
+# - Monthly backups: 12 months
+```
+
+### Connection Pooling
+
+```typescript
+// Prisma connection pool configuration
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  
+  // Connection pool settings
+  connection_limit = 10
+  pool_timeout = 30
+}
+```
+
+---
+
+## 7. File Storage
+
+### S3 Configuration
+
+```typescript
+// infrastructure/storage/S3FileStorage.ts
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+export class S3FileStorage implements IFileStorage {
+  private s3Client: S3Client;
+  private bucket: string;
+
+  constructor() {
+    this.s3Client = new S3Client({
+      region: process.env.S3_REGION,
+      credentials: {
+        accessKeyId: process.env.S3_ACCESS_KEY!,
+        secretAccessKey: process.env.S3_SECRET_KEY!
+      }
+    });
+    this.bucket = process.env.S3_BUCKET!;
+  }
+
+  async upload(file: Buffer, path: string): Promise<string> {
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: path,
+      Body: file,
+      ContentType: this.getContentType(path)
+    });
+    
+    await this.s3Client.send(command);
+    return path;
+  }
+
+  async getSignedUrl(path: string, expiresIn: number = 3600): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: path
+    });
+    
+    return await getSignedUrl(this.s3Client, command, { expiresIn });
+  }
+}
+```
+
+---
+
+## 8. Monitoring & Logging
+
+### Structured Logging
+
+```typescript
+// infrastructure/logging/logger.ts
+import winston from 'winston';
+
+export const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.errors({ stack: true }),
+    winston.format.json()
+  ),
+  defaultMeta: {
+    service: 'lms-api',
+    environment: process.env.NODE_ENV
+  },
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'logs/combined.log' })
+  ]
+});
+```
+
+### Health Check Endpoint
+
+```typescript
+// presentation/api/controllers/HealthController.ts
+export class HealthController {
+  async check(req: Request, res: Response): Promise<void> {
+    try {
+      // Check database connection
+      await prisma.$queryRaw`SELECT 1`;
+      
+      res.status(200).json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        database: 'connected'
+      });
+    } catch (error) {
+      logger.error('Health check failed', { error });
+      res.status(503).json({
+        status: 'unhealthy',
+        timestamp: new Date().toISOString(),
+        database: 'disconnected'
+      });
+    }
+  }
+}
+```
+
+### Error Tracking (Optional)
+
+**Sentry Integration** (for production error tracking):
+
+```typescript
+// infrastructure/monitoring/sentry.ts
+import * as Sentry from '@sentry/node';
+
+if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.SENTRY_ENVIRONMENT,
+    tracesSampleRate: 0.1  // 10% of transactions
+  });
+}
+
+export { Sentry };
+```
+
+### Log Monitoring
+
+**Simple Log Monitoring** (no Prometheus/Grafana needed for 50 users):
+
+```bash
+# View logs in real-time
+docker-compose logs -f backend
+
+# View error logs only
+docker-compose logs -f backend | grep ERROR
+
+# View logs from last hour
+docker-compose logs --since 1h backend
+
+# Export logs for analysis
+docker-compose logs backend > backend-logs.txt
+```
+
+---
+
+## 9. Scaling Strategy
+
+### Vertical Scaling (Primary Strategy)
+
+**When to Scale Up**:
+- CPU usage consistently > 70%
+- Memory usage consistently > 80%
+- Response time > 500ms
+- Database connection pool exhausted
+
+**Scaling Path**:
+1. **Current**: 2-4 cores, 4-8 GB RAM (~$20-40/month)
+2. **Medium**: 4-8 cores, 8-16 GB RAM (~$40-80/month)
+3. **Large**: 8-16 cores, 16-32 GB RAM (~$80-160/month)
+
+**How to Scale**:
+```bash
+# 1. Backup database
+docker-compose exec postgres pg_dump -U lms_user lms_prod > backup.sql
+
+# 2. Stop services
+docker-compose down
+
+# 3. Upgrade server (via hosting provider dashboard)
+
+# 4. Restart services
+docker-compose up -d
+
+# 5. Verify health
+curl https://lms.example.com/health
+```
+
+### Horizontal Scaling (Future Enhancement)
+
+**When Needed** (> 200 concurrent users):
+- Add load balancer (Nginx upstream)
+- Run multiple backend instances
+- Use Redis for session storage
+- Consider managed database (AWS RDS, DigitalOcean Managed DB)
+
+**Not Needed for 50 Users**: Single server is sufficient
+
+---
+
+## 10. Security Hardening
+
+### SSL/TLS Setup (Let's Encrypt)
+
+```bash
+# Install Certbot
+sudo apt-get update
+sudo apt-get install certbot
+
+# Generate SSL certificate
+sudo certbot certonly --standalone -d lms.example.com
+
+# Certificates will be at:
+# /etc/letsencrypt/live/lms.example.com/fullchain.pem
+# /etc/letsencrypt/live/lms.example.com/privkey.pem
+
+# Auto-renewal (cron job)
+0 0 * * * certbot renew --quiet
+```
+
+### Security Checklist
+
+- [ ] HTTPS enforced (TLS 1.2+) with Let's Encrypt
+- [ ] Security headers configured (HSTS, CSP, X-Frame-Options)
+- [ ] Rate limiting enabled (Nginx)
+- [ ] SQL injection prevention (Prisma parameterized queries)
+- [ ] XSS prevention (DOMPurify + sanitize-html)
+- [ ] CSRF protection (SameSite=Strict cookies)
+- [ ] Secrets stored in environment variables (not in code)
+- [ ] Database credentials rotated regularly
+- [ ] JWT secrets cryptographically random (32+ characters)
+- [ ] File upload validation (type, size, content)
+- [ ] API authentication required (except public endpoints)
+- [ ] Authorization checks on all protected endpoints
+- [ ] Audit logging for sensitive operations
+- [ ] Regular security updates (npm audit, dependabot)
+- [ ] Firewall configured (only ports 80, 443, 22 open)
+- [ ] SSH key-based authentication (disable password login)
+
+---
+
+## 11. Backup & Recovery
+
+### Backup Strategy
+
+**Database Backups**:
+```bash
+# Automated daily backups (cron job)
+0 2 * * * docker-compose exec -T postgres pg_dump -U lms_user lms_prod | gzip > /backups/lms_$(date +\%Y\%m\%d).sql.gz
+
+# Manual backup
+docker-compose exec postgres pg_dump -U lms_user lms_prod > backup.sql
+
+# Retention policy
+# - Daily backups: 7 days
+# - Weekly backups: 4 weeks
+# - Monthly backups: 12 months
+
+# Cleanup old backups (keep last 7 days)
+find /backups -name "lms_*.sql.gz" -mtime +7 -delete
+```
+
+**File Storage Backups**:
+- Local storage: Include `/app/uploads` in server backups
+- S3 storage: Enable versioning in S3 bucket settings
+
+**Configuration Backups**:
+- Docker configs in Git repository
+- Environment variables documented (not committed)
+- Nginx configuration in Git
+
+### Disaster Recovery
+
+**RTO (Recovery Time Objective)**: 4 hours
+**RPO (Recovery Point Objective)**: 24 hours (daily backups)
+
+**Recovery Procedures**:
+```bash
+# 1. Restore database from backup
+gunzip < /backups/lms_20250113.sql.gz | docker-compose exec -T postgres psql -U lms_user lms_prod
+
+# 2. Restore file uploads (if local storage)
+cp -r /backups/uploads /app/uploads
+
+# 3. Restart services
+docker-compose restart
+
+# 4. Verify health
+curl https://lms.example.com/health
+```
+
+---
+
+## 12. Deployment Procedures
+
+### Initial Deployment
+
+```bash
+# 1. Provision server (DigitalOcean, Linode, Hetzner)
+# - Ubuntu 22.04 LTS
+# - 2-4 cores, 4-8 GB RAM, 50-100 GB SSD
+# - SSH key-based authentication
+
+# 2. Install Docker and Docker Compose
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo apt-get install docker-compose-plugin
+
+# 3. Clone repository
+git clone https://github.com/your-org/lms.git
+cd lms
+
+# 4. Configure environment variables
+cp .env.example .env.production
+nano .env.production  # Edit with production values
+
+# 5. Generate SSL certificate (Let's Encrypt)
+sudo apt-get install certbot
+sudo certbot certonly --standalone -d lms.example.com
+
+# 6. Build and start services
+docker-compose -f docker-compose.prod.yml up -d
+
+# 7. Run database migrations
+docker-compose exec backend npx prisma migrate deploy
+
+# 8. Verify deployment
+curl https://lms.example.com/health
+```
+
+### Rolling Update
+
+```bash
+# 1. Pull latest code
+cd /opt/lms
+git pull origin main
+
+# 2. Build new images
+docker-compose -f docker-compose.prod.yml build
+
+# 3. Update services (zero-downtime)
+docker-compose -f docker-compose.prod.yml up -d
+
+# 4. Run migrations (if any)
+docker-compose exec backend npx prisma migrate deploy
+
+# 5. Verify health
+curl https://lms.example.com/health
+
+# 6. Check logs
+docker-compose logs -f backend
+```
+
+### Rollback Procedure
+
+```bash
+# 1. Identify previous version
+git log --oneline
+
+# 2. Checkout previous version
+git checkout <previous-commit-hash>
+
+# 3. Rebuild and restart
+docker-compose -f docker-compose.prod.yml build
+docker-compose -f docker-compose.prod.yml up -d
+
+# 4. Rollback database (if needed)
+gunzip < /backups/lms_<date>.sql.gz | docker-compose exec -T postgres psql -U lms_user lms_prod
+
+# 5. Verify health
+curl https://lms.example.com/health
+```
+
+### Maintenance Mode
+
+```bash
+# 1. Create maintenance page
+cat > /usr/share/nginx/html/maintenance.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head><title>Maintenance</title></head>
+<body>
+  <h1>System Maintenance</h1>
+  <p>We'll be back shortly. Thank you for your patience.</p>
+</body>
+</html>
+EOF
+
+# 2. Update Nginx config to serve maintenance page
+# Add to nginx.conf before other locations:
+# location / {
+#   return 503;
+# }
+# error_page 503 /maintenance.html;
+
+# 3. Reload Nginx
+docker-compose exec nginx nginx -s reload
+
+# 4. Perform maintenance
+
+# 5. Remove maintenance mode (revert Nginx config)
+docker-compose exec nginx nginx -s reload
+```
+
+---
+
+## Summary
+
+This deployment workflow provides:
+
+✅ **Simple Architecture**: Single server with Docker Compose (no Kubernetes)
+✅ **Containerization**: Docker for consistent environments
+✅ **Reverse Proxy**: Nginx for HTTPS, static files, and rate limiting
+✅ **CI/CD**: Automated testing and deployment with GitHub Actions
+✅ **Monitoring**: Structured logging with Winston, health checks
+✅ **Security**: HTTPS (Let's Encrypt), security headers, rate limiting
+✅ **Backup**: Automated daily database backups
+✅ **Scalability**: Vertical scaling path for growth
+✅ **Cost-Effective**: ~$20-40/month for 50 concurrent users
+
+**Production-Grade for 50 Users**: Reliable, secure, monitored, and maintainable without over-engineering.

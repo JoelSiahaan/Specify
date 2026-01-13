@@ -139,7 +139,7 @@ src/infrastructure/
 │       ├── PrismaUserRepository.ts
 │       └── PrismaMaterialRepository.ts
 ├── storage/              # File Storage Implementation
-│   ├── LocalFileStorage.ts    # Local filesystem storage (MVP)
+│   ├── LocalFileStorage.ts    # Local filesystem storage (initial deployment)
 │   └── S3FileStorage.ts       # AWS S3 storage (future)
 ├── auth/                 # Authentication Services
 │   ├── JWTService.ts          # JWT token generation/validation
