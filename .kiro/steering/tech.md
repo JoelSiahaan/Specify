@@ -8,6 +8,7 @@
 
 ## Backend
 - **Runtime**: Node.js 18.20.5 LTS with Express
+- **Language**: TypeScript (strict mode enabled)
 - **API Style**: REST API
 - **Architecture**: Clean Architecture with DDD principles
 - **Authentication**: JWT (JSON Web Tokens) with HTTP-only cookies
