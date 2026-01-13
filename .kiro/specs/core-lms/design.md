@@ -1777,278 +1777,76 @@ enum SubmissionStatus {
 
 ## Error Handling
 
-### Error Response Format
+This feature follows the standard error handling patterns defined in [error-handling.md](../../steering/error-handling.md).
 
-All API errors follow a consistent format with error code, message, and optional details for debugging.
+### Feature-Specific Error Codes
 
-**Response Structure**:
-- `code`: Machine-readable error identifier
-- `message`: Human-readable error description
-- `details`: Optional additional context (validation errors, field-specific messages)
+The LMS defines the following feature-specific error codes in addition to the standard error categories:
 
-### Error Categories
+#### Course Management Errors
+- `COURSE_CODE_INVALID`: Course code not found (400)
+- `COURSE_ARCHIVED`: Cannot enroll in archived course (400)
+- `COURSE_ACTIVE`: Cannot delete active course, must archive first (400)
+- `DUPLICATE_ENROLLMENT`: Student already enrolled in course (409)
 
-#### Authentication Errors (401)
-- `AUTH_INVALID_CREDENTIALS`: Invalid email or password
-- `AUTH_TOKEN_EXPIRED`: JWT access token expired
-- `AUTH_TOKEN_INVALID`: JWT token is malformed or invalid
-- `AUTH_TOKEN_MISSING`: No authentication token provided
-- `AUTH_REFRESH_TOKEN_EXPIRED`: Refresh token expired
-- `AUTH_REFRESH_TOKEN_INVALID`: Refresh token is invalid or revoked
-- `AUTH_REQUIRED`: Authentication required for this endpoint
+#### Assignment Management Errors
+- `ASSIGNMENT_CLOSED`: Assignment closed for submissions (400)
+- `ASSIGNMENT_PAST_DUE`: Cannot edit assignment after due date (400)
+- `SUBMISSION_MISSING_CONTENT`: Required submission content missing (400)
+- `SUBMISSION_AFTER_GRADING`: Cannot submit after grading started (400)
+- `RESUBMISSION_NOT_ALLOWED`: Cannot resubmit after grading started (400)
 
-#### Authorization Errors (403)
-- `FORBIDDEN_ROLE`: User role not authorized for this action
-- `FORBIDDEN_RESOURCE`: User not authorized to access this resource
+#### Quiz Management Errors
+- `QUIZ_PAST_DUE`: Cannot start quiz after due date (400)
+- `QUIZ_ALREADY_SUBMITTED`: Quiz already submitted, no retakes (409)
+- `QUIZ_HAS_SUBMISSIONS`: Cannot edit quiz with existing submissions (400)
+- `TIME_LIMIT_EXCEEDED`: Quiz time limit exceeded (400)
 
-#### Validation Errors (400)
-- `VALIDATION_FAILED`: Input validation failed
-- `INVALID_FILE_TYPE`: File type not allowed
-- `INVALID_FILE_SIZE`: File exceeds size limit
-- `INVALID_URL`: URL format invalid
-- `INVALID_DATE`: Date is in the past or invalid format
-- `INVALID_GRADE`: Grade not between 0-100
-- `MISSING_REQUIRED_FIELD`: Required field not provided
+#### Grading Errors
+- `INVALID_GRADE`: Grade not between 0-100 (400)
 
-#### Business Logic Errors (400/409)
-- `COURSE_CODE_INVALID`: Course code not found
-- `COURSE_ARCHIVED`: Cannot enroll in archived course
-- `COURSE_ACTIVE`: Cannot delete active course (must archive first)
-- `DUPLICATE_ENROLLMENT`: Student already enrolled
-- `ASSIGNMENT_CLOSED`: Assignment closed for submissions
-- `ASSIGNMENT_PAST_DUE`: Cannot edit assignment after due date
-- `QUIZ_PAST_DUE`: Cannot start quiz after due date
-- `QUIZ_ALREADY_SUBMITTED`: Quiz already submitted
-- `QUIZ_HAS_SUBMISSIONS`: Cannot edit quiz with submissions
-- `SUBMISSION_MISSING_CONTENT`: Required submission content missing
-- `SUBMISSION_AFTER_GRADING`: Cannot submit after grading started
-- `RESUBMISSION_NOT_ALLOWED`: Cannot resubmit after grading started
-- `TIME_LIMIT_EXCEEDED`: Quiz time limit exceeded
-
-#### Not Found Errors (404)
-- `RESOURCE_NOT_FOUND`: Requested resource does not exist
-
-#### Server Errors (500)
-- `DATABASE_ERROR`: Database operation failed
-- `FILE_SYSTEM_ERROR`: File operation failed
-- `INTERNAL_ERROR`: Unexpected server error
-
-### Error Handling Strategy
-
-#### Frontend Error Handling
-1. **Network Errors**: Display "Connection failed" message with retry option
-2. **Validation Errors**: Show field-specific error messages
-3. **Authorization Errors**: Redirect to login or show access denied message
-4. **Server Errors**: Display user-friendly error message and log details
-
-#### Backend Error Handling
-1. **Input Validation**: Validate all inputs before processing
-2. **Database Errors**: Retry connection up to 3 times, log error with context
-3. **File Operations**: Validate before upload, clean up on failure
-4. **Transaction Rollback**: Use database transactions for multi-step operations
-5. **Error Logging**: Log all errors with timestamp, user context, and stack trace
-6. **Sanitize Responses**: Never expose internal system details in error messages
-
-#### Specific Error Scenarios
+### Feature-Specific Error Scenarios
 
 **Course Code Collision**:
-- Retry generation up to 5 times
-- If all retries fail, return server error
+- Retry generation up to 5 times with new random codes
+- If all retries fail, return `INTERNAL_ERROR` (500)
+- Probability of collision: 1 in 2.1 billion (36^6 combinations)
 
 **File Upload Failure**:
-- Validate file type and size before upload
+- Validate file type and size before upload (see tech.md for limits)
 - Clean up partial uploads on failure
-- Return specific error message
+- Return `INVALID_FILE_TYPE` or `INVALID_FILE_SIZE` (400)
 
 **Concurrent Grading**:
 - Use database transactions to prevent race conditions
-- Lock assignment when first grade is saved
+- Lock assignment when first grade is saved (`gradingStarted = true`)
+- Subsequent submissions rejected with `ASSIGNMENT_CLOSED` (400)
 
 **Quiz Timer Expiration**:
-- Frontend countdown with auto-submit
-- Backend validates submission time
+- Frontend countdown with auto-submit on timeout
+- Backend validates submission time against start time + time limit
 - Accept submission if within grace period (5 seconds)
+- Reject with `TIME_LIMIT_EXCEEDED` (400) if beyond grace period
 
 **Database Connection Loss**:
-- Retry connection 3 times with exponential backoff
-- Return maintenance mode message if all retries fail
+- Retry connection 3 times with exponential backoff (1s, 2s, 4s)
+- Return `DATABASE_ERROR` (500) if all retries fail
+- Log error with context for debugging
 
 ## Testing Strategy
 
-### Testing Approach
+This feature follows the testing strategy defined in [testing-strategy.md](../../steering/testing-strategy.md).
 
-The LMS uses a dual testing approach combining unit tests for specific examples and property-based tests for universal correctness properties. This ensures both concrete functionality and general correctness across all inputs.
+### Feature-Specific Testing Focus
 
-### Testing Framework
+The LMS testing focuses on validating the correctness properties defined in this document, with emphasis on:
 
-- **Unit Testing**: Jest with React Testing Library
-- **Property-Based Testing**: fast-check (JavaScript/TypeScript PBT library)
-- **API Testing**: Supertest
-- **Database Testing**: In-memory PostgreSQL or test database
-
-### Test Configuration
-
-- **Property Tests**: Minimum 100 iterations per test
-- **Test Isolation**: Each test uses fresh database state
-- **Mock Strategy**: Minimize mocking, prefer integration testing
-- **Coverage Target**: 80% code coverage minimum
-
-### Testing by Clean Architecture Layer
-
-#### Domain Layer Testing
-**Focus**: Pure business logic without external dependencies
-
-**Approach**:
-- Unit tests for Domain Entities (Course, Assignment, Quiz, Submission, etc.)
-- Test business rule enforcement (e.g., `course.archive()` validates state)
-- Test Value Objects (CourseCode generation, Email validation)
-- Test Domain Services (CourseCodeGenerator uniqueness logic)
-- **No mocks needed** - domain layer has no external dependencies
-
-**Example Test Scenarios**:
-- Course entity: Archive active course succeeds, archive archived course fails
-- Assignment entity: Start grading sets lock, cannot accept submission after lock
-- CourseCode value object: Generate valid 6-character code, validate format
-- Domain Service: Generate unique code with retry logic
-
-#### Application Layer Testing
-**Focus**: Use Case orchestration and business workflows
-
-**Approach**:
-- Test Use Cases with mocked repositories and policies
-- Verify correct repository method calls
-- Test authorization policy enforcement
-- Test transaction boundaries (Unit of Work)
-- Mock infrastructure dependencies (repositories, file storage)
-
-**Example Test Scenarios**:
-- CreateCourseUseCase: Calls repository.save with correct entity
-- ArchiveCourseUseCase: Loads course, calls archive(), saves in transaction
-- GradeSubmissionUseCase: Checks authorization, locks assignment, saves grade
-- SubmitAssignmentUseCase: Validates grading lock before accepting submission
-
-#### Infrastructure Layer Testing
-**Focus**: Integration with external systems
-
-**Approach**:
-- Integration tests with real database (test database or in-memory)
-- Test repository implementations (Prisma repositories)
-- Test file storage implementations (local or S3)
-- Verify database transactions and constraints
-- Test error handling for external failures
-
-**Example Test Scenarios**:
-- PrismaCourseRepository: Save and retrieve course entity correctly
-- Repository mapping: Domain entity ↔ Database model conversion
-- File storage: Upload, retrieve, delete files
-- Transaction rollback on error
-
-#### Presentation Layer Testing
-**Focus**: API endpoints and request/response handling
-
-**Approach**:
-- API integration tests with Supertest
-- Test request validation and error responses
-- Test authentication and authorization middleware
-- Verify correct HTTP status codes
-- Test with valid and invalid inputs
-
-**Example Test Scenarios**:
-- POST /api/courses: Returns 201 with course data for valid input
-- PUT /api/courses/:id: Returns 403 for non-owner teacher
-- POST /api/assignments/:id/submit: Returns 400 if grading started
-- GET /api/courses: Returns only active courses for students
-
-### Unit Testing Focus
-
-Unit tests validate specific examples, edge cases, and error conditions:
-
-1. **Authentication**: Valid/invalid credentials, session expiration
-2. **Course Management**: Create, update, archive, delete flows
-3. **Enrollment**: Valid/invalid course codes, duplicate enrollment
-4. **File Upload**: Valid/invalid file types and sizes
-5. **Assignment Submission**: Before/after due date, with/without grading
-6. **Quiz Taking**: Timer expiration, answer submission
-7. **Grading**: Valid/invalid grades, feedback storage
-8. **Error Handling**: All error scenarios return correct error codes
-
-### Property-Based Testing Focus
-
-Property tests validate universal properties across all inputs:
-
-1. **Data Integrity**: Operations preserve required invariants
-2. **Round-Trip Properties**: Serialization/deserialization consistency
-3. **Idempotence**: Operations that should have same effect when repeated
-4. **Authorization**: Role checks work for all users and resources
-5. **Validation**: Input validation correctly rejects invalid data
-6. **State Transitions**: Valid state changes for all entities
-
-### Test Organization
-
-```
-src/
-  domain/
-    entities/
-      __tests__/
-        Course.test.ts              # Domain entity unit tests
-        Assignment.test.ts
-        Course.properties.test.ts   # Property-based tests
-    services/
-      __tests__/
-        CourseCodeGenerator.test.ts
-  application/
-    use-cases/
-      course/
-        __tests__/
-          CreateCourseUseCase.test.ts    # Use case tests with mocks
-          ArchiveCourseUseCase.test.ts
-  infrastructure/
-    persistence/
-      repositories/
-        __tests__/
-          PrismaCourseRepository.test.ts # Integration tests
-  presentation/
-    api/
-      controllers/
-        __tests__/
-          CourseController.test.ts       # API integration tests
-    components/
-      __tests__/
-        LoginPage.test.tsx               # Component tests
-        CourseList.test.tsx
-```
-
-### Property Test Tagging
-
-Each property test must reference its design document property:
-
-```typescript
-// Feature: core-lms, Property 1: Authentication round-trip
-test('valid user credentials authenticate and create valid session', async () => {
-  await fc.assert(
-    fc.asyncProperty(
-      fc.record({
-        email: fc.emailAddress(),
-        password: fc.string({ minLength: 8 }),
-        name: fc.string({ minLength: 1 }),
-        role: fc.constantFrom('STUDENT', 'TEACHER')
-      }),
-      async (userData) => {
-        // Test implementation
-      }
-    ),
-    { numRuns: 100 }
-  )
-})
-```
-
-### Integration Testing
-
-- **API Endpoints**: Test all endpoints with valid and invalid inputs
-- **Database Operations**: Verify CRUD operations and constraints
-- **File Operations**: Test upload, download, and deletion
-- **Authentication Flow**: Test login, session management, logout
-- **Authorization Flow**: Test role-based access control
+1. **Authentication and Authorization**: JWT token lifecycle, role-based access control
+2. **Course Lifecycle**: State transitions (Active → Archived → Deleted)
+3. **Assignment Submission**: Timing rules, grading lock mechanism
+4. **Quiz Taking**: Timer enforcement, submission validation
+5. **Grading Workflow**: Manual grading, grade persistence
+6. **Data Integrity**: CRUD operations, cascade deletes
 
 ### Security Testing Strategy
 
@@ -2098,6 +1896,93 @@ Security testing is integrated across all Clean Architecture layers to validate 
 #### Security Test Scenarios
 
 **Authentication Security** (Requirement 1, 20.1):
+- Valid credentials create session with hashed password
+- Invalid credentials rejected without information leakage
+- Expired JWT tokens rejected with appropriate error
+- Tampered JWT tokens detected and rejected
+- Refresh token revocation prevents new access tokens
+
+**Authorization Security** (Requirement 2):
+- Students cannot access teacher-only endpoints (403 Forbidden)
+- Teachers cannot modify other teachers' resources (403 Not Owner)
+- Unauthenticated requests rejected (401 Unauthorized)
+- Authorization checked before business logic execution
+
+**Input Validation Security** (Requirement 20.2):
+- XSS attempts in text fields rejected or sanitized
+- SQL injection strings in queries safely handled by Prisma
+- Path traversal attempts in file paths blocked
+- Oversized payloads rejected at API layer
+- Malformed JSON requests return validation errors
+
+**File Upload Security** (Requirement 20.3, 20.4, 20.5):
+- Executable files (.exe, .sh, .bat) rejected
+- Files exceeding 10MB limit rejected
+- Unsupported file types (video files) rejected
+- File access requires authorization (enrolled student or owner teacher)
+- Path traversal in file download prevented
+
+**Data Protection Security** (Requirement 20.1, 20.3):
+- Passwords hashed with BCrypt before storage
+- Password hashes never exposed in API responses
+- Users cannot access other users' submissions
+- File downloads require proper authorization
+- Sensitive data excluded from error messages
+
+#### Security Test Matrix
+
+| Security Requirement | Test Layer | Test Type | Validation Method |
+|---------------------|------------|-----------|-------------------|
+| Password Hashing (20.1) | Infrastructure | Integration | Verify BCrypt, never plain text |
+| SQL Injection (20.2) | Infrastructure | Integration | Malicious SQL in queries |
+| XSS Prevention (20.2) | Application + Presentation | Unit + Integration | Malicious scripts in inputs |
+| File Type Validation (20.4) | Presentation | Integration | Upload dangerous file types |
+| File Size Limits (20.5) | Presentation | Integration | Upload oversized files |
+| Unauthorized Access (20.3) | Application + Presentation | Unit + Integration | Access other users' resources |
+| JWT Security | Presentation | Integration | Expired, tampered, missing tokens |
+| CSRF Protection | Presentation | Integration | Cross-site request attempts |
+| Authorization | Application | Unit | Role-based access control |
+
+#### Security Testing Tools
+
+**Static Analysis**:
+- ESLint security plugins for code scanning
+- TypeScript strict mode for type safety
+- Dependency vulnerability scanning (npm audit)
+
+**Dynamic Testing**:
+- Jest for unit and integration tests
+- Supertest for API security testing
+- Manual penetration testing for critical flows
+
+**Continuous Monitoring**:
+- Security tests in CI/CD pipeline
+- Automated vulnerability scanning
+- Regular security test suite execution
+
+#### Security Test Maintenance
+
+**Test Updates**: Security tests updated when:
+- New security requirements added
+- New attack vectors discovered
+- Security vulnerabilities reported
+- Authentication/authorization logic changes
+
+**Coverage Requirements**:
+- All security requirements (Req 20) have corresponding tests
+- All authentication endpoints have security tests
+- All file upload endpoints have security tests
+- All authorization policies have security tests
+
+### End-to-End Testing Considerations
+
+While E2E testing is not part of the MVP scope, the following scenarios should be validated manually:
+
+1. Complete student enrollment and assignment submission flow
+2. Complete teacher course creation and grading flow
+3. Quiz taking with timer expiration
+4. Grade export functionality
+5. Course archiving and deletion flow
 - Valid credentials create session with hashed password
 - Invalid credentials rejected without information leakage
 - Expired JWT tokens rejected with appropriate error
