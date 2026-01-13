@@ -11,8 +11,8 @@ This document defines what belongs in a feature's `design.md` file versus other 
 ```
 .kiro/
 ├── steering/              # Cross-cutting patterns (reusable across ALL features)
-│   ├── architecture.md    # Clean Architecture patterns
-│   ├── authorization.md   # Authorization patterns
+│   ├── error-handling.md  # Error handling standards
+│   ├── testing-strategy.md # Testing approach and frameworks
 │   ├── tech.md           # Technology stack
 │   └── ...
 │
@@ -38,6 +38,8 @@ This document defines what belongs in a feature's `design.md` file versus other 
 - How this feature fits into the overall system
 - Feature-specific components and their interactions
 - Component diagrams showing feature boundaries
+- Clean Architecture layer organization for this feature
+- Authorization strategy for this feature
 
 **3. Data Models**
 - Domain entities specific to this feature
@@ -64,11 +66,21 @@ This document defines what belongs in a feature's `design.md` file versus other 
 - Properties derived from this feature's requirements
 - Feature-specific invariants
 - Testable properties for this feature
+- Property-to-requirement mapping
 
 **8. Feature-Specific Error Handling**
 - Error scenarios unique to this feature
-- Feature-specific error codes
+- Feature-specific error codes (e.g., `COURSE_CODE_INVALID`, `ASSIGNMENT_CLOSED`)
 - Domain-specific validation errors
+- Feature-specific error handling flows
+- Reference to error-handling.md for standard patterns
+
+**9. Feature-Specific Testing Considerations**
+- Which correctness properties to test for this feature
+- Feature-specific test scenarios and edge cases
+- Security testing specific to this feature's requirements
+- Integration points that need testing
+- Reference to testing-strategy.md for general approach
 
 ---
 
@@ -76,51 +88,25 @@ This document defines what belongs in a feature's `design.md` file versus other 
 
 ### ❌ Cross-Cutting Concerns (MOVE TO STEERING FILES)
 
-**1. Architectural Patterns**
-- Clean Architecture layer definitions
-- Dependency injection patterns
-- Repository pattern implementation
-- Unit of Work pattern
-- **→ Move to:** `architecture.md` steering file
-
-**2. Authorization Patterns**
-- General RBAC implementation
-- Policy-based authorization patterns
-- Authorization flow diagrams
-- **→ Move to:** `authorization.md` steering file
-
-**3. Transaction Management**
-- General transaction patterns
-- Unit of Work implementation
-- Optimistic locking patterns
-- **→ Move to:** `transactions.md` steering file
-
-**4. DTO Mapping Patterns**
-- General DTO mapping strategies
-- Mapper patterns (create, read, update, list)
-- Data flow diagrams for DTOs
-- **→ Move to:** `dto-mapping.md` steering file
-
-**5. Error Handling Standards**
+**1. Error Handling Standards**
 - Standard error response format
 - HTTP status code conventions
-- Error category definitions
+- Error category definitions (401, 403, 400, 404, 500)
+- Error class hierarchy (ApplicationError, DomainError, etc.)
+- Error handler middleware patterns
+- Logging best practices
 - **→ Move to:** `error-handling.md` steering file
 
-**6. Testing Strategy**
+**2. Testing Strategy**
 - General testing approach (unit + property tests)
-- Testing framework configuration
-- Test organization patterns
+- Testing framework configuration (Jest, fast-check, Supertest)
+- Test organization patterns and directory structure
 - Property test tagging format
+- Testing by Clean Architecture layer
+- Unit testing and property-based testing guidelines
 - **→ Move to:** `testing-strategy.md` steering file
 
-**7. Security Patterns**
-- JWT authentication implementation
-- Password hashing standards
-- Input sanitization patterns
-- **→ Move to:** `security.md` steering file
-
-**8. Technology Stack**
+**3. Technology Stack**
 - Framework choices (React, Express, Prisma)
 - Library selections
 - Build tool configuration
@@ -168,10 +154,9 @@ This document defines what belongs in a feature's `design.md` file versus other 
 - "Write a test that calls `course.archive()` and asserts status"
 
 **Too General (Belongs in Steering):**
-- "All features should use Clean Architecture"
-- "All authorization should use policy-based access control"
-- "All database operations should use transactions"
-- "All tests should use Jest and fast-check"
+- "All features should follow standard error response format" (→ error-handling.md)
+- "All tests should use Jest and fast-check" (→ testing-strategy.md)
+- "All features should use React 19.2 with TypeScript" (→ tech.md)
 
 ---
 
@@ -184,7 +169,7 @@ Is this content about a specific feature?
 │   │
 │   ├─ YES → Is it reusable across multiple features?
 │   │   │
-│   │   ├─ YES → Steering file (e.g., architecture.md, authorization.md)
+│   │   ├─ YES → Steering file (e.g., error-handling.md, testing-strategy.md, tech.md)
 │   │   │
 │   │   └─ NO → design.md (feature-specific architecture)
 │   │
@@ -205,85 +190,7 @@ Is this content about a specific feature?
 
 ## Examples: Correct Placement
 
-### Example 1: Clean Architecture Layers
-
-**❌ Wrong (in design.md):**
-```markdown
-## Clean Architecture Layers
-
-The application uses four layers:
-1. Domain Layer - Business logic
-2. Application Layer - Use cases
-3. Infrastructure Layer - External concerns
-4. Presentation Layer - UI and API
-
-Dependencies flow inward...
-```
-
-**✅ Right (in architecture.md steering file):**
-```markdown
-# Architecture Patterns
-
-## Clean Architecture
-
-All features must follow Clean Architecture with four layers...
-```
-
-**✅ Right (in design.md):**
-```markdown
-## Architecture
-
-This feature follows Clean Architecture principles (see architecture.md).
-
-### Feature Components
-
-**Domain Layer:**
-- Course entity: Manages course lifecycle and validation
-- Assignment entity: Handles due dates and grading locks
-
-**Application Layer:**
-- CreateCourseUseCase: Generates unique course codes
-- ArchiveCourseUseCase: Archives course and closes assignments
-```
-
-### Example 2: Authorization
-
-**❌ Wrong (in design.md):**
-```markdown
-## Authorization
-
-The system uses policy-based authorization. Policies are pure functions
-that receive user and resource data and return boolean decisions.
-
-Authorization flow:
-1. Middleware validates JWT
-2. Use case loads data
-3. Policy checks access
-4. Business logic executes
-```
-
-**✅ Right (in authorization.md steering file):**
-```markdown
-# Authorization Patterns
-
-All features must use policy-based authorization...
-```
-
-**✅ Right (in design.md):**
-```markdown
-## Authorization
-
-This feature uses policy-based authorization (see authorization.md).
-
-### Feature-Specific Access Rules
-
-| Resource | Student (Enrolled) | Teacher (Owner) |
-|----------|-------------------|-----------------|
-| Course   | Read              | Read/Update     |
-| Materials| Read/Download     | Full CRUD       |
-```
-
-### Example 3: Error Handling
+### Example 1: Error Handling
 
 **❌ Wrong (in design.md):**
 ```markdown
@@ -301,6 +208,15 @@ Error categories:
 - 400: Validation errors
 - 401: Authentication errors
 - 403: Authorization errors
+- 404: Not Found
+- 500: Internal Server Error
+
+Error classes:
+- ApplicationError
+- DomainError
+- InfrastructureError
+
+Error handler middleware pattern...
 ```
 
 **✅ Right (in error-handling.md steering file):**
@@ -308,6 +224,21 @@ Error categories:
 # Error Handling Standards
 
 All API errors must follow this format...
+
+## Standard Error Categories
+- 401: Authentication errors
+- 403: Authorization errors
+- 400: Validation errors
+- 404: Not Found
+- 500: Internal Server Error
+
+## Error Classes
+- ApplicationError (Application Layer)
+- DomainError (Domain Layer)
+- InfrastructureError (Infrastructure Layer)
+
+## Error Handler Middleware
+[Pattern for global error handler]
 ```
 
 **✅ Right (in design.md):**
@@ -318,9 +249,104 @@ This feature follows standard error handling (see error-handling.md).
 
 ### Feature-Specific Errors
 
+**Course Management:**
 - `COURSE_CODE_INVALID`: Course code not found (400)
 - `COURSE_ARCHIVED`: Cannot enroll in archived course (400)
+
+**Assignment Management:**
 - `ASSIGNMENT_CLOSED`: Assignment closed for submissions (400)
+- `ASSIGNMENT_PAST_DUE`: Cannot edit past due date (400)
+
+### Feature-Specific Error Scenarios
+
+**Course Code Collision:**
+- Retry generation up to 5 times
+- Return INTERNAL_ERROR if all retries fail
+
+**Concurrent Grading:**
+- Use database transactions to prevent race conditions
+- Lock assignment when first grade is saved
+```
+
+### Example 2: Testing Strategy
+
+**❌ Wrong (in design.md):**
+```markdown
+## Testing Strategy
+
+### Testing Approach
+The LMS uses a dual testing approach combining unit tests and property-based tests.
+
+### Testing Framework
+- Unit Testing: Jest with React Testing Library
+- Property-Based Testing: fast-check
+- API Testing: Supertest
+
+### Test Configuration
+- Property Tests: Minimum 100 iterations per test
+- Coverage Target: 80% minimum
+
+### Testing by Clean Architecture Layer
+[Detailed testing approach for each layer]
+
+### Property Test Tagging
+Each property test must reference its design document property:
+```typescript
+// Feature: core-lms, Property 1: Authentication round-trip
+```
+```
+
+**✅ Right (in testing-strategy.md steering file):**
+```markdown
+# Testing Strategy
+
+## Testing Philosophy
+Dual testing approach: unit tests + property-based tests
+
+## Testing Framework
+- Jest with React Testing Library
+- fast-check for property-based testing
+- Supertest for API testing
+
+## Test Configuration
+- Minimum 100 iterations per property test
+- 80% code coverage minimum
+
+## Testing by Clean Architecture Layer
+[Detailed approach for Domain, Application, Infrastructure, Presentation]
+
+## Property Test Tagging
+Format: `Feature: {feature_name}, Property {number}: {property_text}`
+```
+
+**✅ Right (in design.md):**
+```markdown
+## Testing Strategy
+
+This feature follows the testing strategy defined in testing-strategy.md.
+
+### Feature-Specific Testing Focus
+
+The LMS testing focuses on validating the correctness properties defined in this document:
+
+1. **Authentication and Authorization**: JWT token lifecycle, role-based access control
+2. **Course Lifecycle**: State transitions (Active → Archived → Deleted)
+3. **Assignment Submission**: Timing rules, grading lock mechanism
+4. **Quiz Taking**: Timer enforcement, submission validation
+5. **Grading Workflow**: Manual grading, grade persistence
+
+### Security Testing Strategy
+
+Security testing specific to LMS requirements (Requirement 20):
+
+**Authentication Security** (Requirement 1, 20.1):
+- Valid credentials create session with hashed password
+- Expired JWT tokens rejected
+
+**File Upload Security** (Requirement 20.3, 20.4, 20.5):
+- Executable files rejected
+- Files exceeding 10MB rejected
+- File access requires authorization
 ```
 
 ---
@@ -354,15 +380,21 @@ This feature follows standard error handling (see error-handling.md).
 ### ✅ design.md Should Have:
 - [ ] Feature overview and key decisions
 - [ ] Feature-specific components and interactions
+- [ ] Feature architecture (Clean Architecture layers for this feature)
+- [ ] Authorization strategy for this feature
 - [ ] Data models for this feature
 - [ ] API endpoints for this feature
 - [ ] Use cases for this feature
 - [ ] Critical flows unique to this feature
 - [ ] Correctness properties from requirements
-- [ ] Feature-specific error codes
+- [ ] Feature-specific error codes and error scenarios
+- [ ] Feature-specific testing focus and security testing
+- [ ] References to steering files (error-handling.md, testing-strategy.md, tech.md)
 
 ### ❌ design.md Should NOT Have:
-- [ ] General architectural patterns (→ steering files)
+- [ ] Standard error response format (→ error-handling.md)
+- [ ] General testing approach and frameworks (→ testing-strategy.md)
+- [ ] Technology stack choices (→ tech.md)
 - [ ] Cross-cutting concerns (→ steering files)
 - [ ] Step-by-step implementation (→ tasks.md)
 - [ ] Complete code examples (→ implementation)
@@ -374,7 +406,7 @@ This feature follows standard error handling (see error-handling.md).
 ## When in Doubt
 
 **Ask yourself:**
-1. **Is this reusable across multiple features?** → Steering file
+1. **Is this reusable across multiple features?** → Steering file (error-handling.md, testing-strategy.md, tech.md)
 2. **Is this specific to this feature's architecture?** → design.md
 3. **Is this a step-by-step instruction?** → tasks.md
 4. **Is this about what the feature does?** → requirements.md
