@@ -276,21 +276,48 @@ container.register(CourseController, { useClass: CourseController });
 
 ### Technology Stack
 
-- **Frontend**: React 19.2 with TypeScript, Vite 7.2
-- **Backend**: Node.js with Express
-- **Architecture**: Clean Architecture with DDD principles
-- **ORM**: Prisma (abstracted behind repository interfaces)
-- **Database**: PostgreSQL
-- **Authentication**: JWT (JSON Web Tokens) with HTTP-only cookies
-- **Password Hashing**: BCrypt (industry standard, sufficient security for MVP)
-- **File Storage**: Abstracted interface (Local filesystem for MVP, extensible to S3)
-- **File Upload**: Multer (Express middleware for multipart/form-data)
-- **Dependency Injection**: TSyringe (TypeScript-first, decorator-based)
-- **Validation**: Zod (TypeScript type inference, schema-first validation)
-- **HTML Sanitization**: DOMPurify (client-side) + sanitize-html (server-side)
-- **CORS**: cors package with SameSite=Strict cookies
-- **Logging**: Winston (structured logging, multiple transports)
-- **Property Testing**: fast-check ^3.0.0 (minimum 100 iterations per test)
+The LMS follows the technology stack defined in [tech.md](../../steering/tech.md).
+
+**Key Architectural Technology Decisions:**
+
+**1. Stateless Authentication (JWT + HTTP-only Cookies)**
+
+The LMS implements JWT-based authentication with HTTP-only cookies to achieve:
+- **Horizontal Scalability**: No server-side session storage enables multi-server deployment without sticky sessions
+- **Security**: HTTP-only cookies prevent XSS attacks, short access token lifetime (15 minutes) limits exposure window
+- **User Experience**: Refresh tokens (7 days) enable seamless re-authentication without frequent login prompts
+- **Logout Strategy**: Client-side token removal (simple, stateless approach suitable for MVP)
+
+**2. File Storage Abstraction (Interface Pattern)**
+
+File storage is abstracted behind `IFileStorage` interface to support:
+- **MVP Simplicity**: Local filesystem implementation requires no external dependencies or cloud accounts
+- **Production Scalability**: Easy migration to S3/cloud storage by swapping implementation without code changes
+- **Clean Architecture**: Domain layer remains framework-agnostic, infrastructure layer handles storage details
+- **Testability**: Mock storage implementation for unit tests without file system dependencies
+
+**3. Dependency Injection (TSyringe)**
+
+TSyringe manages dependencies with lifecycle control:
+- **Singleton Repositories**: Shared database connection pool across requests for performance
+- **Transient Use Cases**: Stateless, created per request to prevent state leakage
+- **Interface-based Injection**: Supports Dependency Inversion Principle and Clean Architecture
+- **Testability**: Easy mock injection for unit tests without complex setup
+
+**4. Property-Based Testing (fast-check)**
+
+fast-check validates correctness properties with minimum 100 iterations per test:
+- **Comprehensive Coverage**: Randomized inputs discover edge cases that example-based tests miss
+- **Requirements Validation**: Each property maps to acceptance criteria from requirements.md
+- **Confidence**: 100+ iterations per property ensure robust validation across input space
+
+**5. Repository Pattern (Prisma Abstraction)**
+
+Prisma ORM is abstracted behind repository interfaces:
+- **Domain Independence**: Domain layer defines contracts, infrastructure implements with Prisma
+- **Database Agnostic**: Easy migration to alternative ORMs or databases without domain changes
+- **Transaction Management**: Unit of Work pattern coordinates multi-entity operations atomically
+- **Testability**: Mock repositories for use case tests without database dependencies
 
 ### Clean Architecture Layers
 
@@ -1777,11 +1804,11 @@ enum SubmissionStatus {
 
 ## Error Handling
 
-This feature follows the standard error handling patterns defined in [error-handling.md](../../steering/error-handling.md).
+The LMS follows the standard error handling patterns defined in [error-handling.md](../../steering/error-handling.md).
 
-### Feature-Specific Error Codes
+### LMS-Specific Error Codes
 
-The LMS defines the following feature-specific error codes in addition to the standard error categories:
+The LMS defines the following system-specific error codes in addition to the standard error categories:
 
 #### Course Management Errors
 - `COURSE_CODE_INVALID`: Course code not found (400)
@@ -1805,7 +1832,7 @@ The LMS defines the following feature-specific error codes in addition to the st
 #### Grading Errors
 - `INVALID_GRADE`: Grade not between 0-100 (400)
 
-### Feature-Specific Error Scenarios
+### LMS-Specific Error Scenarios
 
 **Course Code Collision**:
 - Retry generation up to 5 times with new random codes
@@ -1835,9 +1862,9 @@ The LMS defines the following feature-specific error codes in addition to the st
 
 ## Testing Strategy
 
-This feature follows the testing strategy defined in [testing-strategy.md](../../steering/testing-strategy.md).
+The LMS follows the testing strategy defined in [testing-strategy.md](../../steering/testing-strategy.md).
 
-### Feature-Specific Testing Focus
+### LMS-Specific Testing Focus
 
 The LMS testing focuses on validating the correctness properties defined in this document, with emphasis on:
 
@@ -1850,129 +1877,38 @@ The LMS testing focuses on validating the correctness properties defined in this
 
 ### Security Testing Strategy
 
-Security testing is integrated across all Clean Architecture layers to validate security requirements (Requirement 20) and ensure protection against common vulnerabilities.
+Security testing for the LMS follows the security guidelines defined in [security-policies.md](../../steering/security-policies.md) and testing approach defined in [testing-strategy.md](../../steering/testing-strategy.md).
 
-#### Security Testing Principles
+**LMS Security Testing Focus:**
 
-**Defense in Depth**: Security validated at multiple layers
-- **Domain Layer**: Input validation and business rule enforcement
-- **Application Layer**: Authorization policy enforcement
-- **Infrastructure Layer**: SQL injection prevention, secure data access
-- **Presentation Layer**: Authentication, file upload security, CSRF protection
+The LMS security testing validates all security requirements (Requirement 20) across multiple layers:
 
-**Security by Design**: Security tests written alongside functional tests, not as afterthought
+**Authentication & Authorization** (Requirements 1, 2, 20.1):
+- JWT token lifecycle (generation, validation, expiration, revocation)
+- Password hashing with BCrypt
+- Role-based access control (Student vs Teacher)
+- Resource ownership validation (teacher owns course)
+- Enrollment-based access (student enrolled in course)
 
-**Continuous Validation**: Security tests run in CI/CD pipeline on every commit
+**Input Validation & Sanitization** (Requirement 20.2):
+- XSS prevention in rich text fields (HTML sanitization)
+- SQL injection prevention (Prisma parameterized queries)
+- Path traversal prevention in file operations
+- Request validation (Zod schemas)
 
-#### Security Test Coverage by Layer
+**File Upload Security** (Requirements 20.3, 20.4, 20.5):
+- File type validation (whitelist: PDF, DOCX, images)
+- File size limits (10MB maximum)
+- Dangerous file rejection (.exe, .sh, .bat)
+- File access authorization (enrolled students, owner teachers)
 
-**Domain Layer Security Tests**:
-- **Input Validation**: Reject malicious inputs (XSS attempts, SQL injection strings, path traversal)
-- **Business Rule Enforcement**: Validate domain constraints prevent security violations
-- **Value Object Validation**: Ensure immutable security-critical values (Email, CourseCode)
-- **Test Approach**: Pure unit tests, no mocks needed
+**Data Protection** (Requirements 20.1, 20.3):
+- Password hashing before storage
+- No password exposure in API responses
+- User data isolation (students cannot access other students' data)
+- Secure file downloads with authorization
 
-**Application Layer Security Tests**:
-- **Authorization Enforcement**: Verify policy checks before business operations
-- **Input Sanitization**: Validate HTML sanitization for rich text fields
-- **Transaction Security**: Ensure atomic operations prevent partial state corruption
-- **Test Approach**: Unit tests with mocked repositories, focus on authorization flow
-
-**Infrastructure Layer Security Tests**:
-- **SQL Injection Prevention**: Verify parameterized queries reject malicious SQL
-- **Password Hashing**: Confirm BCrypt hashing, never plain text storage
-- **Data Access Control**: Validate row-level security (users only access own data)
-- **File System Security**: Prevent path traversal, validate file permissions
-- **Test Approach**: Integration tests with real database, verify Prisma security
-
-**Presentation Layer Security Tests**:
-- **Authentication**: Validate JWT token verification (expired, tampered, missing tokens)
-- **Authorization**: Verify role-based endpoint access control
-- **File Upload Security**: Reject dangerous file types (.exe, .sh), enforce size limits
-- **CSRF Protection**: Validate SameSite cookie policy prevents cross-site requests
-- **Input Validation**: Verify request validation rejects malicious payloads
-- **Test Approach**: API integration tests with Supertest, simulate attacks
-
-#### Security Test Scenarios
-
-**Authentication Security** (Requirement 1, 20.1):
-- Valid credentials create session with hashed password
-- Invalid credentials rejected without information leakage
-- Expired JWT tokens rejected with appropriate error
-- Tampered JWT tokens detected and rejected
-- Refresh token revocation prevents new access tokens
-
-**Authorization Security** (Requirement 2):
-- Students cannot access teacher-only endpoints (403 Forbidden)
-- Teachers cannot modify other teachers' resources (403 Not Owner)
-- Unauthenticated requests rejected (401 Unauthorized)
-- Authorization checked before business logic execution
-
-**Input Validation Security** (Requirement 20.2):
-- XSS attempts in text fields rejected or sanitized
-- SQL injection strings in queries safely handled by Prisma
-- Path traversal attempts in file paths blocked
-- Oversized payloads rejected at API layer
-- Malformed JSON requests return validation errors
-
-**File Upload Security** (Requirement 20.3, 20.4, 20.5):
-- Executable files (.exe, .sh, .bat) rejected
-- Files exceeding 10MB limit rejected
-- Unsupported file types (video files) rejected
-- File access requires authorization (enrolled student or owner teacher)
-- Path traversal in file download prevented
-
-**Data Protection Security** (Requirement 20.1, 20.3):
-- Passwords hashed with BCrypt before storage
-- Password hashes never exposed in API responses
-- Users cannot access other users' submissions
-- File downloads require proper authorization
-- Sensitive data excluded from error messages
-
-#### Security Test Matrix
-
-| Security Requirement | Test Layer | Test Type | Validation Method |
-|---------------------|------------|-----------|-------------------|
-| Password Hashing (20.1) | Infrastructure | Integration | Verify BCrypt, never plain text |
-| SQL Injection (20.2) | Infrastructure | Integration | Malicious SQL in queries |
-| XSS Prevention (20.2) | Application + Presentation | Unit + Integration | Malicious scripts in inputs |
-| File Type Validation (20.4) | Presentation | Integration | Upload dangerous file types |
-| File Size Limits (20.5) | Presentation | Integration | Upload oversized files |
-| Unauthorized Access (20.3) | Application + Presentation | Unit + Integration | Access other users' resources |
-| JWT Security | Presentation | Integration | Expired, tampered, missing tokens |
-| CSRF Protection | Presentation | Integration | Cross-site request attempts |
-| Authorization | Application | Unit | Role-based access control |
-
-#### Security Testing Tools
-
-**Static Analysis**:
-- ESLint security plugins for code scanning
-- TypeScript strict mode for type safety
-- Dependency vulnerability scanning (npm audit)
-
-**Dynamic Testing**:
-- Jest for unit and integration tests
-- Supertest for API security testing
-- Manual penetration testing for critical flows
-
-**Continuous Monitoring**:
-- Security tests in CI/CD pipeline
-- Automated vulnerability scanning
-- Regular security test suite execution
-
-#### Security Test Maintenance
-
-**Test Updates**: Security tests updated when:
-- New security requirements added
-- New attack vectors discovered
-- Security vulnerabilities reported
-- Authentication/authorization logic changes
-
-**Coverage Requirements**:
-- All security requirements (Req 20) have corresponding tests
-- All authentication endpoints have security tests
-- All file upload endpoints have security tests
-- All authorization policies have security tests
+For detailed security testing approach, test scenarios, and security test matrix, see [testing-strategy.md](../../steering/testing-strategy.md).
 
 ### End-to-End Testing Considerations
 

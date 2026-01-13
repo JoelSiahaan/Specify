@@ -4,14 +4,29 @@
 - **Framework**: React 19.2 with TypeScript
 - **Build Tool**: Vite 7.2
 - **Package Manager**: npm (required)
+- **HTML Sanitization**: DOMPurify (client-side XSS prevention)
 
 ## Backend
-- **Runtime**: Node.js with Express (recommended)
+- **Runtime**: Node.js with Express
 - **API Style**: REST API
-- **Authentication**: Session-based or JWT
-- **ORM**: Prisma
+- **Architecture**: Clean Architecture with DDD principles
+- **Authentication**: JWT (JSON Web Tokens) with HTTP-only cookies
+- **Password Hashing**: BCrypt (industry standard)
+- **ORM**: Prisma (PostgreSQL)
 - **Database**: PostgreSQL
-- **File Storage**: Local filesystem or cloud storage (S3, etc.)
+- **File Storage**: Local filesystem (MVP) or cloud storage (S3, etc.)
+- **File Upload**: Multer (Express middleware for multipart/form-data)
+- **Dependency Injection**: TSyringe (TypeScript-first, decorator-based)
+- **Validation**: Zod (TypeScript type inference, schema-first validation)
+- **HTML Sanitization**: sanitize-html (server-side validation)
+- **CORS**: cors package with SameSite=Strict cookies
+- **Logging**: Winston (structured logging, multiple transports)
+
+## Testing
+- **Unit Testing**: Jest with React Testing Library
+- **Property-Based Testing**: fast-check ^3.0.0 (minimum 100 iterations per test)
+- **API Testing**: Supertest for HTTP endpoint testing
+- **Database Testing**: In-memory PostgreSQL or dedicated test database
 
 ## Code Quality
 - **Linting**: ESLint with TypeScript, React Hooks, and React Refresh plugins
@@ -40,6 +55,7 @@ npm run dev          # Start development server
 npm run build        # Type-check and build for production
 npm run preview      # Preview production build locally
 npm run lint         # Run ESLint
+npm test             # Run tests
 ```
 
 ## TypeScript Configuration
