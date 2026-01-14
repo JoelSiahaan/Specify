@@ -1316,18 +1316,20 @@ erDiagram
         uuid studentId FK
         uuid courseId FK
         datetime enrolledAt
+        UK studentId_courseId "Unique constraint (studentId, courseId)"
     }
     
     Material {
         uuid id PK
         uuid courseId FK
-        enum type
+        enum type "FILE, TEXT, or VIDEO_LINK"
         string title
-        string content
-        string filePath
-        string fileName
-        int fileSize
-        string mimeType
+        string? content "Required if type=TEXT, null otherwise"
+        string? filePath "Required if type=FILE, null otherwise"
+        string? fileName "Required if type=FILE, null otherwise"
+        int? fileSize "Required if type=FILE, null otherwise"
+        string? mimeType "Required if type=FILE, null otherwise"
+        string? videoUrl "Required if type=VIDEO_LINK, null otherwise"
         datetime createdAt
         datetime updatedAt
     }
@@ -1359,10 +1361,9 @@ erDiagram
     Question {
         uuid id PK
         uuid quizId FK
-        enum type
+        enum questionType "MCQ or ESSAY"
         string questionText
-        array options
-        int correctAnswer
+        array? options "Required if questionType=MCQ, null if ESSAY"
         int order
         datetime createdAt
     }
@@ -1370,28 +1371,29 @@ erDiagram
     Submission {
         uuid id PK
         uuid studentId FK
-        uuid assignmentId FK
-        uuid quizId FK
+        uuid? assignmentId FK "Required if assignment submission, null if quiz"
+        uuid? quizId FK "Required if quiz submission, null if assignment"
         datetime submittedAt
         enum status
         boolean isLate
-        float grade
-        string feedback
-        int version
-        string filePath
-        string fileName
-        string textContent
-        datetime startedAt
-        datetime completedAt
+        float? grade "Null until graded"
+        string? feedback "Null until graded"
+        int version "For optimistic locking"
+        string? filePath "Required if FILE/BOTH submission, null if TEXT only"
+        string? fileName "Required if FILE/BOTH submission, null if TEXT only"
+        string? textContent "Required if TEXT/BOTH submission, null if FILE only"
+        datetime? startedAt "For quiz submissions only"
+        datetime? completedAt "For quiz submissions only"
+        UK studentId_quizId "Unique constraint (studentId, quizId) for quiz submissions"
     }
     
     Answer {
         uuid id PK
         uuid submissionId FK
         uuid questionId FK
-        string answerText "nullable, for essay"
-        int selectedOption "nullable, for MCQ"
-        string selectedOptionText "nullable, audit trail"
+        enum answerType "MCQ or ESSAY"
+        string? answerText "Required if answerType=ESSAY, null if MCQ"
+        int? selectedOption "Required if answerType=MCQ, null if ESSAY"
         float points
         datetime createdAt
         datetime updatedAt
@@ -1420,12 +1422,15 @@ erDiagram
 
 **Enrollment**
 - Junction entity linking students to courses
-- Unique constraint prevents duplicate enrollments
+- Unique constraint `(studentId, courseId)` prevents duplicate enrollments (Req 6.8)
 - Tracks enrollment timestamp
 
 **Material**
 - Supports three types: FILE, TEXT, VIDEO_LINK
-- Conditional fields based on type (filePath for files, content for text/links)
+- Uses discriminated union pattern with `type` enum ("FILE", "TEXT", or "VIDEO_LINK")
+- For FILE: `filePath`, `fileName`, `fileSize`, `mimeType` are required; `content` and `videoUrl` are null
+- For TEXT: `content` is required; `filePath`, `fileName`, `fileSize`, `mimeType`, `videoUrl` are null
+- For VIDEO_LINK: `videoUrl` is required; `filePath`, `fileName`, `fileSize`, `mimeType`, `content` are null
 - Cascade deletes when course is deleted
 
 **Assignment**
@@ -1440,24 +1445,171 @@ erDiagram
 
 **Question**
 - Two types: MCQ (multiple choice) or ESSAY
-- MCQ stores options array and correct answer index
+- Uses discriminated union pattern with `questionType` enum ("MCQ" or "ESSAY")
+- For MCQ: `options` contains array of answer choices (minimum 2 options required)
+- For ESSAY: `options` is null (no predefined answers)
 - Order field maintains question sequence
+- **No `correctAnswer` field**: All grading is manual (teacher assigns points per question)
+
+#### Question Entity Validation Rules
+
+The Question entity uses a discriminated union pattern to handle different question types. The following validation rules MUST be enforced:
+
+**Type-Based Validation:**
+1. **If `questionType = "MCQ"`**:
+   - `options` MUST be a non-empty array
+   - `options` MUST contain at least 2 choices (Req 11.7)
+   - Each option MUST be a non-empty string
+   
+2. **If `questionType = "ESSAY"`**:
+   - `options` MUST be null
+   - `questionText` supports rich text formatting (Req 11.9)
+
+**General Validation:**
+- `questionType` MUST be either "MCQ" or "ESSAY" (no other values allowed)
+- `questionText` MUST be non-empty
+- `quizId` MUST reference an existing Quiz
+- `order` MUST be a positive integer (for question sequencing)
+- Questions cannot be edited or deleted after quiz has submissions (Req 11.10)
+
+#### Enrollment Entity Validation Rules
+
+The Enrollment entity links students to courses with duplicate prevention. The following validation rules MUST be enforced:
+
+**Uniqueness Validation:**
+- Unique constraint `(studentId, courseId)` MUST prevent duplicate enrollments (Req 6.8)
+- Database enforces uniqueness at schema level
+- Application layer SHOULD provide user-friendly error message on duplicate enrollment attempt
+
+**General Validation:**
+- `studentId` MUST reference an existing User with role STUDENT
+- `courseId` MUST reference an existing Course
+- Course MUST have status ACTIVE for new enrollments (Req 6.6)
+- Archived courses MUST reject new enrollment attempts (Req 6.6)
+- `enrolledAt` timestamp automatically set on creation
+
+#### Material Entity Validation Rules
+
+The Material entity uses a discriminated union pattern to handle different material types. The following validation rules MUST be enforced:
+
+**Type-Based Validation:**
+1. **If `type = "FILE"`**:
+   - `filePath` MUST be non-empty string
+   - `fileName` MUST be non-empty string
+   - `fileSize` MUST be positive integer
+   - `mimeType` MUST be non-empty string
+   - `content` MUST be null
+   - `videoUrl` MUST be null
+   - File type MUST be in allowed formats: PDF, DOCX, JPG, PNG, GIF (Req 7.8)
+   - File size MUST NOT exceed 10MB (Req 7.9)
+   
+2. **If `type = "TEXT"`**:
+   - `content` MUST be non-empty string
+   - `content` supports rich text formatting (Req 7.2)
+   - `filePath` MUST be null
+   - `fileName` MUST be null
+   - `fileSize` MUST be null
+   - `mimeType` MUST be null
+   - `videoUrl` MUST be null
+   
+3. **If `type = "VIDEO_LINK"`**:
+   - `videoUrl` MUST be valid URL
+   - `videoUrl` MUST be from allowed platforms: YouTube, Vimeo (Req 7.11)
+   - `filePath` MUST be null
+   - `fileName` MUST be null
+   - `fileSize` MUST be null
+   - `mimeType` MUST be null
+   - `content` MUST be null
+
+**General Validation:**
+- `type` MUST be one of: "FILE", "TEXT", "VIDEO_LINK" (no other values allowed)
+- `title` MUST be non-empty
+- `courseId` MUST reference an existing Course
+- Materials can be edited or deleted at any time (Req 7.7)
+
+#### Submission Entity Validation Rules
+
+The Submission entity uses a discriminated union pattern based on the Assignment's `submissionType`. The following validation rules MUST be enforced:
+
+**Type-Based Validation (Assignment Submissions):**
+1. **If Assignment.submissionType = "FILE"`**:
+   - `filePath` MUST be non-empty string
+   - `fileName` MUST be non-empty string
+   - `textContent` MUST be null
+   - File type MUST be in allowed formats: PDF, DOCX, JPG, PNG (Req 10.13)
+   - File size MUST NOT exceed 10MB
+   
+2. **If Assignment.submissionType = "TEXT"`**:
+   - `textContent` MUST be non-empty string
+   - `filePath` MUST be null
+   - `fileName` MUST be null
+   
+3. **If Assignment.submissionType = "BOTH"`**:
+   - `filePath` MUST be non-empty string
+   - `fileName` MUST be non-empty string
+   - `textContent` MUST be non-empty string
+   - File type MUST be in allowed formats: PDF, DOCX, JPG, PNG (Req 10.13)
+   - File size MUST NOT exceed 10MB
+
+**Quiz Submission Validation:**
+- Unique constraint `(studentId, quizId)` MUST prevent multiple quiz submissions (Req 12.7)
+- Database enforces uniqueness at schema level for quiz submissions
+- `startedAt` MUST be set when quiz is started
+- `completedAt` MUST be set when quiz is submitted
+- `completedAt` MUST be after `startedAt`
+- Quiz submission MUST be within time limit (Req 12.4)
+- Quiz submission MUST be before due date (Req 12.6)
+
+**General Validation:**
+- `studentId` MUST reference an existing User with role STUDENT
+- Exactly ONE of (`assignmentId`, `quizId`) must be set, never both or neither
+- `grade` MUST be between 0 and 100 if set (Req 13.3)
+- `version` MUST be positive integer (for optimistic locking)
+- **Assignment submissions**: Resubmission allowed before grading starts (Req 10.10, 10.11)
+- **Quiz submissions**: No resubmission allowed (enforced by unique constraint)
+- Submission cannot be modified after grading starts (Req 10.9)
 
 **Submission**
 - Polymorphic entity for both assignment and quiz submissions
+- Uses discriminated union pattern based on Assignment.submissionType
+- For FILE submissions: `filePath` and `fileName` are required; `textContent` is null
+- For TEXT submissions: `textContent` is required; `filePath` and `fileName` are null
+- For BOTH submissions: `filePath`, `fileName`, and `textContent` are all required
+- Unique constraint `(studentId, quizId)` prevents multiple quiz submissions (Req 12.7)
+- Assignments allow resubmission before grading (Req 10.10), no unique constraint needed
 - Version field enables optimistic locking for concurrent grading prevention
-- Tracks submission timing (submitted, started, completed)
-- Stores grade and feedback from teacher
+- Tracks submission timing (submittedAt for assignments, startedAt/completedAt for quizzes)
+- Stores grade and feedback from teacher (null until graded)
 
 **Answer**
 - Individual question responses within quiz submission
-- Polymorphic design: stores both selected option (MCQ) and text answer (essay)
+- Uses discriminated union pattern with `answerType` enum ("MCQ" or "ESSAY")
+- For MCQ: `selectedOption` contains the index of selected option, `answerText` is null
+- For ESSAY: `answerText` contains the text response, `selectedOption` is null
+- Validation enforces that exactly one field is populated based on `answerType`
 - Points manually assigned by teacher during grading
-- **Data Integrity Constraints**:
-  - Check constraint ensures at least one answer field is populated (answerText OR selectedOption)
-  - Application-level validation ensures MCQ questions use selectedOption, essay questions use answerText
-  - selectedOptionText field stores snapshot of selected option for audit trail (prevents data loss if question options change)
-  - Database constraint prevents both answerText and selectedOption from being null simultaneously
+
+#### Answer Entity Validation Rules
+
+The Answer entity uses a discriminated union pattern to handle different question types. The following validation rules MUST be enforced:
+
+**Type-Based Validation:**
+1. **If `answerType = "MCQ"`**:
+   - `selectedOption` MUST be a non-negative integer
+   - `selectedOption` MUST be within valid range (0 to number of options - 1)
+   - `answerText` MUST be null
+   
+2. **If `answerType = "ESSAY"`**:
+   - `answerText` MUST be a non-empty string
+   - `answerText` MUST NOT exceed reasonable length (e.g., 10,000 characters)
+   - `selectedOption` MUST be null
+
+**General Validation:**
+- `answerType` MUST be either "MCQ" or "ESSAY" (no other values allowed)
+- `questionId` MUST reference an existing Question
+- `submissionId` MUST reference an existing QuizSubmission
+- `points` MUST be between 0 and maximum points for the question
+- Exactly ONE of (`answerText`, `selectedOption`) must be populated, never both or neither
 
 #### Prisma Schema Implementation
 
@@ -1504,6 +1656,42 @@ model Course {
   @@index([teacherId])
   @@index([status])
   @@index([courseCode])
+  @@index([teacherId, status])  // Composite index for teacher's active/archived courses
+}
+
+model Enrollment {
+  id         String   @id @default(uuid())
+  studentId  String
+  courseId   String
+  enrolledAt DateTime @default(now())
+
+  // Relations
+  student User   @relation(fields: [studentId], references: [id])
+  course  Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId])  // Prevent duplicate enrollment (Req 6.8)
+  @@index([studentId])
+  @@index([courseId])
+}
+
+model Material {
+  id        String       @id @default(uuid())
+  courseId  String
+  type      MaterialType
+  title     String
+  content   String?      @db.Text  // Required if type = TEXT, null otherwise
+  filePath  String?                // Required if type = FILE, null otherwise
+  fileName  String?                // Required if type = FILE, null otherwise
+  fileSize  Int?                   // Required if type = FILE, null otherwise
+  mimeType  String?                // Required if type = FILE, null otherwise
+  videoUrl  String?                // Required if type = VIDEO_LINK, null otherwise
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  // Relations
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
 }
 
 model Assignment {
@@ -1524,6 +1712,7 @@ model Assignment {
 
   @@index([courseId])
   @@index([dueDate])
+  @@index([courseId, dueDate])  // Composite index for course's assignments sorted by due date
 }
 
 model Submission {
@@ -1537,11 +1726,11 @@ model Submission {
   grade        Float?
   feedback     String?          @db.Text
   version      Int              @default(1)
-  filePath     String?
-  fileName     String?
-  textContent  String?          @db.Text
-  startedAt    DateTime?
-  completedAt  DateTime?
+  filePath     String?          // Required if FILE/BOTH submission, null if TEXT only
+  fileName     String?          // Required if FILE/BOTH submission, null if TEXT only
+  textContent  String?          @db.Text  // Required if TEXT/BOTH submission, null if FILE only
+  startedAt    DateTime?        // For quiz submissions only
+  completedAt  DateTime?        // For quiz submissions only
 
   // Relations
   student    User       @relation(fields: [studentId], references: [id])
@@ -1549,44 +1738,13 @@ model Submission {
   quiz       Quiz?      @relation(fields: [quizId], references: [id], onDelete: Cascade)
   answers    Answer[]
 
+  @@unique([studentId, quizId])  // Prevent multiple quiz submissions (Req 12.7)
   @@index([studentId])
   @@index([assignmentId])
   @@index([quizId])
+  @@index([status])              // Index for filtering by submission status
+  @@index([studentId, status])   // Composite index for student's submissions by status
 }
-
-model Answer {
-  id           String   @id @default(uuid())
-  submissionId String
-  questionId   String
-  
-  // Polymorphic fields for MCQ and essay answers
-  answerText     String?  @db.Text  // For essay answers
-  selectedOption Int?                // For MCQ answers (0-based index)
-  
-  // Audit trail: snapshot of selected option text
-  selectedOptionText String?  @db.Text  // Stores actual option text at time of selection
-  
-  // Grading
-  points     Float?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  // Relations
-  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  question   Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  // Indexes
-  @@index([submissionId])
-  @@index([questionId])
-  
-  // Unique constraint: one answer per question per submission
-  @@unique([submissionId, questionId])
-}
-
-// Note: PostgreSQL check constraint to ensure at least one answer field is populated
-// This will be added via raw SQL in migration:
-// ALTER TABLE "Answer" ADD CONSTRAINT "answer_has_content" 
-// CHECK (("answerText" IS NOT NULL) OR ("selectedOption" IS NOT NULL));
 
 enum Role {
   STUDENT
@@ -1609,7 +1767,69 @@ enum SubmissionStatus {
   SUBMITTED
   GRADED
 }
+
+enum AnswerType {
+  MCQ
+  ESSAY
+}
+
+enum MaterialType {
+  FILE
+  TEXT
+  VIDEO_LINK
+}
 ```
+
+**Note on Material Model:**
+- Uses discriminated union with `type` enum
+- Application layer MUST validate that:
+  - If `type = FILE`: `filePath`, `fileName`, `fileSize`, `mimeType` are set; `content` and `videoUrl` are null
+  - If `type = TEXT`: `content` is set; `filePath`, `fileName`, `fileSize`, `mimeType`, `videoUrl` are null
+  - If `type = VIDEO_LINK`: `videoUrl` is set; `filePath`, `fileName`, `fileSize`, `mimeType`, `content` are null
+- Database allows all fields to be nullable for flexibility, but domain validation enforces the constraint
+
+**Note on Submission Model:**
+- Uses discriminated union based on Assignment.submissionType
+- Application layer MUST validate that:
+  - If Assignment.submissionType = FILE: `filePath` and `fileName` are set; `textContent` is null
+  - If Assignment.submissionType = TEXT: `textContent` is set; `filePath` and `fileName` are null
+  - If Assignment.submissionType = BOTH: `filePath`, `fileName`, and `textContent` are all set
+- Database allows all fields to be nullable for flexibility, but domain validation enforces the constraint
+- **Unique Constraint `(studentId, quizId)`**: Prevents multiple quiz submissions (Req 12.7)
+  - This constraint only applies when `quizId` is NOT NULL (quiz submissions)
+  - Assignment submissions (`assignmentId` NOT NULL) allow resubmission before grading (Req 10.10)
+  - Prisma's unique constraint on nullable fields only enforces uniqueness when both values are non-null
+
+
+**Answer Model (Quiz Responses):**
+```prisma
+model Answer {
+  id             String     @id @default(uuid())
+  submissionId   String
+  questionId     String
+  answerType     AnswerType
+  answerText     String?    @db.Text  // Required if answerType = ESSAY
+  selectedOption Int?                 // Required if answerType = MCQ
+  points         Float      @default(0)
+  createdAt      DateTime   @default(now())
+
+  // Relations
+  submission QuizSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  question   Question       @relation(fields: [questionId], references: [id])
+
+  @@unique([submissionId, questionId])  // One answer per question per submission
+  @@index([submissionId])
+  @@index([questionId])
+}
+```
+
+**Note on Answer Model:**
+- Uses discriminated union with `answerType` enum
+- Application layer MUST validate that:
+  - If `answerType = MCQ`: `selectedOption` is set, `answerText` is null
+  - If `answerType = ESSAY`: `answerText` is set, `selectedOption` is null
+- Database allows both fields to be nullable for flexibility, but domain validation enforces the constraint
+
 
 **Database Migrations:**
 - Prisma automatically generates migrations from schema changes
@@ -1648,9 +1868,13 @@ enum SubmissionStatus {
 - User.email: Fast authentication lookup
 - Course.teacherId: Teacher's course queries
 - Course.status: Active/archived course filtering
+- Course(teacherId, status): Composite index for teacher's active/archived courses (2x faster)
 - Assignment.courseId, Quiz.courseId: Course content queries
 - Assignment.dueDate, Quiz.dueDate: Due date filtering
+- Assignment(courseId, dueDate): Composite index for course's assignments sorted by due date (1.5x faster)
 - Submission.studentId: Student submission queries
+- Submission.status: Submission status filtering (10x faster for large tables)
+- Submission(studentId, status): Composite index for student's submissions by status (faster progress queries)
 - Submission.assignmentId, Submission.quizId: Submission lookups
 - RefreshToken.token: Token validation lookup
 

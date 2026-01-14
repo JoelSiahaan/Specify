@@ -36,7 +36,7 @@ This document defines the REST API standards that ALL features must follow. Cons
 | GET | Retrieve resource(s) | `GET /api/courses` | 200 OK |
 | POST | Create new resource | `POST /api/courses` | 201 Created |
 | PUT | Update entire resource | `PUT /api/courses/:id` | 200 OK |
-| PATCH | Partial update (not used in MVP) | - | - |
+| PATCH | Partial update (not used in initial version) | - | - |
 | DELETE | Remove resource | `DELETE /api/courses/:id` | 200 OK |
 
 **Custom Actions:**
@@ -536,7 +536,7 @@ POST   /api/auth/login
 
 ### Current Strategy
 
-**MVP:** No versioning
+**Initial Version:** No versioning
 - All endpoints at `/api/*`
 - No version prefix
 
@@ -880,66 +880,6 @@ For each endpoint, test:
 - [ ] Database errors return 500
 - [ ] Unexpected errors return 500
 - [ ] Error format matches specification
-
----
-
-## API Documentation
-
-### Documentation Requirements
-
-Each endpoint should document:
-
-1. **HTTP Method and URL**
-2. **Description**
-3. **Authentication Required** (Yes/No)
-4. **Authorization** (Role requirements)
-5. **Request Parameters** (path, query, body)
-6. **Request Example**
-7. **Success Response** (status code, body)
-8. **Error Responses** (possible error codes)
-9. **Response Example**
-
-### Example Documentation
-
-```markdown
-### Create Course
-
-**Endpoint:** `POST /api/courses`
-
-**Description:** Create a new course with auto-generated course code
-
-**Authentication:** Required (JWT token)
-
-**Authorization:** Teacher role only
-
-**Request Body:**
-```json
-{
-  "name": "string (required)",
-  "description": "string (required)"
-}
-```
-
-**Success Response:** 201 Created
-```json
-{
-  "id": "uuid",
-  "name": "string",
-  "description": "string",
-  "courseCode": "string",
-  "status": "ACTIVE",
-  "teacherId": "uuid",
-  "createdAt": "ISO 8601",
-  "updatedAt": "ISO 8601"
-}
-```
-
-**Error Responses:**
-- 400 Bad Request: `VALIDATION_FAILED`
-- 401 Unauthorized: `AUTH_REQUIRED`
-- 403 Forbidden: `FORBIDDEN_ROLE`
-- 500 Internal Server Error: `INTERNAL_ERROR`
-```
 
 ---
 
