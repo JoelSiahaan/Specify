@@ -1389,10 +1389,13 @@ erDiagram
         uuid id PK
         uuid submissionId FK
         uuid questionId FK
-        string answerText
-        int selectedOption
+        string answerText "nullable, for essay"
+        int selectedOption "nullable, for MCQ"
+        string selectedOptionText "nullable, audit trail"
         float points
         datetime createdAt
+        datetime updatedAt
+        constraint "CHECK answerText IS NOT NULL OR selectedOption IS NOT NULL"
     }
 ```
 
@@ -1448,10 +1451,17 @@ erDiagram
 
 **Answer**
 - Individual question responses within quiz submission
-- Stores both selected option (MCQ) and text answer (essay)
+- Polymorphic design: stores both selected option (MCQ) and text answer (essay)
 - Points manually assigned by teacher during grading
+- **Data Integrity Constraints**:
+  - Check constraint ensures at least one answer field is populated (answerText OR selectedOption)
+  - Application-level validation ensures MCQ questions use selectedOption, essay questions use answerText
+  - selectedOptionText field stores snapshot of selected option for audit trail (prevents data loss if question options change)
+  - Database constraint prevents both answerText and selectedOption from being null simultaneously
 
 #### Prisma Schema Implementation
+
+**Note**: This section shows core models that illustrate key design decisions. The complete Prisma schema will be implemented in `infrastructure/persistence/prisma/schema.prisma` during the implementation phase.
 
 **Core Models Example:**
 
@@ -1544,6 +1554,40 @@ model Submission {
   @@index([quizId])
 }
 
+model Answer {
+  id           String   @id @default(uuid())
+  submissionId String
+  questionId   String
+  
+  // Polymorphic fields for MCQ and essay answers
+  answerText     String?  @db.Text  // For essay answers
+  selectedOption Int?                // For MCQ answers (0-based index)
+  
+  // Audit trail: snapshot of selected option text
+  selectedOptionText String?  @db.Text  // Stores actual option text at time of selection
+  
+  // Grading
+  points     Float?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  question   Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([submissionId])
+  @@index([questionId])
+  
+  // Unique constraint: one answer per question per submission
+  @@unique([submissionId, questionId])
+}
+
+// Note: PostgreSQL check constraint to ensure at least one answer field is populated
+// This will be added via raw SQL in migration:
+// ALTER TABLE "Answer" ADD CONSTRAINT "answer_has_content" 
+// CHECK (("answerText" IS NOT NULL) OR ("selectedOption" IS NOT NULL));
+
 enum Role {
   STUDENT
   TEACHER
@@ -1589,6 +1633,12 @@ enum SubmissionStatus {
 - Enrollment(studentId, courseId): Prevent duplicate enrollments
 - Answer(submissionId, questionId): One answer per question per submission
 
+**Check Constraints**:
+- Answer: At least one answer field must be populated (answerText OR selectedOption)
+  - Ensures data integrity for polymorphic answer storage
+  - Prevents invalid answers with both fields null
+  - Implemented via PostgreSQL CHECK constraint in migration
+
 **Foreign Key Constraints**:
 - All relationships enforced with foreign keys
 - Cascade delete for dependent entities (materials, assignments, submissions)
@@ -1625,6 +1675,7 @@ enum SubmissionStatus {
 9. **Quiz Timing**: Store `startedAt` and `completedAt` for time limit enforcement
 10. **Manual Points**: `points` field on Answer for teacher-assigned scores
 11. **Refresh Tokens**: Separate table for JWT refresh token management with expiration
+12. **Answer Polymorphism with Constraints**: Answer entity uses nullable fields (answerText, selectedOption) with CHECK constraint ensuring at least one is populated, plus selectedOptionText for audit trail to prevent data loss if question options change
 
 ## Critical Flows and Edge Cases
 
