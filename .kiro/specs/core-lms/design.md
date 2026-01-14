@@ -1899,7 +1899,7 @@ model Answer {
 9. **Quiz Timing**: Store `startedAt` and `completedAt` for time limit enforcement
 10. **Manual Points**: `points` field on Answer for teacher-assigned scores
 11. **Refresh Tokens**: Separate table for JWT refresh token management with expiration
-12. **Answer Polymorphism with Constraints**: Answer entity uses nullable fields (answerText, selectedOption) with CHECK constraint ensuring at least one is populated, plus selectedOptionText for audit trail to prevent data loss if question options change
+12. **Answer Polymorphism with Constraints**: Answer entity uses nullable fields (answerText, selectedOption) with CHECK constraint ensuring at least one is populated
 
 ## Critical Flows and Edge Cases
 
