@@ -115,7 +115,7 @@ The Learning Management System is a web-based platform built with React 19.2 (Ty
    - **Cookie Policy**: SameSite=Strict, HTTP-only, Secure flag in production
    - **Logout**: Client-side token removal (simple, stateless approach for initial implementation)
    - **Security**: HTTP-only cookies prevent XSS attacks, short access token lifetime limits exposure
-3. **Repository Pattern**: Abstract data access through interfaces (Ports)
+3. **Repository Pattern**: Abstract data access through interfaces
    - Domain layer defines repository interfaces
    - Infrastructure layer implements with Prisma
    - Easy to swap database implementations
@@ -347,7 +347,7 @@ The heart of the application containing business logic and rules. This layer is 
 - `CourseCodeGenerator`: Generate unique course codes
 - `QuizTimingService`: Quiz timer calculations and validation
 
-**Repository Interfaces (Ports)** - Contracts for data access
+**Repository Interfaces** - Contracts for data access
 - `ICourseRepository`: Course data operations
 - `IAssignmentRepository`: Assignment data operations
 - `IQuizRepository`: Quiz data operations
@@ -355,7 +355,7 @@ The heart of the application containing business logic and rules. This layer is 
 - `IEnrollmentRepository`: Enrollment data operations
 - `IUserRepository`: User data operations
 
-**Storage Interfaces (Ports)** - Contracts for file storage
+**Storage Interfaces** - Contracts for file storage
 - `IFileStorage`: File upload, download, delete operations
 
 **Domain Events** - Events representing business occurrences (Future Enhancement)
@@ -557,7 +557,7 @@ async execute(userId: string, courseId: string) {
 4. **Testability**: Policies are pure functions, easy to unit test without mocks
 5. **Flexibility**: Authorization rules can change without modifying use cases or domain entities
 6. **Reusability**: Same policy methods used across multiple use cases
-7. **Dependency Inversion**: Use cases depend on policy interface (port), not concrete implementation
+7. **Dependency Inversion**: Use cases depend on policy interface, not concrete implementation
 
 ## Transaction Management Strategy
 
