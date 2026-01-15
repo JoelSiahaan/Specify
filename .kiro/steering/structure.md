@@ -26,8 +26,7 @@ src/domain/
 │   ├── Quiz.ts           # Time limit logic, question management
 │   ├── Submission.ts     # Submission state, late submission logic
 │   ├── Enrollment.ts     # Enrollment validation
-│   ├── User.ts           # User identity and role management
-│   └── Material.ts       # Material type and content validation
+│   └── User.ts           # User identity and role management
 ├── value-objects/        # Value Objects (immutable domain concepts)
 │   ├── CourseCode.ts     # Unique course identifier with validation
 │   ├── Email.ts          # Email address with validation
@@ -43,8 +42,7 @@ src/domain/
 │   ├── IQuizRepository.ts
 │   ├── ISubmissionRepository.ts
 │   ├── IEnrollmentRepository.ts
-│   ├── IUserRepository.ts
-│   └── IMaterialRepository.ts
+│   └── IUserRepository.ts
 ├── storage/              # Storage Interfaces (Ports - contracts for file storage)
 │   └── IFileStorage.ts
 ├── events/               # Domain Events (business occurrences - future enhancement)
@@ -66,59 +64,33 @@ src/application/
 │   │   ├── UpdateCourseUseCase.ts
 │   │   ├── ArchiveCourseUseCase.ts
 │   │   ├── DeleteCourseUseCase.ts
-│   │   ├── GetCourseUseCase.ts
-│   │   ├── ListCoursesUseCase.ts
-│   │   └── SearchCoursesUseCase.ts
+│   │   └── GetCourseUseCase.ts
 │   ├── enrollment/
 │   │   ├── EnrollStudentUseCase.ts
 │   │   └── BulkUnenrollUseCase.ts
-│   ├── material/
-│   │   ├── CreateMaterialUseCase.ts
-│   │   ├── UpdateMaterialUseCase.ts
-│   │   ├── DeleteMaterialUseCase.ts
-│   │   ├── ListMaterialsUseCase.ts
-│   │   └── DownloadMaterialUseCase.ts
 │   ├── assignment/
 │   │   ├── CreateAssignmentUseCase.ts
-│   │   ├── UpdateAssignmentUseCase.ts
-│   │   ├── DeleteAssignmentUseCase.ts
 │   │   ├── SubmitAssignmentUseCase.ts
 │   │   └── ListSubmissionsUseCase.ts
 │   ├── quiz/
 │   │   ├── CreateQuizUseCase.ts
-│   │   ├── UpdateQuizUseCase.ts
-│   │   ├── DeleteQuizUseCase.ts
 │   │   ├── StartQuizUseCase.ts
-│   │   ├── AutoSaveQuizAnswersUseCase.ts
 │   │   └── SubmitQuizUseCase.ts
-│   ├── grading/
-│   │   ├── GradeSubmissionUseCase.ts
-│   │   ├── UpdateGradeUseCase.ts
-│   │   ├── ExportGradesUseCase.ts
-│   │   └── GetStudentProgressUseCase.ts
-│   └── auth/
-│       ├── RegisterUserUseCase.ts
-│       ├── LoginUserUseCase.ts
-│       ├── RefreshTokenUseCase.ts
-│       └── LogoutUserUseCase.ts
+│   └── grading/
+│       ├── GradeSubmissionUseCase.ts
+│       └── ExportGradesUseCase.ts
 ├── dtos/                 # Data Transfer Objects (input/output data structures)
 │   ├── CourseDTO.ts
 │   ├── AssignmentDTO.ts
 │   ├── QuizDTO.ts
-│   ├── SubmissionDTO.ts
-│   ├── MaterialDTO.ts
-│   └── UserDTO.ts
+│   └── SubmissionDTO.ts
 ├── mappers/              # Entity ↔ DTO Mappers (bidirectional conversion)
 │   ├── CourseMapper.ts
 │   ├── AssignmentMapper.ts
-│   ├── QuizMapper.ts
-│   ├── SubmissionMapper.ts
-│   └── MaterialMapper.ts
+│   └── SubmissionMapper.ts
 ├── policies/             # Authorization Policies (access control rules)
 │   ├── IAuthorizationPolicy.ts
 │   └── AuthorizationPolicy.ts
-└── errors/               # Application Errors (use case failures)
-    └── ApplicationErrors.ts
 ```
 
 ### Infrastructure Layer (`src/infrastructure/`)
@@ -136,18 +108,15 @@ src/infrastructure/
 │       ├── PrismaQuizRepository.ts
 │       ├── PrismaSubmissionRepository.ts
 │       ├── PrismaEnrollmentRepository.ts
-│       ├── PrismaUserRepository.ts
-│       └── PrismaMaterialRepository.ts
+│       └── PrismaUserRepository.ts
 ├── storage/              # File Storage Implementation
 │   ├── LocalFileStorage.ts    # Local filesystem storage (initial deployment)
 │   └── S3FileStorage.ts       # AWS S3 storage (future)
 ├── auth/                 # Authentication Services
 │   ├── JWTService.ts          # JWT token generation/validation
 │   └── PasswordService.ts     # BCrypt password hashing
-├── di/                   # Dependency Injection
-│   └── container.ts           # TSyringe container configuration
-└── errors/               # Infrastructure Errors (external failures)
-    └── InfrastructureErrors.ts
+└── di/                   # Dependency Injection
+    └── container.ts           # TSyringe container configuration
 ```
 
 ### Presentation Layer (`src/presentation/`)
@@ -159,15 +128,13 @@ src/presentation/
 │   ├── controllers/      # HTTP Controllers (thin request handlers)
 │   │   ├── AuthController.ts
 │   │   ├── CourseController.ts
-│   │   ├── MaterialController.ts
 │   │   ├── AssignmentController.ts
 │   │   ├── QuizController.ts
 │   │   └── GradingController.ts
 │   ├── middleware/       # HTTP Middleware
 │   │   ├── AuthenticationMiddleware.ts  # JWT validation
 │   │   ├── ErrorHandlerMiddleware.ts    # Centralized error handling
-│   │   ├── ValidationMiddleware.ts      # Request validation
-│   │   └── LoggingMiddleware.ts         # Request/response logging
+│   │   └── ValidationMiddleware.ts      # Request validation
 │   ├── routes/           # Route Definitions
 │   │   └── index.ts      # Express router configuration
 │   └── validators/       # Request Validators
