@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Fix Failed Tests",
+  "description": "When a test task fails, automatically create a new task to analyze and fix the failing tests, then run them again",
+  "version": "1",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The previous test execution failed. Please:\n1. Analyze the test failure output to identify the root cause\n2. Fix the failing tests or the code being tested\n3. Run the tests again to verify the fix\n4. If tests still fail, repeat the process until all tests pass"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Validate Clean Architecture",
+  "description": "Validates that features follow Clean Architecture principles: Domain layer has no external dependencies, Application layer only depends on Domain, Infrastructure implements Domain interfaces, and Presentation delegates to Application use cases. Checks dependency direction flows inward (Presentation → Application → Domain ← Infrastructure).",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/domain/**/*.ts",
+      "src/application/**/*.ts",
+      "src/infrastructure/**/*.ts",
+      "src/presentation/**/*.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Validate Clean Architecture principles for the edited file:\n\n1. **Domain Layer Check** (if file in src/domain/):\n   - Verify NO imports from Application, Infrastructure, or Presentation layers\n   - Verify NO external framework dependencies (Express, Prisma, React)\n   - Verify only pure TypeScript and domain logic\n   - Check entities contain business rules, not just data structures\n\n2. **Application Layer Check** (if file in src/application/):\n   - Verify imports ONLY from Domain layer (entities, repositories, services)\n   - Verify NO imports from Infrastructure or Presentation layers\n   - Verify use cases orchestrate domain entities and call repository interfaces\n   - Check authorization policies are pure functions\n\n3. **Infrastructure Layer Check** (if file in src/infrastructure/):\n   - Verify implements Domain layer interfaces (repositories, storage)\n   - Verify imports from Domain layer for interfaces\n   - Verify NO imports from Application or Presentation layers\n   - Check repository implementations use Prisma correctly\n\n4. **Presentation Layer Check** (if file in src/presentation/):\n   - Verify controllers delegate to Application use cases\n   - Verify NO direct access to Domain entities or Infrastructure\n   - Verify imports from Application layer (use cases, DTOs)\n   - Check controllers are thin (no business logic)\n\n5. **Dependency Direction**:\n   - Confirm dependencies flow inward: Presentation → Application → Domain ← Infrastructure\n   - Verify no circular dependencies\n   - Check Dependency Inversion Principle (Infrastructure depends on Domain interfaces)\n\nReport any violations found with specific file locations and suggested fixes. If all checks pass, confirm the file follows Clean Architecture principles."
+  }
+}

@@ -4,6 +4,7 @@
 - **Framework**: React 19.2 with TypeScript
 - **Build Tool**: Vite 7.2
 - **Package Manager**: npm (required)
+- **CSS Framework**: Tailwind CSS (utility-first CSS framework)
 - **HTML Sanitization**: DOMPurify (client-side XSS prevention)
 
 ## Backend
@@ -117,6 +118,7 @@
 - **React**: 19.2
 - **Vite**: 7.2
 - **TypeScript**: Latest stable
+- **Tailwind CSS**: Latest stable
 - **React Testing Library**: Latest stable
 - **DOMPurify**: Latest stable
 
