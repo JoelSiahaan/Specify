@@ -1018,8 +1018,9 @@ src/
     │   │   └── index.ts
     │   └── validators/    # Request Validators
     │       └── schemas.ts
-    └── web/              # React Frontend (separate)
-        └── (React components)
+    └── web/              # React Frontend (SPA)
+        └── See structure.md for detailed frontend structure
+            (components, layout, hooks, contexts, services, utils, types, constants)
 ```
 
 ### Clean Architecture Layer Responsibilities

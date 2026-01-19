@@ -691,20 +691,23 @@ export default {
 ```
 
 **File Structure**:
+
+See `structure.md` for complete frontend folder structure.
+
+**Key folders for UI implementation**:
 ```
-src/
-├── index.css              # Tailwind directives + global styles
-├── presentation/
-│   └── web/
-│       ├── components/
-│       │   └── shared/    # Reusable components
-│       │       ├── Button.tsx
-│       │       ├── Card.tsx
-│       │       ├── Input.tsx
-│       │       └── ...
-│       └── ...
-└── ...
+src/presentation/web/
+├── components/
+│   ├── shared/           # Reusable UI components (Button, Card, Modal, etc.)
+│   ├── layout/           # Layout components (TopNavigation, Sidebar, etc.)
+│   └── [feature]/        # Feature-specific components
+├── utils/                # Helper functions (dateFormatter, fileValidator, etc.)
+├── constants/            # App constants (routes, apiEndpoints, statusColors, etc.)
+├── types/                # TypeScript types/interfaces
+└── index.css             # Tailwind directives + global styles
 ```
+
+**Reference**: See `structure.md` for detailed folder organization and file naming conventions.
 
 ### Component Development
 
@@ -769,6 +772,11 @@ export const Button: React.FC<ButtonProps> = ({
 - Dropdown
 - Breadcrumb
 - Pagination
+- Toast
+- ConfirmDialog
+- RichTextEditor
+
+**Note**: See `structure.md` for complete list of shared components and their file locations.
 
 ---
 

@@ -141,43 +141,104 @@ src/presentation/
 │       └── schemas.ts    # Zod validation schemas
 └── web/                  # React Frontend (SPA)
     ├── components/       # React Components
-    │   ├── auth/         # Authentication views
+    │   ├── auth/         # Authentication pages
     │   │   ├── LoginPage.tsx
-    │   │   └── RegisterPage.tsx
-    │   ├── dashboard/    # Role-specific dashboards
+    │   │   ├── RegisterPage.tsx
+    │   │   └── __tests__/
+    │   ├── dashboard/    # Dashboard pages
     │   │   ├── StudentDashboard.tsx
-    │   │   └── TeacherDashboard.tsx
-    │   ├── course/       # Course management
+    │   │   ├── TeacherDashboard.tsx
+    │   │   └── __tests__/
+    │   ├── course/       # Course pages
     │   │   ├── CourseList.tsx
     │   │   ├── CourseDetails.tsx
-    │   │   └── CreateCourse.tsx
-    │   ├── material/     # Material views
+    │   │   ├── CreateCourse.tsx
+    │   │   ├── CourseCard.tsx           # Course card component
+    │   │   └── __tests__/
+    │   ├── material/     # Material pages
     │   │   ├── MaterialList.tsx
-    │   │   └── MaterialViewer.tsx
-    │   ├── assignment/   # Assignment views
+    │   │   ├── MaterialViewer.tsx
+    │   │   ├── FileUpload.tsx           # File upload component
+    │   │   └── __tests__/
+    │   ├── assignment/   # Assignment pages
     │   │   ├── AssignmentList.tsx
     │   │   ├── AssignmentDetails.tsx
-    │   │   └── SubmitAssignment.tsx
-    │   ├── quiz/         # Quiz views
+    │   │   ├── SubmitAssignment.tsx
+    │   │   ├── AssignmentListItem.tsx   # List item component
+    │   │   └── __tests__/
+    │   ├── quiz/         # Quiz pages
     │   │   ├── QuizList.tsx
     │   │   ├── TakeQuiz.tsx
-    │   │   └── QuizResults.tsx
-    │   ├── grading/      # Grading interfaces
+    │   │   ├── QuizResults.tsx
+    │   │   ├── QuizTimer.tsx            # Timer component
+    │   │   └── __tests__/
+    │   ├── grading/      # Grading pages
     │   │   ├── SubmissionList.tsx
-    │   │   └── GradeSubmission.tsx
+    │   │   ├── GradeSubmission.tsx
+    │   │   ├── GradeDisplay.tsx         # Grade display component
+    │   │   └── __tests__/
+    │   ├── layout/       # Layout components
+    │   │   ├── MainLayout.tsx           # Main two-column layout
+    │   │   ├── DashboardLayout.tsx      # Dashboard-specific layout
+    │   │   ├── TopNavigation.tsx        # Top navigation bar
+    │   │   ├── Sidebar.tsx              # Course navigation sidebar
+    │   │   ├── Breadcrumb.tsx           # Breadcrumb navigation
+    │   │   └── __tests__/
     │   └── shared/       # Reusable UI components
     │       ├── Button.tsx
     │       ├── Input.tsx
-    │       └── Modal.tsx
+    │       ├── Modal.tsx
+    │       ├── Card.tsx                 # Card container
+    │       ├── Alert.tsx                # Alert/notification
+    │       ├── Badge.tsx                # Status badge
+    │       ├── Spinner.tsx              # Loading spinner
+    │       ├── Table.tsx                # Data table
+    │       ├── Toast.tsx                # Toast notification
+    │       ├── Dropdown.tsx             # Dropdown menu
+    │       ├── ConfirmDialog.tsx        # Confirmation dialog
+    │       ├── RichTextEditor.tsx       # Rich text editor
+    │       ├── Pagination.tsx           # Pagination component
+    │       └── __tests__/
     ├── hooks/            # Custom React hooks
-    │   ├── useAuth.ts
-    │   └── useCourse.ts
+    │   ├── useAuth.ts                   # Authentication hook
+    │   ├── useCourse.ts                 # Course data hook
+    │   ├── useToast.ts                  # Toast notification hook
+    │   ├── useModal.ts                  # Modal state hook
+    │   └── __tests__/
+    ├── contexts/         # React Context API
+    │   ├── AuthContext.tsx              # Authentication context
+    │   ├── ToastContext.tsx             # Toast notification context
+    │   └── __tests__/
     ├── services/         # API client services
-    │   └── api.ts        # Axios/fetch wrapper
+    │   ├── api.ts                       # Base API client (Axios/fetch)
+    │   ├── authService.ts               # Authentication API calls
+    │   ├── courseService.ts             # Course API calls
+    │   ├── assignmentService.ts         # Assignment API calls
+    │   ├── quizService.ts               # Quiz API calls
+    │   ├── materialService.ts           # Material API calls
+    │   └── __tests__/
+    ├── utils/            # Helper functions
+    │   ├── dateFormatter.ts             # Date formatting utilities
+    │   ├── fileValidator.ts             # File validation (type, size)
+    │   ├── gradeCalculator.ts           # Grade calculation utilities
+    │   ├── statusHelper.ts              # Status determination logic
+    │   └── __tests__/
+    ├── types/            # TypeScript types/interfaces
+    │   ├── course.types.ts              # Course-related types
+    │   ├── assignment.types.ts          # Assignment-related types
+    │   ├── quiz.types.ts                # Quiz-related types
+    │   ├── material.types.ts            # Material-related types
+    │   ├── user.types.ts                # User-related types
+    │   └── common.types.ts              # Shared types (ApiResponse, etc)
+    ├── constants/        # Constants
+    │   ├── routes.ts                    # Frontend route paths
+    │   ├── apiEndpoints.ts              # API endpoint URLs
+    │   ├── config.ts                    # App configuration
+    │   └── statusColors.ts              # Status color mappings
     ├── App.tsx           # Main application component
     ├── App.css           # App-specific styles
     ├── main.tsx          # Application entry point
-    └── index.css         # Global styles
+    └── index.css         # Global styles (Tailwind directives)
 ```
 
 ## Testing Structure (`src/**/__tests__/`)
@@ -255,6 +316,39 @@ Static files served directly (e.g., `vite.svg`, favicon)
 - Component files typically export default
 - Custom hooks for reusable logic
 - API client services for backend communication
+
+**Component Organization**:
+- **Pages**: Top-level components for routes (LoginPage, CourseList, etc.)
+- **Feature Components**: Smaller components within feature folders (CourseCard, QuizTimer)
+- **Layout Components**: Reusable layouts (MainLayout, TopNavigation, Sidebar)
+- **Shared Components**: Reusable UI components (Button, Card, Modal, etc.)
+
+**State Management**:
+- **React Context**: Global state (AuthContext, ToastContext)
+- **Custom Hooks**: Encapsulate reusable logic (useAuth, useToast, useModal)
+- **Local State**: Component-specific state with useState
+
+**API Communication**:
+- **Services Layer**: Dedicated service files per feature (authService, courseService)
+- **Base API Client**: Centralized Axios/fetch configuration (api.ts)
+- **Error Handling**: Consistent error handling across all API calls
+
+**Type Safety**:
+- **Frontend Types**: Separate from backend DTOs (types/ folder)
+- **Component Props**: Explicit TypeScript interfaces
+- **API Responses**: Typed responses from services
+
+**Utilities & Helpers**:
+- **Date Formatting**: Consistent date display (dateFormatter.ts)
+- **File Validation**: Type and size validation (fileValidator.ts)
+- **Grade Calculation**: Grade-related utilities (gradeCalculator.ts)
+- **Status Helpers**: Status determination logic (statusHelper.ts)
+
+**Constants**:
+- **Routes**: Frontend route paths (routes.ts)
+- **API Endpoints**: Backend API URLs (apiEndpoints.ts)
+- **Configuration**: App-wide config (config.ts)
+- **Status Colors**: Color mappings for statuses (statusColors.ts)
 
 ### Testing
 - Unit tests: `*.test.ts` (specific examples, edge cases)
