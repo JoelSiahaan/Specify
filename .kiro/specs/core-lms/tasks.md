@@ -114,6 +114,89 @@ Each task includes the following metadata:
 
 ---
 
+## Feature Dependency Table
+
+This table shows which features depend on other features and which features can be parallelized.
+
+| Feature | Depend Pada (Harus Selesai Dulu) | Blocks (Fitur yang Menunggu) | Can Parallelize With |
+|---------|-----------------------------------|-------------------------------|----------------------|
+| **1. Project Setup** | None | All features (2-13) | None (must complete first) |
+| **2. Authentication** | 1. Project Setup | All features (3-13) | None (must complete second) |
+| **3. Course Management** | 1, 2 | 4, 5, 6, 7 | 10, 11 |
+| **4. Enrollment** | 1, 2, 3 | None | 5, 6, 7, 10, 11 |
+| **5. Material Management** | 1, 2, 3 | None | 4, 6, 7, 10, 11 |
+| **6. Assignment** | 1, 2, 3 | 8 | 4, 5, 7, 10, 11 |
+| **7. Quiz** | 1, 2, 3 | 8 | 4, 5, 6, 10, 11 |
+| **8. Grading** | 1, 2, 3, 6, 7 | 9 | 10, 11 |
+| **9. Progress & Export** | 1, 2, 3, 8 | None | 10, 11 |
+| **10. Security** | 1, 2 | None | 3, 4, 5, 6, 7, 8, 9, 11 |
+| **11. Error Handling** | 1, 2 | None | 3, 4, 5, 6, 7, 8, 9, 10 |
+| **12. Final Testing** | All (1-11) | 13 | None (must complete before deployment) |
+| **13. Production Deployment** | All (1-12) | None | None (final step) |
+
+### Feature Dependency Chain (Visual)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    CRITICAL PATH (Sequential)                    │
+└─────────────────────────────────────────────────────────────────┘
+
+1. Project Setup (CRITICAL - Blocks everything)
+   ↓
+2. Authentication (CRITICAL - Blocks everything)
+   ↓
+3. Course Management (Foundation for content features)
+   ↓
+   ├─→ 4. Enrollment ────────────────────────┐
+   ├─→ 5. Material Management ───────────────┤
+   ├─→ 6. Assignment ─────────┐              │
+   └─→ 7. Quiz ───────────────┤              │
+                              ↓              │
+                         8. Grading          │
+                              ↓              │
+                         9. Progress & Export│
+                                             ↓
+                                    12. Final Testing
+                                             ↓
+                                    13. Production Deployment
+
+┌─────────────────────────────────────────────────────────────────┐
+│                  PARALLEL OPPORTUNITIES                          │
+└─────────────────────────────────────────────────────────────────┘
+
+After Course Management (3) completes:
+┌──────────────────────────────────────────────────────────────┐
+│  4. Enrollment  │  5. Materials  │  6. Assignment  │  7. Quiz │
+└──────────────────────────────────────────────────────────────┘
+         ↓                ↓                ↓               ↓
+         └────────────────┴────────────────┴───────────────┘
+                              ↓
+                         8. Grading
+                              ↓
+                         9. Progress & Export
+
+Independent (Can run in parallel with ANY feature after Auth):
+┌──────────────────────────────────────────────────────────────┐
+│  10. Security Implementation  │  11. Error Handling & Logging │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Key Blockers
+
+**Major Blocking Points:**
+1. **Project Setup (1)** → Blocks ALL features (must complete first)
+2. **Authentication (2)** → Blocks ALL features (must complete second)
+3. **Course Management (3)** → Blocks Enrollment, Materials, Assignments, Quizzes
+4. **Assignments (6) + Quizzes (7)** → Block Grading (both must complete)
+5. **Grading (8)** → Blocks Progress & Export
+6. **Final Testing (12)** → Blocks Production Deployment
+
+**Independent Features (No Blockers):**
+- **Security (10)**: Can start after Authentication (2), runs in parallel with all content features
+- **Error Handling (11)**: Can start after Authentication (2), runs in parallel with all content features
+
+---
+
 ## Tasks
 
 ### 1. Project Setup and Infrastructure
