@@ -135,20 +135,27 @@ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 
 ### Page Layout (Moodle-Inspired)
 
-**Three-Column Layout** (similar to Moodle):
+**Two-Column Layout** (similar to Moodle):
 ```
 ┌─────────────────────────────────────────────┐
 │           Top Navigation Bar                │
 ├─────────────────────────────────────────────┤
-│  Sidebar  │   Main Content   │  (Optional)  │
-│  (Left)   │                  │   Sidebar    │
-│  240px    │    Flexible      │   (Right)    │
-│           │                  │              │
+│  Sidebar  │   Main Content Area             │
+│  (Left)   │                                 │
+│  240px    │    Flexible Width               │
+│           │                                 │
+│           │                                 │
 └─────────────────────────────────────────────┘
 ```
 
+**Layout Characteristics**:
+- **Left Sidebar**: 240px fixed width, persistent navigation
+- **Main Content**: Flexible width, fills remaining space
+- **No Right Sidebar**: Cleaner, more focused layout
+- **Breadcrumb**: Above main content for context
+
 **Responsive Behavior (Website-First)**:
-- Desktop (≥ 1024px): Sidebar visible, main content centered
+- Desktop (≥ 1024px): Sidebar visible, main content fills remaining space
 - Tablet (768px - 1023px): Collapsible sidebar, full-width content
 - Mobile (< 768px): Hidden sidebar (hamburger menu), full-width content
 
