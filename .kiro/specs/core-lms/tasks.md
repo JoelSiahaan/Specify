@@ -4,6 +4,22 @@
 
 This implementation plan follows a **feature-by-feature (vertical slice)** approach. Each feature is built end-to-end through all architectural layers (Domain → Infrastructure → Application → API → Frontend) before moving to the next feature. This ensures working, demoable features at each step and catches bugs early within feature scope.
 
+## Task Metadata Format
+
+Each task includes the following metadata:
+- **Priority**: Task importance level (CRITICAL, VERY HIGH, HIGH, MEDIUM-HIGH, MEDIUM, MEDIUM-LOW, LOW)
+- **Dependencies**: Tasks that must be completed before this task (format: task number)
+- **Can be parallelized**: Whether this task can be done in parallel with other tasks (Yes/No)
+
+**Priority Scale:**
+- **CRITICAL**: Blocker for all other tasks, must complete first
+- **VERY HIGH**: Very important, dependency for many tasks
+- **HIGH**: Important, dependency for several tasks
+- **MEDIUM-HIGH**: Fairly important, has some dependencies
+- **MEDIUM**: Standard, limited dependencies
+- **MEDIUM-LOW**: Less important, can be deferred
+- **LOW**: Optional or can be done anytime
+
 **Architecture Layers (per feature):**
 - Domain Layer: Business entities and rules (framework-independent)
 - Infrastructure Layer: Database, file storage, external services
@@ -30,17 +46,91 @@ This implementation plan follows a **feature-by-feature (vertical slice)** appro
 9. Progress & Export Feature (student progress, grade export)
 10. Production Deployment
 
+---
+
+## Task Priority and Dependency Guide
+
+### Dependency Rules
+
+**General Rules:**
+1. **Domain Layer** tasks depend on: Project setup (1.3 Prisma)
+2. **Infrastructure Layer** tasks depend on: Domain entities + Prisma setup
+3. **Application Layer** tasks depend on: Domain + Infrastructure layers
+4. **Presentation API** tasks depend on: Application layer
+5. **Presentation Frontend** tasks depend on: API layer (or can work in parallel with mock data)
+6. **Tests** depend on: The code they're testing
+
+**Common Dependencies:**
+- **Domain Entities**: 1.3 (Prisma setup), can be parallelized with other entities
+- **Repository Interfaces**: Corresponding domain entity, can be parallelized
+- **Prisma Models**: 1.3 + domain entity, cannot be parallelized (migrations run sequentially)
+- **Repository Implementations**: Prisma model + interface + 1.4 (TSyringe), cannot be parallelized
+- **Use Cases**: Domain entities + repositories + DTOs + policies, can be parallelized if independent
+- **API Controllers**: Use cases + middleware + schemas, can be parallelized (different controllers)
+- **Frontend Components**: API endpoints (or mocks), can be parallelized
+- **Tests**: Code being tested + 1.5 (testing framework), can be parallelized
+
+### Parallelization Guidelines
+
+**Can be Parallelized: Yes**
+- Multiple domain entities, value objects, repository interfaces
+- Multiple independent use cases
+- Multiple API controllers
+- Multiple frontend components
+- All tests
+
+**Can be Parallelized: No**
+- Sequential setup tasks (1.1 → 1.2 → 1.3)
+- Prisma migrations (must run one at a time)
+- Repository implementations (depend on migrations)
+- Middleware that depends on other middleware
+- Components that share state
+
+### Quick Reference: Priority by Task Type
+
+| Task Type | Typical Priority |
+|-----------|------------------|
+| Domain Entity | VERY HIGH |
+| Value Object | HIGH |
+| Domain Service | HIGH |
+| Repository Interface | VERY HIGH |
+| Prisma Model | CRITICAL |
+| Repository Implementation | VERY HIGH |
+| DTO/Mapper | HIGH |
+| Authorization Policy | CRITICAL |
+| Use Case | HIGH |
+| Validation Schema | HIGH |
+| Middleware | VERY HIGH |
+| API Controller | HIGH |
+| Frontend Component (Core) | MEDIUM-HIGH |
+| Frontend Component (UI) | MEDIUM |
+| Property Test | MEDIUM (LOW if optional) |
+| Integration Test | MEDIUM (LOW if optional) |
+| Component Test | MEDIUM (LOW if optional) |
+| Feature Checkpoint | HIGH |
+| Security Implementation | CRITICAL |
+| Logging/Monitoring | VERY HIGH |
+| Deployment Task | HIGH to CRITICAL |
+
+---
+
 ## Tasks
 
 ### 1. Project Setup and Infrastructure
 
 - [ ] 1.1 Initialize project structure with TypeScript configuration
+  - Priority: CRITICAL
+  - Dependencies: None
+  - Can be parallelized: No
   - Create backend and frontend directories
   - Configure tsconfig.json for strict mode
   - Set up ESLint and Prettier
   - _Requirements: 17.1, 17.2, 17.3_
 
 - [ ] 1.2 Set up Docker for local development
+  - Priority: CRITICAL
+  - Dependencies: 1.1
+  - Can be parallelized: No
   - Create docker-compose.yml for development environment
   - Configure PostgreSQL service with health checks
   - Configure backend service with hot reload
@@ -50,6 +140,9 @@ This implementation plan follows a **feature-by-feature (vertical slice)** appro
   - _Requirements: 17.1, 17.5_
 
 - [ ] 1.3 Set up Prisma ORM and PostgreSQL database
+  - Priority: CRITICAL
+  - Dependencies: 1.1, 1.2
+  - Can be parallelized: No
   - Install Prisma and PostgreSQL client
   - Create initial Prisma schema structure
   - Configure database connection (using Docker PostgreSQL)
@@ -58,18 +151,27 @@ This implementation plan follows a **feature-by-feature (vertical slice)** appro
   - _Requirements: 17.1, 17.5_
 
 - [ ] 1.4 Configure dependency injection with TSyringe
+  - Priority: VERY HIGH
+  - Dependencies: 1.1
+  - Can be parallelized: Yes (with 1.2, 1.3)
   - Install TSyringe
   - Create DI container configuration file
   - Set up singleton and transient registration patterns
   - _Requirements: 17.4_
 
 - [ ] 1.5 Set up testing framework
+  - Priority: VERY HIGH
+  - Dependencies: 1.1
+  - Can be parallelized: Yes (with 1.2, 1.3, 1.4)
   - Install Jest, fast-check, Supertest, React Testing Library
   - Configure Jest for TypeScript
   - Create test utilities and helpers
   - _Requirements: All (testing infrastructure)_
 
 - [ ] 1.6 Initialize Express server with middleware
+  - Priority: VERY HIGH
+  - Dependencies: 1.1, 1.2, 1.3, 1.4
+  - Can be parallelized: No
   - Create Express app with TypeScript
   - Configure CORS with SameSite=Strict
   - Set up body parser and cookie parser
@@ -78,6 +180,9 @@ This implementation plan follows a **feature-by-feature (vertical slice)** appro
   - _Requirements: 18.1, 18.2, 18.3, 21.7_
 
 - [ ] 1.7 Set up React project with Vite
+  - Priority: VERY HIGH
+  - Dependencies: 1.1, 1.2
+  - Can be parallelized: Yes (with 1.3, 1.4, 1.5, 1.6)
   - Initialize React 19.2 with TypeScript
   - Configure Vite build tool
   - Set up React Router for navigation
@@ -93,21 +198,33 @@ This implementation plan follows a **feature-by-feature (vertical slice)** appro
 #### 2.1 Domain Layer - Authentication Entities
 
 - [ ] 2.1.1 Create User domain entity
+  - Priority: VERY HIGH
+  - Dependencies: 1.3 (Prisma setup)
+  - Can be parallelized: Yes (with 2.1.3, 2.1.4)
   - Implement User entity with id, email, name, role, password hash
   - Add role validation (Student or Teacher only)
   - Implement entity methods for user operations
   - _Requirements: 1.5, 2.1, 2.2_
 
 - [ ]* 2.1.2 Write property test for User entity
+  - Priority: MEDIUM
+  - Dependencies: 2.1.1, 1.5 (testing framework)
+  - Can be parallelized: Yes (with other tests)
   - **Property 1: Role assignment**
   - **Validates: Requirements 1.5**
   - For any user, the role must be either Student or Teacher
 
 - [ ] 2.1.3 Create Email value object
+  - Priority: HIGH
+  - Dependencies: None
+  - Can be parallelized: Yes (with 2.1.1, 2.1.4)
   - Implement Email value object (RFC 5322 validation)
   - _Requirements: 1.7_
 
 - [ ] 2.1.4 Define IUserRepository interface
+  - Priority: VERY HIGH
+  - Dependencies: 2.1.1 (User entity)
+  - Can be parallelized: Yes (with 2.1.3)
   - Create IUserRepository interface (Port)
   - Define methods: save, findById, findByEmail, delete
   - _Requirements: 17.1, 17.2, 17.3_
