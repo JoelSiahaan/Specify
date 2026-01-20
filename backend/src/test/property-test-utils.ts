@@ -156,7 +156,10 @@ export async function runPropertyTest<T>(
   config = propertyTestConfig
 ): Promise<void> {
   await fc.assert(
-    fc.asyncProperty(arbitrary, predicate),
+    fc.asyncProperty(arbitrary, async (value: T) => {
+      const result = await Promise.resolve(predicate(value));
+      return result;
+    }),
     config
   );
 }
