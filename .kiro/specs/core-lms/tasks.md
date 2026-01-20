@@ -201,6 +201,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 ### 1. Project Setup and Infrastructure
 
+- [ ] 1. Project Setup and Infrastructure
+  - Complete all infrastructure setup tasks to prepare for feature development
+  - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5_
+
 - [ ] 1.1 Initialize project structure with TypeScript configuration
   - Priority: CRITICAL
   - Dependencies: None
@@ -278,7 +282,15 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 **Goal**: Users can register, login, logout, and access protected routes. Fully working authentication system.
 
+- [ ] 2. Feature: Authentication (End-to-End)
+  - Build complete authentication system with JWT tokens and role-based access control
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 2.1, 2.2, 2.3, 2.4_
+
 #### 2.1 Domain Layer - Authentication Entities
+
+- [ ] 2.1 Domain Layer - Authentication Entities
+  - Create domain entities, value objects, and repository interfaces for authentication
+  - _Requirements: 1.5, 2.1, 2.2, 1.7, 17.1, 17.2, 17.3_
 
 - [ ] 2.1.1 Create User domain entity
   - Priority: VERY HIGH
@@ -314,6 +326,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 
 #### 2.2 Infrastructure Layer - Authentication Services
+
+- [ ] 2.2 Infrastructure Layer - Authentication Services
+  - Implement database models, repositories, and authentication services
+  - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 1.1, 1.2, 1.4, 20.1_
 
 - [ ] 2.2.1 Add User model to Prisma schema
   - Define User model with all fields
@@ -358,6 +374,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - For any password, hashing twice produces different hashes (due to salt)
 
 #### 2.3 Application Layer - Authentication Use Cases
+
+- [ ] 2.3 Application Layer - Authentication Use Cases
+  - Implement authentication use cases with DTOs and mappers
+  - _Requirements: 18.4, 1.7, 20.1, 1.1, 1.2, 1.4, 1.6_
 
 - [ ] 2.3.1 Create authentication DTOs
   - Create UserDTO, CreateUserDTO, LoginDTO
@@ -405,6 +425,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 2.4 Presentation Layer - Authentication API
 
+- [ ] 2.4 Presentation Layer - Authentication API
+  - Implement API controllers, middleware, and validation schemas
+  - _Requirements: 18.4, 20.2, 1.3, 1.4, 18.3, 21.3, 21.2, 1.1, 1.2, 1.6, 1.7, 18.1, 18.2_
+
 - [ ] 2.4.1 Create Zod validation schemas for authentication
   - Create schemas for register, login requests
   - Define validation rules (email format, password length, role)
@@ -449,6 +473,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 18.1, 18.2, 18.3_
 
 #### 2.5 Presentation Layer - Authentication Frontend
+
+- [ ] 2.5 Presentation Layer - Authentication Frontend
+  - Implement React components for authentication UI
+  - _Requirements: 19.4, 19.5, 1.1, 1.2, 19.2, 1.7, 19.3, 3.1, 4.1, 19.1_
 
 - [ ] 2.5.1 Create shared UI components
   - Create Button component
@@ -495,6 +523,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 2.6 Feature Checkpoint - Authentication
 
+- [ ] 2.6 Feature Checkpoint - Authentication
+  - Run all tests and perform end-to-end validation
+  - _Requirements: 1.1, 1.2, 1.4, 1.6, 1.7, 20.1_
+
 - [ ] 2.6.1 Run all authentication tests
   - Run all domain entity tests
   - Run all infrastructure tests
@@ -522,7 +554,15 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 **Goal**: Teachers can create, update, archive, and delete courses. Students can view courses. Fully working course management system.
 
+- [ ] 3. Feature: Course Management (End-to-End)
+  - Build complete course management system with CRUD operations and lifecycle management
+  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10_
+
 #### 3.1 Domain Layer - Course Entities
+
+- [ ] 3.1 Domain Layer - Course Entities
+  - Create course domain entities, value objects, and repository interfaces
+  - _Requirements: 5.1, 5.4, 5.6, 5.7, 5.2, 17.1, 17.2, 17.3_
 
 - [ ] 3.1.1 Create Course domain entity
   - Implement Course entity with id, name, description, courseCode, status, teacherId
@@ -556,6 +596,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 3.2 Infrastructure Layer - Course Persistence
 
+- [ ] 3.2 Infrastructure Layer - Course Persistence
+  - Implement Prisma models and repository implementations
+  - _Requirements: 17.1, 17.4, 17.5, 17.2, 17.3_
+
 - [ ] 3.2.1 Add Course model to Prisma schema
   - Define Course model with all fields
   - Add unique constraint on courseCode
@@ -576,6 +620,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 17.1, 17.2, 17.3_
 
 #### 3.3 Application Layer - Course Use Cases
+
+- [ ] 3.3 Application Layer - Course Use Cases
+  - Implement course use cases with DTOs, mappers, and authorization policies
+  - _Requirements: 18.4, 2.1, 2.2, 2.3, 2.4, 5.1, 5.2, 5.9, 5.3, 5.4, 5.5, 5.6, 5.7, 5.10, 6.1_
 
 - [ ] 3.3.1 Create course DTOs and mappers
   - Create CourseDTO, CreateCourseDTO, UpdateCourseDTO
@@ -644,6 +692,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 3.4 Presentation Layer - Course API
 
+- [ ] 3.4 Presentation Layer - Course API
+  - Implement API controllers and validation schemas
+  - _Requirements: 18.4, 20.2, 5.1, 5.3, 5.4, 5.6, 5.7, 5.10, 18.1, 18.2, 18.3_
+
 - [ ] 3.4.1 Create Zod validation schemas for courses
   - Priority: HIGH
   - Dependencies: None
@@ -676,6 +728,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 18.1, 18.2, 18.3_
 
 #### 3.5 Presentation Layer - Course Frontend
+
+- [ ] 3.5 Presentation Layer - Course Frontend
+  - Implement React components for course management UI
+  - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.9, 5.3, 5.4, 5.6, 5.7, 5.10, 19.1, 19.2, 19.5_
 
 - [ ] 3.5.1 Update Teacher Dashboard
   - Priority: MEDIUM-HIGH
@@ -727,6 +783,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 3.6 Feature Checkpoint - Course Management
 
+- [ ] 3.6 Feature Checkpoint - Course Management
+  - Run all tests and perform end-to-end validation
+  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.9, 5.10_
+
 - [ ] 3.6.1 Run all course management tests
   - Priority: HIGH
   - Dependencies: All Section 3 tasks (3.1.x - 3.5.x)
@@ -760,7 +820,15 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 **Goal**: Students can search for courses and enroll using course codes. Teachers can bulk unenroll students. Fully working enrollment system.
 
+- [ ] 4. Feature: Enrollment (End-to-End)
+  - Build complete enrollment system with course search and enrollment management
+  - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 5.8_
+
 #### 4.1 Domain Layer - Enrollment Entities
+
+- [ ] 4.1 Domain Layer - Enrollment Entities
+  - Create enrollment domain entities and repository interfaces
+  - _Requirements: 6.5, 6.8, 17.1, 17.2, 17.3_
 
 - [ ] 4.1.1 Create Enrollment domain entity
   - Priority: VERY HIGH
@@ -787,6 +855,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 17.1, 17.2, 17.3_
 
 #### 4.2 Infrastructure Layer - Enrollment Persistence
+
+- [ ] 4.2 Infrastructure Layer - Enrollment Persistence
+  - Implement Prisma models and repository implementations
+  - _Requirements: 17.1, 17.4, 17.5, 17.2, 17.3_
 
 - [ ] 4.2.1 Add Enrollment model to Prisma schema
   - Priority: CRITICAL
@@ -817,6 +889,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 17.1, 17.2, 17.3_
 
 #### 4.3 Application Layer - Enrollment Use Cases
+
+- [ ] 4.3 Application Layer - Enrollment Use Cases
+  - Implement enrollment use cases with DTOs and mappers
+  - _Requirements: 18.4, 6.5, 6.6, 6.7, 6.8, 6.1, 6.2, 6.3, 6.4, 5.8_
 
 - [ ] 4.3.1 Create enrollment DTOs and mappers
   - Priority: HIGH
@@ -862,6 +938,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 4.4 Presentation Layer - Enrollment API
 
+- [ ] 4.4 Presentation Layer - Enrollment API
+  - Implement API controllers and validation schemas
+  - _Requirements: 18.4, 20.2, 6.5, 5.8, 6.1, 18.1, 18.2, 18.3_
+
 - [ ] 4.4.1 Create Zod validation schemas for enrollment
   - Priority: HIGH
   - Dependencies: None
@@ -891,6 +971,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 18.1, 18.2, 18.3_
 
 #### 4.5 Presentation Layer - Enrollment Frontend
+
+- [ ] 4.5 Presentation Layer - Enrollment Frontend
+  - Implement React components for enrollment UI
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 19.1, 19.2, 19.5_
 
 - [ ] 4.5.1 Update Student Dashboard
   - Priority: MEDIUM-HIGH
@@ -925,6 +1009,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 4.6 Feature Checkpoint - Enrollment
 
+- [ ] 4.6 Feature Checkpoint - Enrollment
+  - Run all tests and perform end-to-end validation
+  - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 5.8_
+
 - [ ] 4.6.1 Run all enrollment tests
   - Priority: HIGH
   - Dependencies: All Section 4 tasks (4.1.x - 4.5.x)
@@ -957,7 +1045,15 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 **Goal**: Teachers can upload files, add text content, and link videos. Students can view and download materials. Fully working material management system.
 
+- [ ] 5. Feature: Material Management (End-to-End)
+  - Build complete material management system with file uploads, text content, and video links
+  - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 7.11, 8.1, 8.2, 8.3, 8.4, 8.5_
+
 #### 5.1 Domain Layer - Material Entities
+
+- [ ] 5.1 Domain Layer - Material Entities
+  - Create material domain entities and repository interfaces
+  - _Requirements: 7.1, 7.2, 7.3, 7.10, 7.11, 7.9, 20.3, 17.1, 17.2, 17.3_
 
 - [ ] 5.1.1 Create Material domain entity
   - Priority: VERY HIGH
@@ -985,6 +1081,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 17.1, 17.2, 17.3_
 
 #### 5.2 Infrastructure Layer - Material Persistence and Storage
+
+- [ ] 5.2 Infrastructure Layer - Material Persistence and Storage
+  - Implement Prisma models, repositories, and file storage
+  - _Requirements: 17.1, 17.4, 17.5, 17.2, 17.3, 7.1, 7.9, 20.3, 20.5_
 
 - [ ] 5.2.1 Add Material model to Prisma schema
   - Priority: CRITICAL
@@ -1035,6 +1135,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 7.9, 20.3, 20.5_
 
 #### 5.3 Application Layer - Material Use Cases
+
+- [ ] 5.3 Application Layer - Material Use Cases
+  - Implement material use cases with file upload and validation
+  - _Requirements: 18.4, 7.1, 7.2, 7.3, 7.4, 7.5, 7.8, 7.9, 7.10, 7.11, 20.2, 7.7, 7.6, 8.1, 8.2_
 
 - [ ] 5.3.1 Create material DTOs and mappers
   - Priority: HIGH
@@ -1111,6 +1215,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 5.4 Presentation Layer - Material API
 
+- [ ] 5.4 Presentation Layer - Material API
+  - Implement API controllers with file upload support
+  - _Requirements: 18.4, 20.2, 7.1, 7.2, 7.3, 7.6, 7.7, 8.1, 8.2, 18.1, 18.2, 18.3, 20.3, 20.4, 20.5_
+
 - [ ] 5.4.1 Create Zod validation schemas for materials
   - Priority: HIGH
   - Dependencies: None
@@ -1153,6 +1261,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 
 #### 5.5 Presentation Layer - Material Frontend
+
+- [ ] 5.5 Presentation Layer - Material Frontend
+  - Implement React components for material management UI
+  - _Requirements: 8.1, 8.3, 8.4, 7.1, 7.2, 7.3, 21.6, 7.7, 19.4, 19.5, 19.1, 19.2_
 
 - [ ] 5.5.1 Implement MaterialList component
   - Priority: MEDIUM-HIGH
@@ -1206,6 +1318,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 5.6 Feature Checkpoint - Material Management
 
+- [ ] 5.6 Feature Checkpoint - Material Management
+  - Run all tests and perform end-to-end validation
+  - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 7.11, 8.1, 8.2, 20.3, 20.4, 20.5_
+
 - [ ] 5.6.1 Run all material management tests
   - Priority: HIGH
   - Dependencies: All Section 5 tasks (5.1.x - 5.5.x)
@@ -1242,7 +1358,15 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 **Goal**: Teachers can create assignments. Students can submit assignments (with late submission support). Fully working assignment system.
 
+- [ ] 6. Feature: Assignment Management & Submission (End-to-End)
+  - Build complete assignment system with creation, submission, and late submission handling
+  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 9.10, 9.11, 9.12, 10.1-10.13_
+
 #### 6.1 Domain Layer - Assignment Entities
+
+- [ ] 6.1 Domain Layer - Assignment Entities
+  - Create assignment and submission domain entities
+  - _Requirements: 9.1, 9.2, 9.8, 10.9, 10.6, 10.8, 13.3, 13.4, 21.5, 17.1, 17.2, 17.3_
 
 - [ ] 6.1.1 Create Assignment domain entity
   - Priority: VERY HIGH
@@ -1295,6 +1419,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 6.2 Infrastructure Layer - Assignment Persistence
 
+- [ ] 6.2 Infrastructure Layer - Assignment Persistence
+  - Implement Prisma models and repositories with optimistic locking
+  - _Requirements: 17.1, 17.4, 17.5, 21.5, 17.2, 17.3_
+
 - [ ] 6.2.1 Add Assignment and Submission models to Prisma schema
   - Priority: CRITICAL
   - Dependencies: 6.1.1 (Assignment entity), 6.1.3 (Submission entity), 3.2.1 (Course model), 2.2.1 (User model)
@@ -1323,6 +1451,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 17.1, 17.2, 17.3_
 
 #### 6.3 Application Layer - Assignment Use Cases
+
+- [ ] 6.3 Application Layer - Assignment Use Cases
+  - Implement assignment and submission use cases
+  - _Requirements: 18.4, 9.1, 9.2, 9.4, 9.5, 9.7, 9.8, 9.9, 9.10, 9.11, 9.12, 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.10, 10.11, 10.13, 10.12_
 
 - [ ] 6.3.1 Create DTOs and mappers
   - Priority: HIGH
@@ -1398,6 +1530,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 6.4 Presentation Layer - Assignment API
 
+- [ ] 6.4 Presentation Layer - Assignment API
+  - Implement API controllers with file upload support
+  - _Requirements: 18.4, 20.2, 9.1, 9.8, 9.10, 9.11, 10.1, 18.1, 18.2, 18.3_
+
 - [ ] 6.4.1 Create Zod validation schemas for assignments
   - Priority: HIGH
   - Dependencies: None
@@ -1427,6 +1563,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 18.1, 18.2, 18.3_
 
 #### 6.5 Presentation Layer - Assignment Frontend
+
+- [ ] 6.5 Presentation Layer - Assignment Frontend
+  - Implement React components for assignment management UI
+  - _Requirements: 9.1, 9.2, 9.8, 9.9, 9.11, 9.12, 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.12, 19.1, 19.2, 19.5_
 
 - [ ] 6.5.1 Implement CreateAssignment component (teacher)
   - Priority: MEDIUM-HIGH
@@ -1474,6 +1614,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 6.6 Feature Checkpoint - Assignment Management
 
+- [ ] 6.6 Feature Checkpoint - Assignment Management
+  - Run all tests and perform end-to-end validation
+  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 9.10, 9.11, 9.12, 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.10, 10.11, 10.12, 10.13_
+
 - [ ] 6.6.1 Run all assignment tests
   - Priority: HIGH
   - Dependencies: All Section 6 tasks (6.1.x - 6.5.x)
@@ -1502,7 +1646,15 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 **Goal**: Teachers can create quizzes with MCQ and essay questions. Students can take timed quizzes with auto-save and auto-submit. Fully working quiz system.
 
+- [ ] 7. Feature: Quiz Management & Taking (End-to-End)
+  - Build complete quiz system with timed quizzes, auto-save, and auto-submit functionality
+  - _Requirements: 11.1-11.9, 12.1-12.10_
+
 #### 7.1 Domain Layer - Quiz Entities
+
+- [ ] 7.1 Domain Layer - Quiz Entities
+  - Create quiz domain entities with timer logic
+  - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9, 12.10, 17.1, 17.2, 17.3_
 
 - [ ] 7.1.1 Create Quiz domain entity
   - Priority: VERY HIGH
@@ -1567,6 +1719,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 7.2 Infrastructure Layer - Quiz Persistence
 
+- [ ] 7.2 Infrastructure Layer - Quiz Persistence
+  - Implement Prisma models with JSON storage for questions
+  - _Requirements: 17.1, 17.4, 17.5, 21.5, 17.2, 17.3_
+
 - [ ] 7.2.1 Add Quiz and QuizSubmission models to Prisma schema
   - Priority: CRITICAL
   - Dependencies: 7.1.1 (Quiz entity), 7.1.4 (QuizSubmission entity), 3.2.1 (Course model), 2.2.1 (User model)
@@ -1598,6 +1754,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 17.1, 17.2, 17.3_
 
 #### 7.3 Application Layer - Quiz Use Cases
+
+- [ ] 7.3 Application Layer - Quiz Use Cases
+  - Implement quiz use cases with timer and auto-save logic
+  - _Requirements: 18.4, 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9, 12.10_
 
 - [ ] 7.3.1 Create DTOs and mappers
   - Priority: HIGH
@@ -1684,6 +1844,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 7.4 Presentation Layer - Quiz API
 
+- [ ] 7.4 Presentation Layer - Quiz API
+  - Implement API controllers for quiz management and taking
+  - _Requirements: 18.4, 20.2, 11.1, 11.6, 11.8, 11.9, 12.1, 12.4, 12.6, 18.1, 18.2, 18.3_
+
 - [ ] 7.4.1 Create Zod validation schemas for quizzes
   - Priority: HIGH
   - Dependencies: None
@@ -1716,6 +1880,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 18.1, 18.2, 18.3_
 
 #### 7.5 Presentation Layer - Quiz Frontend
+
+- [ ] 7.5 Presentation Layer - Quiz Frontend
+  - Implement React components with timer and auto-save functionality
+  - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.9, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9, 12.10, 19.1, 19.2, 19.5_
 
 - [ ] 7.5.1 Implement CreateQuiz component (teacher)
   - Priority: MEDIUM-HIGH
@@ -1778,6 +1946,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 7.6 Feature Checkpoint - Quiz Management
 
+- [ ] 7.6 Feature Checkpoint - Quiz Management
+  - Run all tests and perform end-to-end validation
+  - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9, 12.10_
+
 - [ ] 7.6.1 Run all quiz tests
   - Priority: HIGH
   - Dependencies: All Section 7 tasks (7.1.x - 7.5.x)
@@ -1808,7 +1980,15 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 **Goal**: Teachers can grade assignment submissions and quiz submissions with optimistic locking. Students can view grades and feedback. Fully working grading system.
 
+- [ ] 8. Feature: Grading (End-to-End)
+  - Build complete grading system with optimistic locking and feedback
+  - _Requirements: 13.1-13.10, 14.1, 14.2, 21.5_
+
 #### 8.1 Application Layer - Grading Use Cases
+
+- [ ] 8.1 Application Layer - Grading Use Cases
+  - Implement grading use cases with optimistic locking
+  - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 21.5, 13.6, 13.7, 13.8, 13.9, 13.10_
 
 - [ ] 8.1.1 Implement GradeSubmissionUseCase (Assignment)
   - Priority: HIGH
@@ -1867,6 +2047,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 8.2 Presentation Layer - Grading API
 
+- [ ] 8.2 Presentation Layer - Grading API
+  - Implement API controllers for grading operations
+  - _Requirements: 18.4, 20.2, 13.1, 13.6, 13.7, 13.10, 18.1, 18.2, 18.3, 21.5_
+
 - [ ] 8.2.1 Create Zod validation schemas for grading
   - Priority: HIGH
   - Dependencies: None
@@ -1897,6 +2081,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 18.1, 18.2, 18.3, 21.5_
 
 #### 8.3 Presentation Layer - Grading Frontend
+
+- [ ] 8.3 Presentation Layer - Grading Frontend
+  - Implement React components for grading UI
+  - _Requirements: 13.10, 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 21.5, 13.7, 13.8, 13.9, 14.1, 14.2, 19.1, 19.2, 19.5_
 
 - [ ] 8.3.1 Implement SubmissionList component (teacher)
   - Priority: MEDIUM-HIGH
@@ -1949,6 +2137,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 8.4 Feature Checkpoint - Grading
 
+- [ ] 8.4 Feature Checkpoint - Grading
+  - Run all tests and perform end-to-end validation
+  - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 13.8, 13.9, 13.10, 21.5_
+
 - [ ] 8.4.1 Run all grading tests
   - Priority: HIGH
   - Dependencies: All Section 8 tasks (8.1.x - 8.3.x)
@@ -1978,7 +2170,15 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 **Goal**: Students can view their progress. Teachers can export grades to CSV. Fully working progress tracking and grade export.
 
+- [ ] 9. Feature: Progress & Export (End-to-End)
+  - Build complete progress tracking and grade export system
+  - _Requirements: 14.1-14.5, 15.1-15.5_
+
 #### 9.1 Application Layer - Progress & Export Use Cases
+
+- [ ] 9.1 Application Layer - Progress & Export Use Cases
+  - Implement progress tracking and grade export functionality
+  - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 15.1, 15.2, 15.3, 15.4, 15.5_
 
 - [ ] 9.1.1 Implement GetStudentProgressUseCase
   - Priority: HIGH
@@ -2004,6 +2204,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 9.2 Presentation Layer - Progress & Export API
 
+- [ ] 9.2 Presentation Layer - Progress & Export API
+  - Implement API endpoints for progress and export
+  - _Requirements: 14.1, 15.1, 18.1, 18.2, 18.3_
+
 - [ ] 9.2.1 Implement progress and export endpoints
   - Priority: HIGH
   - Dependencies: 9.1.1, 9.1.2, 2.4.2 (auth middleware), 2.4.3 (error handler)
@@ -2023,6 +2227,10 @@ Independent (Can run in parallel with ANY feature after Auth):
   - _Requirements: 18.1, 18.2, 18.3_
 
 #### 9.3 Presentation Layer - Progress & Export Frontend
+
+- [ ] 9.3 Presentation Layer - Progress & Export Frontend
+  - Implement React components for progress tracking and export
+  - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 15.1, 19.1, 19.2, 19.5_
 
 - [ ] 9.3.1 Implement StudentProgress component
   - Priority: MEDIUM-HIGH
@@ -2052,6 +2260,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 9.4 Feature Checkpoint - Progress & Export
 
+- [ ] 9.4 Feature Checkpoint - Progress & Export
+  - Run all tests and perform end-to-end validation
+  - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 15.1, 15.2, 15.3, 15.4, 15.5_
+
 - [ ] 9.4.1 Run all progress and export tests
   - Priority: HIGH
   - Dependencies: All Section 9 tasks (9.1.x - 9.3.x)
@@ -2077,6 +2289,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 ### 10. Security Implementation
 
 **Goal**: Implement all security requirements including input sanitization, file upload security, and security testing.
+
+- [ ] 10. Security Implementation
+  - Implement comprehensive security measures across all features
+  - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5_
 
 - [ ] 10.1 Implement HTML sanitization
   - Priority: CRITICAL
@@ -2135,6 +2351,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 **Goal**: Implement robust error handling, logging, and system reliability features.
 
+- [ ] 11. Error Handling and Logging
+  - Implement comprehensive error handling, logging, and reliability features
+  - _Requirements: 21.1, 21.2, 21.3, 21.4, 21.5_
+
 - [ ] 11.1 Implement database connection retry logic
   - Priority: VERY HIGH
   - Dependencies: 1.3 (Prisma setup)
@@ -2188,6 +2408,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 ### 12. Final Integration and Testing
 
 **Goal**: Run comprehensive test suite, perform end-to-end testing, and ensure all requirements are met.
+
+- [ ] 12. Final Integration and Testing
+  - Complete comprehensive testing and validation of all features
+  - _Requirements: All requirements_
 
 - [ ]* 12.1 Run full test suite
   - Priority: HIGH
@@ -2245,6 +2469,10 @@ Independent (Can run in parallel with ANY feature after Auth):
 ### 13. Production Deployment
 
 **Goal**: Deploy the LMS to production with CI/CD pipeline, monitoring, and automated backups.
+
+- [ ] 13. Production Deployment
+  - Set up production infrastructure, CI/CD, and deployment automation
+  - _Requirements: 17.1, 17.5, 21.1, 21.2, 21.3_
 
 - [ ] 13.1 Set up GitHub Actions CI/CD pipeline
   - Priority: HIGH
