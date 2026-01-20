@@ -95,12 +95,12 @@
 ## Version Specifications
 
 ### Node.js & npm
-- **Node.js**: 18.20.5 LTS (Alpine for Docker)
+- **Node.js**: 20.19.0 LTS (Alpine for Docker)
 - **npm**: Latest version bundled with Node.js
 - **Package Manager**: npm (required, no yarn or pnpm)
 
 ### Docker Images
-- **Node.js Base**: `node:18.20.5-alpine`
+- **Node.js Base**: `node:20.19.0-alpine`
 - **Nginx**: `nginx:1.27-alpine`
 - **PostgreSQL**: `postgres:15-alpine`
 

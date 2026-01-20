@@ -1,0 +1,17 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Initial schema - models will be added as features are implemented
+// Connection pooling is configured via DATABASE_URL query parameters:
+// - connection_limit: Maximum number of connections (default: 10)
+// - pool_timeout: Connection timeout in seconds (default: 30)
+// Example: postgresql://user:pass@host:5432/db?connection_limit=10&pool_timeout=30

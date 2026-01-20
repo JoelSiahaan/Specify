@@ -1,0 +1,40 @@
+# backend/Dockerfile.dev
+# Development Dockerfile with hot reload support
+
+FROM node:20.19.0-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies for native modules
+RUN apk add --no-cache python3 make g++
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies with cache mount (OPTIMIZED for faster rebuilds)
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm install --prefer-offline && \
+    npm cache clean --force
+
+# Copy Prisma schema ONLY (triggers rebuild only if schema changes)
+COPY prisma/schema.prisma ./prisma/
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Copy migrations separately (doesn't trigger rebuild)
+COPY prisma/migrations ./prisma/migrations
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Health check (OPTIMIZED - less aggressive for development)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})" || exit 1
+
+# Start development server with hot reload
+CMD ["npm", "run", "dev"]
