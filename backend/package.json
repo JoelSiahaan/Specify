@@ -38,6 +38,7 @@
     "reflect-metadata": "^0.2.2",
     "sanitize-html": "^2.13.1",
     "tsyringe": "^4.8.0",
+    "uuid": "^13.0.0",
     "winston": "^3.17.0",
     "zod": "^3.24.1"
   },
@@ -52,6 +53,7 @@
     "@types/node": "^22.10.5",
     "@types/sanitize-html": "^2.13.0",
     "@types/supertest": "^6.0.2",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.20.0",
     "@typescript-eslint/parser": "^8.20.0",
     "eslint": "^9.18.0",

@@ -288,11 +288,11 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 2.1 Domain Layer - Authentication Entities
 
-- [ ] 2.1 Domain Layer - Authentication Entities
+- [x] 2.1 Domain Layer - Authentication Entities
   - Create domain entities, value objects, and repository interfaces for authentication
   - _Requirements: 1.5, 2.1, 2.2, 1.7, 17.1, 17.2, 17.3_
 
-- [ ] 2.1.1 Create User domain entity
+- [x] 2.1.1 Create User domain entity
   - Priority: VERY HIGH
   - Dependencies: 1.3 (Prisma setup)
   - Can be parallelized: Yes (with 2.1.3, 2.1.4)
@@ -301,7 +301,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement entity methods for user operations
   - _Requirements: 1.5, 2.1, 2.2_
 
-- [ ]* 2.1.2 Write property test for User entity
+- [x] 2.1.2 Write property test for User entity
+
   - Priority: MEDIUM
   - Dependencies: 2.1.1, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -309,14 +310,14 @@ Independent (Can run in parallel with ANY feature after Auth):
   - **Validates: Requirements 1.5**
   - For any user, the role must be either Student or Teacher
 
-- [ ] 2.1.3 Create Email value object
+- [x] 2.1.3 Create Email value object
   - Priority: HIGH
   - Dependencies: None
   - Can be parallelized: Yes (with 2.1.1, 2.1.4)
   - Implement Email value object (RFC 5322 validation)
   - _Requirements: 1.7_
 
-- [ ] 2.1.4 Define IUserRepository interface
+- [x] 2.1.4 Define IUserRepository interface
   - Priority: VERY HIGH
   - Dependencies: 2.1.1 (User entity)
   - Can be parallelized: Yes (with 2.1.3)
@@ -327,29 +328,30 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 2.2 Infrastructure Layer - Authentication Services
 
-- [ ] 2.2 Infrastructure Layer - Authentication Services
+- [x] 2.2 Infrastructure Layer - Authentication Services
   - Implement database models, repositories, and authentication services
   - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 1.1, 1.2, 1.4, 20.1_
 
-- [ ] 2.2.1 Add User model to Prisma schema
+- [x] 2.2.1 Add User model to Prisma schema
   - Define User model with all fields
   - Add unique constraint on email
   - Configure UUID primary key
   - Generate and run migration
   - _Requirements: 17.1, 17.4, 17.5_
 
-- [ ] 2.2.2 Implement PrismaUserRepository
+- [x] 2.2.2 Implement PrismaUserRepository
   - Create PrismaUserRepository implementing IUserRepository
   - Implement all CRUD operations
   - Register in DI container as singleton
   - _Requirements: 17.1, 17.2, 17.3_
 
-- [ ]* 2.2.3 Write integration tests for PrismaUserRepository
+- [x] 2.2.3 Write integration tests for PrismaUserRepository
+
   - Test CRUD operations
   - Test unique email constraint
   - _Requirements: 17.1, 17.2, 17.3_
 
-- [ ] 2.2.4 Implement JWT authentication service
+- [x] 2.2.4 Implement JWT authentication service
   - Create JWTService with token generation and validation
   - Implement access token (15 min expiry)
   - Implement refresh token (7 day expiry)
@@ -357,18 +359,20 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as singleton
   - _Requirements: 1.1, 1.4_
 
-- [ ]* 2.2.5 Write property test for JWT token lifecycle
+- [x] 2.2.5 Write property test for JWT token lifecycle
+
   - **Property 8: Token expiration**
   - **Validates: Requirements 1.1, 1.2**
   - For any valid token, it becomes invalid after expiry time
 
-- [ ] 2.2.6 Implement password hashing service
+- [x] 2.2.6 Implement password hashing service
   - Create BCryptPasswordService with hash and verify methods
   - Use 10 salt rounds
   - Register in DI container as singleton
   - _Requirements: 1.1, 1.2, 20.1_
 
-- [ ]* 2.2.7 Write property test for password hashing
+- [x] 2.2.7 Write property test for password hashing
+
   - **Property 9: Password hash uniqueness**
   - **Validates: Requirements 20.1**
   - For any password, hashing twice produces different hashes (due to salt)
@@ -392,7 +396,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 1.7, 20.1_
 
-- [ ]* 2.3.3 Write property test for user registration
+- [ ] 2.3.3 Write property test for user registration
+
   - **Property 11: Email uniqueness**
   - **Validates: Requirements 1.7**
   - For any two users, they cannot have the same email address
@@ -404,7 +409,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 1.1, 1.2_
 
-- [ ]* 2.3.5 Write property test for login authentication
+- [ ] 2.3.5 Write property test for login authentication
+
   - **Property 12: Valid credentials create session**
   - **Validates: Requirements 1.1**
   - For any valid user credentials, authentication succeeds and creates tokens
@@ -463,7 +469,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Set HTTP-only cookies for tokens
   - _Requirements: 1.1, 1.2, 1.4, 1.6, 1.7_
 
-- [ ]* 2.4.6 Write API integration tests for authentication
+- [ ] 2.4.6 Write API integration tests for authentication
+
   - Test register endpoint (success and validation errors)
   - Test login endpoint (success and invalid credentials)
   - Test refresh token endpoint
@@ -513,7 +520,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Display welcome message with user name
   - _Requirements: 3.1, 4.1_
 
-- [ ]* 2.5.6 Write React component tests for authentication
+- [ ] 2.5.6 Write React component tests for authentication
+
   - Test LoginPage component
   - Test RegisterPage component
   - Test form validation

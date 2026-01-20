@@ -15,6 +15,12 @@
  */
 
 import { container } from 'tsyringe';
+import { PrismaClient } from '@prisma/client';
+import { prisma } from '../persistence/prisma/client';
+import { IUserRepository } from '../../domain/repositories/IUserRepository';
+import { PrismaUserRepository } from '../persistence/repositories/PrismaUserRepository';
+import { JWTService } from '../auth/JWTService';
+import { PasswordService } from '../auth/PasswordService';
 
 /**
  * Initialize the DI container with all application dependencies
@@ -29,8 +35,21 @@ import { container } from 'tsyringe';
  */
 export function configureContainer(): void {
   // ========================================
+  // Infrastructure Layer - Database
+  // ========================================
+  
+  // Register Prisma Client as singleton
+  container.registerInstance(PrismaClient, prisma);
+  
+  // ========================================
   // Infrastructure Layer - Repositories
   // ========================================
+  
+  // Register User Repository
+  container.registerSingleton<IUserRepository>(
+    'IUserRepository',
+    PrismaUserRepository
+  );
   
   // Repository implementations will be registered here as they are created
   // Example pattern (to be implemented in future tasks):
@@ -43,16 +62,11 @@ export function configureContainer(): void {
   // Infrastructure Layer - External Services
   // ========================================
   
-  // Authentication and security services will be registered here
-  // Example pattern (to be implemented in future tasks):
-  // container.registerSingleton<IJWTService>(
-  //   'IJWTService',
-  //   JWTService
-  // );
-  // container.registerSingleton<IPasswordService>(
-  //   'IPasswordService',
-  //   BCryptPasswordService
-  // );
+  // Register JWT Service as singleton
+  container.registerSingleton(JWTService);
+  
+  // Register Password Service as singleton
+  container.registerSingleton(PasswordService);
   
   // ========================================
   // Infrastructure Layer - Storage

@@ -11,6 +11,8 @@ services:
       POSTGRES_DB: ${DB_NAME:-lms_dev}
       POSTGRES_USER: ${DB_USER:-lms_user}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-dev_password}
+      # Allow connections from host machine
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
     ports:
       - "5432:5432"
     volumes:
@@ -19,6 +21,9 @@ services:
       - "postgres"
       - "-c"
       - "password_encryption=scram-sha-256"
+      # Allow connections from all addresses (development only)
+      - "-c"
+      - "listen_addresses=*"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-lms_user} -d ${DB_NAME:-lms_dev}"]
       interval: 30s
