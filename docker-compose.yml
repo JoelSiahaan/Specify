@@ -2,7 +2,7 @@
 # Development Environment Configuration
 
 services:
-  # PostgreSQL Database
+  # PostgreSQL Database (Development)
   postgres:
     image: postgres:15-alpine
     container_name: lms-postgres-dev
@@ -26,6 +26,35 @@ services:
       - "listen_addresses=*"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-lms_user} -d ${DB_NAME:-lms_dev}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - lms-network
+
+  # PostgreSQL Test Database (for Integration Tests)
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: lms-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${TEST_DB_NAME:-lms_test}
+      POSTGRES_USER: ${TEST_DB_USER:-lms_test_user}
+      POSTGRES_PASSWORD: ${TEST_DB_PASSWORD:-test_password}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    ports:
+      - "5433:5432"  # Different port to avoid conflict with dev database
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    command: 
+      - "postgres"
+      - "-c"
+      - "password_encryption=scram-sha-256"
+      - "-c"
+      - "listen_addresses=*"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TEST_DB_USER:-lms_test_user} -d ${TEST_DB_NAME:-lms_test}"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -99,6 +128,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  postgres_test_data:
     driver: local
   backend_uploads:
     driver: local

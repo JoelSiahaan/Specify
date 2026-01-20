@@ -11,7 +11,10 @@ require('reflect-metadata');
 process.env.NODE_ENV = 'test';
 process.env.JWT_ACCESS_SECRET = 'test-access-secret-key-for-testing-only';
 process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-key-for-testing-only';
-process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db';
+
+// Test Database Configuration
+// Uses dedicated test database on port 5433 (postgres-test service in Docker Compose)
+process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://lms_test_user:test_password@localhost:5433/lms_test';
 
 // Increase test timeout for integration tests
 jest.setTimeout(10000);

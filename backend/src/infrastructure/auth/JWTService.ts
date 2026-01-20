@@ -61,13 +61,13 @@ export class JWTService {
       expiresIn: this.accessTokenExpiry,
       issuer: 'lms-api',
       audience: 'lms-client'
-    });
+    } as jwt.SignOptions);
 
     const refreshToken = jwt.sign(payload, this.refreshTokenSecret, {
       expiresIn: this.refreshTokenExpiry,
       issuer: 'lms-api',
       audience: 'lms-client'
-    });
+    } as jwt.SignOptions);
 
     return { accessToken, refreshToken };
   }
@@ -80,7 +80,7 @@ export class JWTService {
       expiresIn: this.accessTokenExpiry,
       issuer: 'lms-api',
       audience: 'lms-client'
-    });
+    } as jwt.SignOptions);
   }
 
   /**

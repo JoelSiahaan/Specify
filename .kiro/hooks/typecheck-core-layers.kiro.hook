@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Type Check Core Layers",
+  "description": "Automatically runs TypeScript type checking when domain or application layer files are saved to catch type errors early in the development process",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "backend/src/domain/**/*.ts",
+      "backend/src/application/**/*.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run TypeScript type check with `npm run type-check` in the backend directory and report any type errors found. If there are errors, explain what needs to be fixed."
+  }
+}

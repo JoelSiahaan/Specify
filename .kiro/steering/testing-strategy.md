@@ -389,6 +389,185 @@ src/
 
 ---
 
+## Test Execution Strategy
+
+### Task-Specific Test Execution
+
+**IMPORTANT**: When executing tasks, run ONLY the tests relevant to that specific task, not the entire test suite.
+
+**General Rules:**
+1. **Domain Layer Tasks**: Run only the specific entity/value object/service tests
+2. **Application Layer Tasks**: Run only the specific use case tests
+3. **Infrastructure Layer Tasks**: Run only the specific repository/service tests
+4. **Presentation Layer Tasks**: Run only the specific controller/component tests
+5. **Integration Tasks**: Run integration tests that cover the complete flow
+
+### Test Execution Commands
+
+**Run Specific Test File:**
+```bash
+# Domain entity test
+npm test -- Course.test.ts
+
+# Use case test
+npm test -- CreateCourseUseCase.test.ts
+
+# Property test
+npm test -- LoginUserUseCase.properties.test.ts
+
+# Repository test
+npm test -- PrismaCourseRepository.test.ts
+
+# Controller test
+npm test -- CourseController.test.ts
+```
+
+**Run Tests by Pattern:**
+```bash
+# All tests for a specific component
+npm test -- Course
+
+# All use case tests
+npm test -- UseCase
+
+# All property tests
+npm test -- properties.test
+
+# All integration tests
+npm test -- integration.test
+```
+
+**Run Tests by Layer:**
+```bash
+# Domain layer tests
+npm test -- src/domain
+
+# Application layer tests
+npm test -- src/application
+
+# Infrastructure layer tests
+npm test -- src/infrastructure
+
+# Presentation layer tests
+npm test -- src/presentation
+```
+
+### Task Execution Examples
+
+**Example 1: Implementing Domain Entity**
+```
+Task: 2.1 Implement User entity with validation
+
+Tests to Run:
+✅ npm test -- User.test.ts
+✅ npm test -- User.properties.test.ts
+❌ DO NOT run entire test suite
+```
+
+**Example 2: Implementing Use Case**
+```
+Task: 3.1 Implement RegisterUserUseCase
+
+Tests to Run:
+✅ npm test -- RegisterUserUseCase.test.ts
+✅ npm test -- RegisterUserUseCase.properties.test.ts
+❌ DO NOT run entire test suite
+```
+
+**Example 3: Implementing Repository**
+```
+Task: 4.1 Implement PrismaUserRepository
+
+Tests to Run:
+✅ npm test -- PrismaUserRepository.test.ts
+❌ DO NOT run entire test suite
+```
+
+**Example 4: Implementing API Endpoint**
+```
+Task: 5.1 Implement POST /api/auth/register endpoint
+
+Tests to Run:
+✅ npm test -- AuthController.test.ts
+✅ npm test -- src/presentation/api (if integration test exists)
+❌ DO NOT run entire test suite
+```
+
+**Example 5: Integration Task**
+```
+Task: 6.1 Integration test for complete registration flow
+
+Tests to Run:
+✅ npm test -- integration.test
+✅ npm test -- e2e.test (if applicable)
+✅ Run full test suite ONLY for integration/e2e tasks
+```
+
+### When to Run Full Test Suite
+
+**Run full test suite ONLY in these cases:**
+1. **Integration/E2E Tasks**: Tasks explicitly marked as integration or end-to-end tests
+2. **Pre-Commit**: Before committing code to repository
+3. **Pre-Deployment**: Before deploying to production
+4. **CI/CD Pipeline**: Automated testing in GitHub Actions
+5. **Final Verification**: After completing all tasks in a feature
+
+**DO NOT run full test suite:**
+- ❌ During individual task implementation
+- ❌ After implementing a single entity
+- ❌ After implementing a single use case
+- ❌ After implementing a single repository
+- ❌ After implementing a single controller
+
+### Test Execution Performance
+
+**Why Task-Specific Testing?**
+1. **Faster Feedback**: Get immediate feedback on your changes (seconds vs minutes)
+2. **Focused Debugging**: Easier to identify and fix issues in specific components
+3. **Efficient Development**: Don't wait for unrelated tests to complete
+4. **Resource Optimization**: Save CPU and memory during development
+
+**Performance Comparison:**
+```
+Full Test Suite:     ~2-5 minutes  ❌ Slow
+Specific Test File:  ~5-15 seconds ✅ Fast
+Specific Component:  ~10-30 seconds ✅ Fast
+```
+
+### Test Execution Workflow
+
+**Step-by-Step Workflow:**
+
+1. **Implement Code**: Write the implementation for the task
+2. **Run Specific Tests**: Run only tests related to the task
+   ```bash
+   npm test -- ComponentName.test.ts
+   ```
+3. **Fix Issues**: If tests fail, fix the implementation
+4. **Re-run Specific Tests**: Verify fixes work
+5. **Mark Task Complete**: Only after specific tests pass
+6. **Move to Next Task**: Repeat process for next task
+7. **Run Full Suite**: Only before commit or at feature completion
+
+**Example Workflow:**
+```bash
+# Task: Implement User entity
+# 1. Write User.ts implementation
+# 2. Run specific tests
+npm test -- User.test.ts
+npm test -- User.properties.test.ts
+
+# 3. If tests pass, mark task complete
+# 4. Move to next task (e.g., RegisterUserUseCase)
+# 5. Run specific tests for new task
+npm test -- RegisterUserUseCase.test.ts
+
+# 6. After all tasks complete, run full suite
+npm test
+```
+
+---
+
 ## Test Maintenance
 
 ### When to Update Tests
@@ -426,5 +605,7 @@ src/
 4. **Test Organization**: Co-locate tests with source code
 5. **Coverage**: 80% minimum code coverage
 6. **Quality**: Fast, deterministic, independent, readable tests
+7. **Task-Specific Execution**: Run only relevant tests during task implementation
+8. **Full Suite**: Run complete test suite only for integration tasks or before commit
 
-**Remember**: Good tests improve code quality, catch bugs early, and enable confident refactoring. Write tests alongside implementation, not after.
+**Remember**: Good tests improve code quality, catch bugs early, and enable confident refactoring. Write tests alongside implementation, not after. Run task-specific tests for fast feedback during development.

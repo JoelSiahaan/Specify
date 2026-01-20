@@ -84,6 +84,32 @@ export function configureContainer(): void {
   // ========================================
   
   // Use cases are registered as transient (stateless, created per request)
+  // Import use cases
+  const { RegisterUserUseCase } = require('../../application/use-cases/RegisterUserUseCase');
+  const { LoginUserUseCase } = require('../../application/use-cases/LoginUserUseCase');
+  const { RefreshTokenUseCase } = require('../../application/use-cases/RefreshTokenUseCase');
+  const { LogoutUserUseCase } = require('../../application/use-cases/LogoutUserUseCase');
+  
+  // Register RegisterUserUseCase as transient
+  container.register(RegisterUserUseCase, {
+    useClass: RegisterUserUseCase
+  });
+  
+  // Register LoginUserUseCase as transient
+  container.register(LoginUserUseCase, {
+    useClass: LoginUserUseCase
+  });
+  
+  // Register RefreshTokenUseCase as transient
+  container.register(RefreshTokenUseCase, {
+    useClass: RefreshTokenUseCase
+  });
+  
+  // Register LogoutUserUseCase as transient
+  container.register(LogoutUserUseCase, {
+    useClass: LogoutUserUseCase
+  });
+  
   // Example pattern (to be implemented in future tasks):
   // container.register(CreateCourseUseCase, {
   //   useClass: CreateCourseUseCase

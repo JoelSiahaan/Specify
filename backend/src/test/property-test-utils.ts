@@ -21,7 +21,7 @@ export const emailArbitrary = () =>
  * Generator for valid passwords (min 8 characters)
  */
 export const passwordArbitrary = () =>
-  fc.string({ minLength: 8, maxLength: 50 });
+  fc.string({ minLength: 8, maxLength: 50 }).filter(s => s.trim().length >= 8);
 
 /**
  * Generator for user names

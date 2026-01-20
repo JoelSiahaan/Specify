@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "DI Container Registration Reminder",
+  "description": "Reminds to register new services in the dependency injection container when creating or modifying repositories, services, or use cases",
+  "version": "1",
+  "when": {
+    "type": "fileCreated",
+    "patterns": [
+      "backend/src/infrastructure/persistence/repositories/*.ts",
+      "backend/src/infrastructure/auth/*.ts",
+      "backend/src/infrastructure/storage/*.ts",
+      "backend/src/application/use-cases/**/*.ts",
+      "backend/src/domain/services/*.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new service file was created. Please remind me to:\n1. Check if this service needs to be registered in the DI container (backend/src/infrastructure/di/container.ts)\n2. Verify the correct lifecycle (singleton, transient, or scoped)\n3. Register any dependencies this service requires\n4. Update the container test file if needed (backend/src/infrastructure/di/__tests__/container.test.ts)\n\nOnly remind if this is a new repository, service, or use case that will be injected elsewhere."
+  }
+}

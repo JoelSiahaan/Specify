@@ -379,16 +379,16 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 2.3 Application Layer - Authentication Use Cases
 
-- [ ] 2.3 Application Layer - Authentication Use Cases
+- [x] 2.3 Application Layer - Authentication Use Cases
   - Implement authentication use cases with DTOs and mappers
   - _Requirements: 18.4, 1.7, 20.1, 1.1, 1.2, 1.4, 1.6_
 
-- [ ] 2.3.1 Create authentication DTOs
+- [x] 2.3.1 Create authentication DTOs
   - Create UserDTO, CreateUserDTO, LoginDTO
   - Create UserMapper with toDTO and toDomain methods
   - _Requirements: 18.4_
 
-- [ ] 2.3.2 Implement RegisterUserUseCase
+- [x] 2.3.2 Implement RegisterUserUseCase
   - Validate email format and uniqueness
   - Hash password before storage
   - Create user with selected role
@@ -396,33 +396,33 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 1.7, 20.1_
 
-- [ ] 2.3.3 Write property test for user registration
+- [x] 2.3.3 Write property test for user registration
 
   - **Property 11: Email uniqueness**
   - **Validates: Requirements 1.7**
   - For any two users, they cannot have the same email address
 
-- [ ] 2.3.4 Implement LoginUserUseCase
+- [x] 2.3.4 Implement LoginUserUseCase
   - Validate credentials
   - Generate access and refresh tokens
   - Return tokens and user DTO
   - Register in DI container as transient
   - _Requirements: 1.1, 1.2_
 
-- [ ] 2.3.5 Write property test for login authentication
+- [x] 2.3.5 Write property test for login authentication
 
   - **Property 12: Valid credentials create session**
   - **Validates: Requirements 1.1**
   - For any valid user credentials, authentication succeeds and creates tokens
 
-- [ ] 2.3.6 Implement RefreshTokenUseCase
+- [x] 2.3.6 Implement RefreshTokenUseCase
   - Validate refresh token
   - Generate new access token
   - Return new access token
   - Register in DI container as transient
   - _Requirements: 1.4_
 
-- [ ] 2.3.7 Implement LogoutUserUseCase
+- [x] 2.3.7 Implement LogoutUserUseCase
   - Clear tokens (client-side removal)
   - Return success response
   - Register in DI container as transient
@@ -435,18 +435,18 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement API controllers, middleware, and validation schemas
   - _Requirements: 18.4, 20.2, 1.3, 1.4, 18.3, 21.3, 21.2, 1.1, 1.2, 1.6, 1.7, 18.1, 18.2_
 
-- [ ] 2.4.1 Create Zod validation schemas for authentication
+- [x] 2.4.1 Create Zod validation schemas for authentication
   - Create schemas for register, login requests
   - Define validation rules (email format, password length, role)
   - _Requirements: 18.4, 20.2_
 
-- [ ] 2.4.2 Implement authentication middleware
+- [x] 2.4.2 Implement authentication middleware
   - Create AuthenticationMiddleware to validate JWT tokens
   - Extract user from token and attach to request
   - Return 401 for invalid/expired tokens
   - _Requirements: 1.3, 1.4_
 
-- [ ] 2.4.3 Implement error handler middleware
+- [x] 2.4.3 Implement error handler middleware
   - Create ErrorHandlerMiddleware for centralized error handling
   - Map domain errors to HTTP status codes
   - Return consistent error response format
@@ -454,7 +454,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Never expose internal details
   - _Requirements: 18.3, 21.3, 21.2_
 
-- [ ] 2.4.4 Implement validation middleware
+- [x] 2.4.4 Implement validation middleware
   - Create ValidationMiddleware using Zod schemas
   - Validate request body, query params, path params
   - Return 400 with validation errors
