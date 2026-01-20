@@ -17,13 +17,15 @@
  */
 
 import { PrismaClient, Role as PrismaRole } from '@prisma/client';
-import { injectable } from 'tsyringe';
+import { injectable, inject } from 'tsyringe';
 import { IUserRepository } from '../../../domain/repositories/IUserRepository';
 import { User, Role } from '../../../domain/entities/User';
 
 @injectable()
 export class PrismaUserRepository implements IUserRepository {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(@inject('PrismaClient') private readonly prisma: PrismaClient) {
+    console.log('[PrismaUserRepository] Constructor called with prisma:', prisma ? 'OK' : 'UNDEFINED');
+  }
 
   /**
    * Save a user entity (create or update)
@@ -86,6 +88,10 @@ export class PrismaUserRepository implements IUserRepository {
    * @returns Promise resolving to User entity or null if not found
    */
   async findByEmail(email: string): Promise<User | null> {
+    console.log('[PrismaUserRepository] findByEmail called with:', email);
+    console.log('[PrismaUserRepository] this.prisma:', this.prisma ? 'OK' : 'UNDEFINED');
+    console.log('[PrismaUserRepository] this.prisma.user:', this.prisma?.user ? 'OK' : 'UNDEFINED');
+    
     const dbUser = await this.prisma.user.findUnique({
       where: { email }
     });

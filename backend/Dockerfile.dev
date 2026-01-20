@@ -9,12 +9,13 @@ WORKDIR /app
 # Install dependencies for native modules
 RUN apk add --no-cache python3 make g++
 
-# Copy package files
+# Copy package files (package.json AND package-lock.json)
 COPY package*.json ./
 
-# Install dependencies with cache mount (OPTIMIZED for faster rebuilds)
+# Install dependencies with npm ci (faster, more reliable, uses package-lock.json)
+# Cache mount for faster rebuilds
 RUN --mount=type=cache,target=/root/.npm,sharing=locked \
-    npm install --prefer-offline && \
+    npm ci --prefer-offline && \
     npm cache clean --force
 
 # Copy Prisma schema ONLY (triggers rebuild only if schema changes)

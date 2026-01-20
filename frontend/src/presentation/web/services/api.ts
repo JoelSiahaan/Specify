@@ -49,11 +49,12 @@ apiClient.interceptors.response.use(
     if (error.response) {
       const { status, data } = error.response;
 
-      // Handle 401 Unauthorized - redirect to login
+      // Handle 401 Unauthorized
+      // DON'T redirect automatically - let components handle it
+      // This prevents infinite redirect loops
       if (status === 401) {
-        // Clear any local auth state
-        // Redirect to login page
-        window.location.href = '/login';
+        console.log('401 Unauthorized:', error.config?.url);
+        // Components will handle redirect based on context
       }
 
       // Handle 403 Forbidden

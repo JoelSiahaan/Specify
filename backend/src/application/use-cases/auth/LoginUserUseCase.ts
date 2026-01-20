@@ -10,11 +10,12 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { IUserRepository } from '../../domain/repositories/IUserRepository';
-import { PasswordService } from '../../infrastructure/auth/PasswordService';
-import { JWTService } from '../../infrastructure/auth/JWTService';
-import { LoginDTO, LoginResponseDTO } from '../dtos/UserDTO';
-import { UserMapper } from '../mappers/UserMapper';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
+import { PasswordService } from '../../../infrastructure/auth/PasswordService';
+import { JWTService } from '../../../infrastructure/auth/JWTService';
+import { LoginDTO, LoginResponseDTO } from '../../dtos/UserDTO';
+import { UserMapper } from '../../mappers/UserMapper';
+import { ApplicationError } from '../../errors/ApplicationErrors';
 
 @injectable()
 export class LoginUserUseCase {
@@ -35,17 +36,17 @@ export class LoginUserUseCase {
   async execute(dto: LoginDTO): Promise<LoginResponseDTO> {
     // Validate input
     if (!dto.email || dto.email.trim().length === 0) {
-      throw new Error('Email is required');
+      throw new ApplicationError('VALIDATION_FAILED', 'Email is required', 400);
     }
 
     if (!dto.password || dto.password.trim().length === 0) {
-      throw new Error('Password is required');
+      throw new ApplicationError('VALIDATION_FAILED', 'Password is required', 400);
     }
 
     // Find user by email
     const user = await this.userRepository.findByEmail(dto.email);
     if (!user) {
-      throw new Error('Invalid email or password');
+      throw new ApplicationError('AUTH_INVALID_CREDENTIALS', 'Invalid email or password', 400);
     }
 
     // Verify password (Requirement 1.2)
@@ -55,7 +56,7 @@ export class LoginUserUseCase {
     );
 
     if (!isPasswordValid) {
-      throw new Error('Invalid email or password');
+      throw new ApplicationError('AUTH_INVALID_CREDENTIALS', 'Invalid email or password', 400);
     }
 
     // Generate access and refresh tokens (Requirement 1.1, 1.2)

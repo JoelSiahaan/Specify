@@ -12,12 +12,12 @@
 
 import * as fc from 'fast-check';
 import { RefreshTokenUseCase } from '../RefreshTokenUseCase';
-import { JWTService } from '../../../infrastructure/auth/JWTService';
+import { JWTService } from '../../../../infrastructure/auth/JWTService';
 import { 
   emailArbitrary, 
   roleArbitrary,
   propertyTestConfig 
-} from '../../../test/property-test-utils';
+} from '../../../../test/property-test-utils';
 
 // Helper to generate UUID
 function generateUUID(): string {

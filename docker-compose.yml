@@ -106,7 +106,9 @@ services:
     container_name: lms-frontend-dev
     restart: unless-stopped
     environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+      VITE_API_URL: ${VITE_API_URL:-}
+      # Reduce Node.js memory limit for Vite (2GB is enough)
+      NODE_OPTIONS: "--max-old-space-size=2048"
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     volumes:
@@ -124,6 +126,9 @@ services:
       - backend
     networks:
       - lms-network
+    # Reasonable memory limit for container (2GB with 3GB swap)
+    mem_limit: 2g
+    memswap_limit: 3g
     command: npm run dev
 
 volumes:

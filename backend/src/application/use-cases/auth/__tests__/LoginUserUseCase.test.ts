@@ -6,11 +6,11 @@
  */
 
 import { LoginUserUseCase } from '../LoginUserUseCase';
-import { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import { PasswordService } from '../../../infrastructure/auth/PasswordService';
-import { JWTService } from '../../../infrastructure/auth/JWTService';
-import { User, Role } from '../../../domain/entities/User';
-import { LoginDTO } from '../../dtos/UserDTO';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
+import { PasswordService } from '../../../../infrastructure/auth/PasswordService';
+import { JWTService } from '../../../../infrastructure/auth/JWTService';
+import { User, Role } from '../../../../domain/entities/User';
+import { LoginDTO } from '../../../dtos/UserDTO';
 
 describe('LoginUserUseCase', () => {
   let loginUserUseCase: LoginUserUseCase;

@@ -50,7 +50,9 @@ export const authService = {
    * Get current user
    */
   getCurrentUser: async (): Promise<User> => {
-    return api.get<User>(API_ENDPOINTS.AUTH.ME);
+    const response = await api.get<{ user: User }>(API_ENDPOINTS.AUTH.ME);
+    console.log('getCurrentUser response:', response);
+    return response.user;
   },
 };
 

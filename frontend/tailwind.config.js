@@ -3,6 +3,10 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    // Exclude test files to reduce memory usage
+    "!./src/**/__tests__/**",
+    "!./src/**/*.test.{js,ts,jsx,tsx}",
+    "!./src/test/**",
   ],
   theme: {
     extend: {

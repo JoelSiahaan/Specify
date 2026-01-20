@@ -11,16 +11,16 @@
 
 import * as fc from 'fast-check';
 import { RegisterUserUseCase } from '../RegisterUserUseCase';
-import { User, Role } from '../../../domain/entities/User';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import { PasswordService } from '../../../infrastructure/auth/PasswordService';
+import { User, Role } from '../../../../domain/entities/User';
+import type { IUserRepository } from '../../../../domain/repositories/IUserRepository';
+import { PasswordService } from '../../../../infrastructure/auth/PasswordService';
 import { 
   emailArbitrary, 
   nameArbitrary, 
   roleArbitrary,
   passwordArbitrary,
   propertyTestConfig 
-} from '../../../test/property-test-utils';
+} from '../../../../test/property-test-utils';
 
 // Helper function to convert string role to Role enum
 function toRoleEnum(role: string): Role {

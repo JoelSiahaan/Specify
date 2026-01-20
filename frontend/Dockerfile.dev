@@ -6,12 +6,12 @@ FROM node:20.19.0-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package files (package.json AND package-lock.json)
 COPY package*.json ./
 
-# Install dependencies with cache mount (OPTIMIZED for faster rebuilds)
+# Install dependencies with npm ci (uses package-lock.json for consistency)
 RUN --mount=type=cache,target=/root/.npm,sharing=locked \
-    npm install --prefer-offline && \
+    npm ci --prefer-offline && \
     npm cache clean --force
 
 # Copy source code

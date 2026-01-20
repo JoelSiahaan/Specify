@@ -11,7 +11,7 @@
 
 import * as fc from 'fast-check';
 import { LogoutUserUseCase } from '../LogoutUserUseCase';
-import { propertyTestConfig } from '../../../test/property-test-utils';
+import { propertyTestConfig } from '../../../../test/property-test-utils';
 
 describe('LogoutUserUseCase Properties', () => {
   /**
@@ -49,7 +49,7 @@ describe('LogoutUserUseCase Properties', () => {
 
           // All results should be identical
           const allSame = results.every(r => r.message === results[0].message);
-          const isSuccessMessage = results[0].message === 'Logout successful';
+          const isSuccessMessage = results[0].message === 'Logged out successfully';
 
           return allSame && isSuccessMessage;
         }
@@ -80,7 +80,7 @@ describe('LogoutUserUseCase Properties', () => {
             result !== null &&
             typeof result === 'object' &&
             'message' in result &&
-            result.message === 'Logout successful'
+            result.message === 'Logged out successfully'
           );
         }
       ),
@@ -112,7 +112,7 @@ describe('LogoutUserUseCase Properties', () => {
 
           // Check all results have same structure
           const allHaveMessage = results.every(r => 'message' in r);
-          const allHaveSameMessage = results.every(r => r.message === 'Logout successful');
+          const allHaveSameMessage = results.every(r => r.message === 'Logged out successfully');
           const allHaveOnlyOneKey = results.every(r => Object.keys(r).length === 1);
 
           return allHaveMessage && allHaveSameMessage && allHaveOnlyOneKey;

@@ -21,7 +21,11 @@ describe('App Component', () => {
 
   it('should have login and register buttons', () => {
     render(<App />);
-    expect(screen.getByText('Login')).toBeInTheDocument();
-    expect(screen.getByText('Register')).toBeInTheDocument();
+    // Use getAllByText since "Login" and "Register" appear in both navigation and homepage
+    const loginElements = screen.getAllByText('Login');
+    const registerElements = screen.getAllByText('Register');
+    
+    expect(loginElements.length).toBeGreaterThan(0);
+    expect(registerElements.length).toBeGreaterThan(0);
   });
 });

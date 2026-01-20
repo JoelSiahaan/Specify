@@ -21,6 +21,11 @@ import { IUserRepository } from '../../domain/repositories/IUserRepository';
 import { PrismaUserRepository } from '../persistence/repositories/PrismaUserRepository';
 import { JWTService } from '../auth/JWTService';
 import { PasswordService } from '../auth/PasswordService';
+import { RegisterUserUseCase } from '../../application/use-cases/auth/RegisterUserUseCase';
+import { LoginUserUseCase } from '../../application/use-cases/auth/LoginUserUseCase';
+import { RefreshTokenUseCase } from '../../application/use-cases/auth/RefreshTokenUseCase';
+import { LogoutUserUseCase } from '../../application/use-cases/auth/LogoutUserUseCase';
+import { GetCurrentUserUseCase } from '../../application/use-cases/auth/GetCurrentUserUseCase';
 
 /**
  * Initialize the DI container with all application dependencies
@@ -38,18 +43,18 @@ export function configureContainer(): void {
   // Infrastructure Layer - Database
   // ========================================
   
-  // Register Prisma Client as singleton
-  container.registerInstance(PrismaClient, prisma);
+  // Register Prisma Client instance as singleton
+  console.log('[DI] Registering Prisma Client:', prisma ? 'OK' : 'FAILED');
+  container.registerInstance('PrismaClient', prisma);
   
   // ========================================
   // Infrastructure Layer - Repositories
   // ========================================
   
-  // Register User Repository
-  container.registerSingleton<IUserRepository>(
-    'IUserRepository',
-    PrismaUserRepository
-  );
+  // Register User Repository as singleton (TSyringe will auto-inject PrismaClient)
+  console.log('[DI] Registering PrismaUserRepository');
+  container.registerSingleton<IUserRepository>('IUserRepository', PrismaUserRepository);
+  console.log('[DI] IUserRepository registered');
   
   // Repository implementations will be registered here as they are created
   // Example pattern (to be implemented in future tasks):
@@ -84,11 +89,6 @@ export function configureContainer(): void {
   // ========================================
   
   // Use cases are registered as transient (stateless, created per request)
-  // Import use cases
-  const { RegisterUserUseCase } = require('../../application/use-cases/RegisterUserUseCase');
-  const { LoginUserUseCase } = require('../../application/use-cases/LoginUserUseCase');
-  const { RefreshTokenUseCase } = require('../../application/use-cases/RefreshTokenUseCase');
-  const { LogoutUserUseCase } = require('../../application/use-cases/LogoutUserUseCase');
   
   // Register RegisterUserUseCase as transient
   container.register(RegisterUserUseCase, {
@@ -108,6 +108,11 @@ export function configureContainer(): void {
   // Register LogoutUserUseCase as transient
   container.register(LogoutUserUseCase, {
     useClass: LogoutUserUseCase
+  });
+  
+  // Register GetCurrentUserUseCase as transient
+  container.register(GetCurrentUserUseCase, {
+    useClass: GetCurrentUserUseCase
   });
   
   // Example pattern (to be implemented in future tasks):

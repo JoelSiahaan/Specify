@@ -114,6 +114,15 @@ export function errorHandler(
     return;
   }
 
+  // Handle JSON parsing errors (malformed JSON from body-parser)
+  if (error instanceof SyntaxError && 'body' in error) {
+    res.status(400).json({
+      code: 'INVALID_JSON',
+      message: 'Invalid JSON format in request body'
+    });
+    return;
+  }
+
   // Handle Zod validation errors (from validation middleware)
   if (error.name === 'ZodError') {
     const zodError = error as any;

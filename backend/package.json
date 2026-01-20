@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/main.js",
   "scripts": {
-    "dev": "tsx watch src/main.ts",
+    "dev": "npm run prisma:migrate:deploy && tsx watch src/main.ts",
     "build": "tsc",
     "start": "node dist/main.js",
     "lint": "eslint . --ext .ts",
@@ -16,6 +16,7 @@
     "test:coverage": "jest --coverage",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "db:test": "tsx scripts/test-db-connection.ts"
   },

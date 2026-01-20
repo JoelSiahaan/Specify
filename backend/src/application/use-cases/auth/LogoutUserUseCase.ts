@@ -24,7 +24,7 @@ export class LogoutUserUseCase {
     // In stateless JWT approach, logout is client-side
     // Server just confirms the action
     return {
-      message: 'Logout successful'
+      message: 'Logged out successfully'
     };
   }
 }

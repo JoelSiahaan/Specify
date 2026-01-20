@@ -10,11 +10,12 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { IUserRepository } from '../../domain/repositories/IUserRepository';
-import { PasswordService } from '../../infrastructure/auth/PasswordService';
-import { Email } from '../../domain/value-objects/Email';
-import { CreateUserDTO, UserDTO } from '../dtos/UserDTO';
-import { UserMapper } from '../mappers/UserMapper';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
+import { PasswordService } from '../../../infrastructure/auth/PasswordService';
+import { Email } from '../../../domain/value-objects/Email';
+import { CreateUserDTO, UserDTO } from '../../dtos/UserDTO';
+import { UserMapper } from '../../mappers/UserMapper';
+import { ApplicationError } from '../../errors/ApplicationErrors';
 
 @injectable()
 export class RegisterUserUseCase {
@@ -39,12 +40,12 @@ export class RegisterUserUseCase {
     // Check email uniqueness
     const existingUser = await this.userRepository.findByEmail(email.getValue());
     if (existingUser) {
-      throw new Error('Email already exists');
+      throw new ApplicationError('DUPLICATE_ENTRY', 'Email already exists', 400);
     }
 
     // Validate password is provided
     if (!dto.password || dto.password.trim().length === 0) {
-      throw new Error('Password is required');
+      throw new ApplicationError('VALIDATION_FAILED', 'Password is required', 400);
     }
 
     // Hash password before storage (Requirement 20.1)

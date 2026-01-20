@@ -7,7 +7,9 @@
 
 export const CONFIG = {
   // API Configuration
-  API_BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+  // In development with Vite proxy, use relative URL (no host)
+  // In production, use full URL from environment variable
+  API_BASE_URL: import.meta.env.VITE_API_URL || '',
   API_TIMEOUT: 30000, // 30 seconds
   
   // File Upload Configuration

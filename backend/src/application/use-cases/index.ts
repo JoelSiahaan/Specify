@@ -5,7 +5,12 @@
  * This simplifies imports throughout the application.
  */
 
-export { RegisterUserUseCase } from './RegisterUserUseCase';
-export { LoginUserUseCase } from './LoginUserUseCase';
-export { RefreshTokenUseCase } from './RefreshTokenUseCase';
-export { LogoutUserUseCase } from './LogoutUserUseCase';
+// Authentication use cases
+export {
+  RegisterUserUseCase,
+  LoginUserUseCase,
+  LogoutUserUseCase,
+  RefreshTokenUseCase,
+  GetCurrentUserUseCase,
+} from './auth';
+
