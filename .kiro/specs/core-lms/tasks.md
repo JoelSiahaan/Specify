@@ -745,7 +745,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement React components for course management UI
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.9, 5.3, 5.4, 5.6, 5.7, 5.10, 19.1, 19.2, 19.5_
 
-- [ ] 3.5.1 Update Teacher Dashboard
+- [x] 3.5.1 Update Teacher Dashboard
   - Priority: MEDIUM-HIGH
   - Dependencies: 3.4.2 (API), 2.5.5 (placeholder dashboard)
   - Can be parallelized: Yes (with 3.5.2, 3.5.3, 3.5.4)
