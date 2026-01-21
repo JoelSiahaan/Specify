@@ -1,5 +1,5 @@
 {
-  "enabled": true,
+  "enabled": false,
   "name": "Fix Failed Tests",
   "description": "When a test task fails, automatically create a new task to analyze and fix the failing tests, then run them again",
   "version": "1",

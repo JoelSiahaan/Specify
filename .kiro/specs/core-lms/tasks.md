@@ -572,32 +572,34 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Create course domain entities, value objects, and repository interfaces
   - _Requirements: 5.1, 5.4, 5.6, 5.7, 5.2, 17.1, 17.2, 17.3_
 
-- [ ] 3.1.1 Create Course domain entity
+- [x] 3.1.1 Create Course domain entity
   - Implement Course entity with id, name, description, courseCode, status, teacherId
   - Add status validation (Active or Archived)
   - Implement archive() and delete() methods with business rules
   - _Requirements: 5.1, 5.4, 5.6, 5.7_
 
-- [ ]* 3.1.2 Write property test for Course lifecycle
+- [x] 3.1.2 Write property test for Course lifecycle
+
   - **Property 2: Course state transitions**
   - **Validates: Requirements 5.4, 5.6, 5.7**
   - For any course, Active → Archived → Deleted is the only valid transition path
 
-- [ ] 3.1.3 Create CourseCode value object
+- [x] 3.1.3 Create CourseCode value object
   - Implement CourseCode value object (6-character alphanumeric validation)
   - _Requirements: 5.1_
 
-- [ ] 3.1.4 Create CourseCodeGenerator domain service
+- [x] 3.1.4 Create CourseCodeGenerator domain service
   - Implement CourseCodeGenerator service with retry logic (max 5 attempts)
   - _Requirements: 5.1, 5.2_
 
-- [ ]* 3.1.5 Write property test for CourseCodeGenerator
+- [x] 3.1.5 Write property test for CourseCodeGenerator
+
   - **Property 7: Code generation retry limit**
   - **Property 13: Course code uniqueness with retry**
   - **Validates: Requirements 5.1, 5.2**
   - For any code generation with collisions, max 5 retries before failure
 
-- [ ] 3.1.6 Define ICourseRepository interface
+- [x] 3.1.6 Define ICourseRepository interface
   - Create ICourseRepository interface (Port)
   - Define methods: save, findById, findByTeacherId, findByCode, delete, update
   - _Requirements: 17.1, 17.2, 17.3_
@@ -608,20 +610,21 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement Prisma models and repository implementations
   - _Requirements: 17.1, 17.4, 17.5, 17.2, 17.3_
 
-- [ ] 3.2.1 Add Course model to Prisma schema
+- [x] 3.2.1 Add Course model to Prisma schema
   - Define Course model with all fields
   - Add unique constraint on courseCode
   - Add foreign key to User (teacher)
   - Generate and run migration
   - _Requirements: 17.1, 17.4, 17.5_
 
-- [ ] 3.2.2 Implement PrismaCourseRepository
+- [x] 3.2.2 Implement PrismaCourseRepository
   - Create PrismaCourseRepository implementing ICourseRepository
   - Implement all CRUD operations
   - Register in DI container as singleton
   - _Requirements: 17.1, 17.2, 17.3_
 
-- [ ]* 3.2.3 Write integration tests for PrismaCourseRepository
+- [x] 3.2.3 Write integration tests for PrismaCourseRepository
+
   - Test CRUD operations
   - Test unique courseCode constraint
   - Test relationship with User
@@ -633,17 +636,17 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement course use cases with DTOs, mappers, and authorization policies
   - _Requirements: 18.4, 2.1, 2.2, 2.3, 2.4, 5.1, 5.2, 5.9, 5.3, 5.4, 5.5, 5.6, 5.7, 5.10, 6.1_
 
-- [ ] 3.3.1 Create course DTOs and mappers
+- [x] 3.3.1 Create course DTOs and mappers
   - Create CourseDTO, CreateCourseDTO, UpdateCourseDTO
   - Create CourseMapper with toDTO and toDomain methods
   - _Requirements: 18.4_
 
-- [ ] 3.3.2 Create authorization policy interface
+- [x] 3.3.2 Create authorization policy interface
   - Define IAuthorizationPolicy interface
   - Define policy methods (canAccessCourse, canModifyCourse, etc.)
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 3.3.3 Implement authorization policy
+- [x] 3.3.3 Implement authorization policy
   - Create AuthorizationPolicy implementing IAuthorizationPolicy
   - Implement role-based checks (Student vs Teacher)
   - Implement resource-based checks (ownership)
@@ -651,12 +654,13 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as singleton
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ]* 3.3.4 Write unit tests for authorization policies
+- [x] 3.3.4 Write unit tests for authorization policies
+
   - Test role-based access control
   - Test resource ownership validation
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 3.3.5 Implement CreateCourseUseCase
+- [x] 3.3.5 Implement CreateCourseUseCase
   - Validate teacher role
   - Generate unique course code with retry logic
   - Create course entity
@@ -665,7 +669,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 5.1, 5.2, 5.9_
 
-- [ ] 3.3.6 Implement UpdateCourseUseCase
+- [x] 3.3.6 Implement UpdateCourseUseCase
   - Validate teacher ownership
   - Validate course is active
   - Update course entity
@@ -674,7 +678,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 5.3_
 
-- [ ] 3.3.7 Implement ArchiveCourseUseCase
+- [x] 3.3.7 Implement ArchiveCourseUseCase
   - Validate teacher ownership
   - Validate course is not already archived
   - Archive course (set status to ARCHIVED)
@@ -682,7 +686,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 5.4, 5.5_
 
-- [ ] 3.3.8 Implement DeleteCourseUseCase
+- [x] 3.3.8 Implement DeleteCourseUseCase
   - Validate teacher ownership
   - Validate course is archived
   - Delete course from repository
@@ -690,7 +694,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 5.6, 5.7_
 
-- [ ] 3.3.9 Implement ListCoursesUseCase
+- [x] 3.3.9 Implement ListCoursesUseCase
   - Filter by role (teacher sees own, student sees enrolled)
   - Filter by status (active/archived)
   - Return course DTOs
@@ -704,7 +708,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement API controllers and validation schemas
   - _Requirements: 18.4, 20.2, 5.1, 5.3, 5.4, 5.6, 5.7, 5.10, 18.1, 18.2, 18.3_
 
-- [ ] 3.4.1 Create Zod validation schemas for courses
+- [x] 3.4.1 Create Zod validation schemas for courses
   - Priority: HIGH
   - Dependencies: None
   - Can be parallelized: Yes (with 3.4.2)
