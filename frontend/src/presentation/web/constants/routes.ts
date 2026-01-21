@@ -22,8 +22,8 @@ export const ROUTES = {
   
   // Teacher routes
   TEACHER_DASHBOARD: '/teacher/dashboard',
-  TEACHER_COURSES: '/teacher/courses',
   TEACHER_COURSE_DETAILS: '/teacher/courses/:courseId',
+  TEACHER_MANAGE_COURSE: '/teacher/courses/:courseId/manage',
   TEACHER_CREATE_COURSE: '/teacher/courses/new',
   TEACHER_EDIT_COURSE: '/teacher/courses/:courseId/edit',
   TEACHER_ASSIGNMENTS: '/teacher/courses/:courseId/assignments',

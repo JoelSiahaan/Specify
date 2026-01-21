@@ -101,12 +101,6 @@ export const Navigation: React.FC = () => {
                     >
                       Dashboard
                     </Link>
-                    <Link
-                      to={ROUTES.TEACHER_COURSES}
-                      className="hover:text-primary-lighter transition-colors"
-                    >
-                      My Courses
-                    </Link>
                   </>
                 )}
 

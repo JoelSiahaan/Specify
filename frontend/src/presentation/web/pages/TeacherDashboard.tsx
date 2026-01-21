@@ -13,29 +13,31 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Spinner, ErrorMessage } from '../components/shared';
 import { useAuth } from '../hooks';
 import { courseService } from '../services';
 import { ROUTES } from '../constants';
-import type { Course, CourseStatus } from '../types';
+import type { Course, CourseWithTeacher } from '../types';
 
 export const TeacherDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // State
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<CourseWithTeacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'active' | 'archived' | 'all'>('active');
 
   /**
-   * Fetch courses on mount and when tab changes
+   * Fetch courses on mount, when tab changes, or when navigating back to dashboard
+   * The location dependency ensures courses refresh when navigating back from CreateCourse
    */
   useEffect(() => {
     fetchCourses();
-  }, [activeTab]);
+  }, [activeTab, location.key]);
 
   /**
    * Fetch courses from API
@@ -45,19 +47,35 @@ export const TeacherDashboard: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      let fetchedCourses: Course[];
+      let fetchedCourses: Course[] = [];
       
       if (activeTab === 'archived') {
-        fetchedCourses = await courseService.listArchivedCourses();
-      } else if (activeTab === 'active') {
-        fetchedCourses = await courseService.listCourses({ status: 'ACTIVE' as CourseStatus });
+        // Fetch only archived courses
+        const response = await courseService.listArchivedCourses();
+        fetchedCourses = response.data || [];
+      } else if (activeTab === 'all') {
+        // Fetch all courses (active + archived)
+        // Make two API calls and combine the results
+        const [activeResponse, archivedResponse] = await Promise.all([
+          courseService.listCourses(),
+          courseService.listArchivedCourses()
+        ]);
+        
+        const activeCourses = activeResponse.data || [];
+        const archivedCourses = archivedResponse.data || [];
+        fetchedCourses = [...activeCourses, ...archivedCourses];
       } else {
-        // 'all' tab - fetch without filter
-        fetchedCourses = await courseService.listCourses();
+        // Fetch only active courses (default)
+        const response = await courseService.listCourses();
+        fetchedCourses = response.data || [];
       }
-
+      
+      console.log('Fetched courses:', fetchedCourses); // Debug log
+      console.log('Active tab:', activeTab); // Debug log
+      
       setCourses(fetchedCourses);
     } catch (err: any) {
+      console.error('Error fetching courses:', err); // Debug log
       setError(err.message || 'Failed to load courses');
     } finally {
       setLoading(false);
@@ -72,9 +90,16 @@ export const TeacherDashboard: React.FC = () => {
   };
 
   /**
-   * Handle manage course button click
+   * Handle manage course button click (Edit, Archive, Delete)
    */
   const handleManageCourse = (courseId: string) => {
+    navigate(ROUTES.TEACHER_MANAGE_COURSE.replace(':courseId', courseId));
+  };
+
+  /**
+   * Handle view course button click (View course info, materials, assignments, etc)
+   */
+  const handleViewCourse = (courseId: string) => {
     navigate(ROUTES.TEACHER_COURSE_DETAILS.replace(':courseId', courseId));
   };
 
@@ -95,7 +120,7 @@ export const TeacherDashboard: React.FC = () => {
   /**
    * Render course list item
    */
-  const renderCourseItem = (course: Course) => (
+  const renderCourseItem = (course: CourseWithTeacher) => (
     <div
       key={course.id}
       className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow p-6"
@@ -126,7 +151,7 @@ export const TeacherDashboard: React.FC = () => {
       <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
         <div className="flex items-center gap-1">
           <span>👥</span>
-          <span>{course.enrollmentCount || 0} students</span>
+          <span>{course.enrollmentCount ?? 0} students</span>
         </div>
       </div>
 
@@ -143,18 +168,18 @@ export const TeacherDashboard: React.FC = () => {
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => navigate(ROUTES.TEACHER_GRADING.replace(':courseId', course.id))}
+          onClick={() => handleViewCourse(course.id)}
           className="flex-1"
         >
-          Grade
+          View
         </Button>
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => handleManageCourse(course.id)}
+          onClick={() => navigate(ROUTES.TEACHER_GRADING.replace(':courseId', course.id))}
           className="flex-1"
         >
-          View
+          Grade
         </Button>
       </div>
     </div>

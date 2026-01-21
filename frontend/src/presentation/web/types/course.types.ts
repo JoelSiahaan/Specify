@@ -69,3 +69,15 @@ export interface ListCoursesResponse {
 export interface CourseQueryFilters {
   status?: CourseStatus;
 }
+
+/**
+ * Course with teacher details
+ */
+export interface CourseWithTeacher extends Course {
+  teacher?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  enrollmentCount?: number;
+}

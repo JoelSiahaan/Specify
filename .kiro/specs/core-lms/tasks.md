@@ -765,7 +765,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Handle errors
   - _Requirements: 5.1, 5.9_
 
-- [ ] 3.5.3 Implement UpdateCourse component
+- [x] 3.5.3 Implement UpdateCourse component
   - Priority: MEDIUM
   - Dependencies: 3.4.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 3.5.1, 3.5.2, 3.5.4)
@@ -774,7 +774,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Handle errors
   - _Requirements: 5.3_
 
-- [ ] 3.5.4 Implement CourseDetails component
+- [x] 3.5.4 Implement CourseDetails component
   - Priority: MEDIUM-HIGH
   - Dependencies: 3.4.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 3.5.1, 3.5.2, 3.5.3)
@@ -783,7 +783,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Handle course lifecycle (active → archived → deleted)
   - _Requirements: 5.4, 5.6, 5.7, 5.10_
 
-- [ ]* 3.5.5 Write React component tests for courses
+- [ ] 3.5.5 Write React component tests for courses
+
   - Priority: MEDIUM
   - Dependencies: 3.5.2, 3.5.3, 3.5.4, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)

@@ -13,6 +13,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Input, ErrorMessage, Spinner } from '../shared';
 import { courseService } from '../../services';
+import { ROUTES } from '../../constants';
 import type { CreateCourseRequest, Course, ApiError } from '../../types';
 
 /**
@@ -65,10 +66,12 @@ export const CreateCourse: React.FC = () => {
       errors.name = 'Course name must not exceed 200 characters';
     }
     
-    if (!formData.description.trim()) {
+    if (formData.description && formData.description.trim()) {
+      if (formData.description.length > 5000) {
+        errors.description = 'Course description must not exceed 5000 characters';
+      }
+    } else if (!formData.description || !formData.description.trim()) {
       errors.description = 'Course description is required';
-    } else if (formData.description.length > 5000) {
-      errors.description = 'Course description must not exceed 5000 characters';
     }
     
     setValidationErrors(errors);
@@ -123,7 +126,7 @@ export const CreateCourse: React.FC = () => {
    */
   const handleViewCourse = () => {
     if (createdCourse) {
-      navigate(`/courses/${createdCourse.id}`);
+      navigate(ROUTES.TEACHER_COURSE_DETAILS.replace(':courseId', createdCourse.id));
     }
   };
 
@@ -132,6 +135,13 @@ export const CreateCourse: React.FC = () => {
    */
   const handleCreateAnother = () => {
     setCreatedCourse(null);
+  };
+
+  /**
+   * Handle back to dashboard
+   */
+  const handleBackToDashboard = () => {
+    navigate(ROUTES.TEACHER_DASHBOARD);
   };
 
   // Show success message after course creation
@@ -170,6 +180,9 @@ export const CreateCourse: React.FC = () => {
             <Button variant="secondary" onClick={handleCreateAnother}>
               Create Another Course
             </Button>
+            <Button variant="secondary" onClick={handleBackToDashboard}>
+              Back to Dashboard
+            </Button>
           </div>
         </div>
       </div>
@@ -200,6 +213,7 @@ export const CreateCourse: React.FC = () => {
             error={validationErrors.name}
             required
             disabled={loading}
+            maxLength={200}
           />
 
           {/* Course Description */}
@@ -211,12 +225,13 @@ export const CreateCourse: React.FC = () => {
             <textarea
               id="description"
               name="description"
-              value={formData.description}
+              value={formData.description || ''}
               onChange={handleChange}
               placeholder="Describe what students will learn in this course..."
               required
               disabled={loading}
               rows={6}
+              maxLength={5000}
               className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:border-transparent ${
                 validationErrors.description
                   ? 'border-red-500 focus:ring-red-500'
@@ -227,7 +242,7 @@ export const CreateCourse: React.FC = () => {
               <p className="text-sm text-red-600 mt-1">{validationErrors.description}</p>
             )}
             <p className="text-sm text-gray-600 mt-1">
-              {formData.description.length}/5000 characters
+              {(formData.description || '').length}/5000 characters
             </p>
           </div>
 

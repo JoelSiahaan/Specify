@@ -5,3 +5,6 @@
  */
 
 export { CreateCourse } from './CreateCourse';
+export { UpdateCourse } from './UpdateCourse';
+export { CourseDetails } from './CourseDetails';
+export { ManageCourse } from './ManageCourse';

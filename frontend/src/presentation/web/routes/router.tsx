@@ -16,8 +16,30 @@ import {
   StudentDashboard,
   TeacherDashboard
 } from '../pages';
+import { CreateCourse, UpdateCourse, CourseDetails, ManageCourse } from '../components/course';
 import { ROUTES } from '../constants';
 import { UserRole } from '../types';
+import { useParams, useNavigate } from 'react-router-dom';
+// 7766AM
+/**
+ * Wrapper component for UpdateCourse that extracts courseId from URL params
+ */
+function UpdateCourseWrapper() {
+  const { courseId } = useParams<{ courseId: string }>();
+  const navigate = useNavigate();
+
+  if (!courseId) {
+    return <Navigate to={ROUTES.NOT_FOUND} replace />;
+  }
+
+  return (
+    <UpdateCourse
+      courseId={courseId}
+      onSuccess={() => navigate(ROUTES.TEACHER_DASHBOARD)}
+      onCancel={() => navigate(ROUTES.TEACHER_DASHBOARD)}
+    />
+  );
+}
 
 export function AppRouter() {
   return (
@@ -77,10 +99,34 @@ export function AppRouter() {
           }
         />
         <Route
-          path={ROUTES.TEACHER_COURSES}
+          path={ROUTES.TEACHER_CREATE_COURSE}
           element={
             <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
-              <div className="p-8 text-center">Teacher Courses - Coming Soon</div>
+              <CreateCourse />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.TEACHER_EDIT_COURSE}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
+              <UpdateCourseWrapper />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.TEACHER_COURSE_DETAILS}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
+              <CourseDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.TEACHER_MANAGE_COURSE}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
+              <ManageCourse />
             </ProtectedRoute>
           }
         />

@@ -18,7 +18,7 @@ import type {
 /**
  * List all courses (filtered by role and status)
  */
-export const listCourses = async (filters?: CourseQueryFilters): Promise<Course[]> => {
+export const listCourses = async (filters?: CourseQueryFilters): Promise<ListCoursesResponse> => {
   const params = new URLSearchParams();
   if (filters?.status) {
     params.append('status', filters.status);
@@ -28,21 +28,19 @@ export const listCourses = async (filters?: CourseQueryFilters): Promise<Course[
     ? `${API_ENDPOINTS.COURSES.LIST}?${params.toString()}`
     : API_ENDPOINTS.COURSES.LIST;
   
-  const response = await api.get<ListCoursesResponse>(url);
-  return response.data;
+  return await api.get<ListCoursesResponse>(url);
 };
 
 /**
  * List archived courses (teacher only)
  */
-export const listArchivedCourses = async (): Promise<Course[]> => {
+export const listArchivedCourses = async (): Promise<ListCoursesResponse> => {
   // Use query parameter instead of separate endpoint
   const params = new URLSearchParams();
   params.append('status', 'ARCHIVED');
   
   const url = `${API_ENDPOINTS.COURSES.LIST}?${params.toString()}`;
-  const response = await api.get<ListCoursesResponse>(url);
-  return response.data;
+  return await api.get<ListCoursesResponse>(url);
 };
 
 /**

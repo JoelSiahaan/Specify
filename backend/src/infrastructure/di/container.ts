@@ -52,7 +52,6 @@ export function configureContainer(): void {
   // ========================================
   
   // Register Prisma Client instance as singleton
-  console.log('[DI] Registering Prisma Client:', prisma ? 'OK' : 'FAILED');
   container.registerInstance('PrismaClient', prisma);
   
   // ========================================
@@ -60,14 +59,10 @@ export function configureContainer(): void {
   // ========================================
   
   // Register User Repository as singleton (TSyringe will auto-inject PrismaClient)
-  console.log('[DI] Registering PrismaUserRepository');
   container.registerSingleton<IUserRepository>('IUserRepository', PrismaUserRepository);
-  console.log('[DI] IUserRepository registered');
   
   // Register Course Repository as singleton (TSyringe will auto-inject PrismaClient)
-  console.log('[DI] Registering PrismaCourseRepository');
   container.registerSingleton<ICourseRepository>('ICourseRepository', PrismaCourseRepository);
-  console.log('[DI] ICourseRepository registered');
   
   // Repository implementations will be registered here as they are created
   // Example pattern (to be implemented in future tasks):
@@ -129,11 +124,9 @@ export function configureContainer(): void {
   });
   
   // Register CreateCourseUseCase as transient
-  console.log('[DI] Registering CreateCourseUseCase');
   container.register(CreateCourseUseCase, {
     useClass: CreateCourseUseCase
   });
-  console.log('[DI] CreateCourseUseCase registered');
   
   // Register UpdateCourseUseCase as transient
   console.log('[DI] Registering UpdateCourseUseCase');

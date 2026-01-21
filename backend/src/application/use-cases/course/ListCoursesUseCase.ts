@@ -33,7 +33,11 @@ export class ListCoursesUseCase {
   constructor(
     @inject('ICourseRepository') private courseRepository: ICourseRepository,
     @inject('IUserRepository') private userRepository: IUserRepository
-  ) {}
+  ) {
+    console.log('[ListCoursesUseCase] Constructor called');
+    console.log('[ListCoursesUseCase] courseRepository:', courseRepository ? 'OK' : 'UNDEFINED');
+    console.log('[ListCoursesUseCase] userRepository:', userRepository ? 'OK' : 'UNDEFINED');
+  }
 
   /**
    * Execute course listing
