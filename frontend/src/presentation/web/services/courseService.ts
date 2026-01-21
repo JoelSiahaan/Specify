@@ -1,78 +1,88 @@
 /**
  * Course Service
  * 
- * API calls for course operations.
+ * API calls for course management.
  */
 
 import { api } from './api';
 import { API_ENDPOINTS } from '../constants';
-import type { 
+import type {
   Course,
-  CourseWithTeacher,
   CreateCourseRequest,
+  CreateCourseResponse,
   UpdateCourseRequest,
-  EnrollCourseRequest
+  ListCoursesResponse,
+  CourseQueryFilters,
 } from '../types';
 
 /**
- * Course service
+ * List all courses (filtered by role and status)
  */
-export const courseService = {
-  /**
-   * List all courses (filtered by role)
-   */
-  listCourses: async (): Promise<{ data: CourseWithTeacher[] }> => {
-    return api.get<{ data: CourseWithTeacher[] }>(API_ENDPOINTS.COURSES.LIST);
-  },
-
-  /**
-   * List archived courses (teacher only)
-   */
-  listArchivedCourses: async (): Promise<{ data: CourseWithTeacher[] }> => {
-    return api.get<{ data: CourseWithTeacher[] }>(API_ENDPOINTS.COURSES.ARCHIVED);
-  },
-
-  /**
-   * Create new course (teacher only)
-   */
-  createCourse: async (data: CreateCourseRequest): Promise<Course> => {
-    return api.post<Course>(API_ENDPOINTS.COURSES.CREATE, data);
-  },
-
-  /**
-   * Get course details
-   */
-  getCourse: async (id: string): Promise<Course> => {
-    return api.get<Course>(API_ENDPOINTS.COURSES.DETAILS(id));
-  },
-
-  /**
-   * Update course (teacher only)
-   */
-  updateCourse: async (id: string, data: UpdateCourseRequest): Promise<Course> => {
-    return api.put<Course>(API_ENDPOINTS.COURSES.UPDATE(id), data);
-  },
-
-  /**
-   * Delete course (teacher only)
-   */
-  deleteCourse: async (id: string): Promise<void> => {
-    return api.delete<void>(API_ENDPOINTS.COURSES.DELETE(id));
-  },
-
-  /**
-   * Archive course (teacher only)
-   */
-  archiveCourse: async (id: string): Promise<Course> => {
-    return api.post<Course>(API_ENDPOINTS.COURSES.ARCHIVE(id));
-  },
-
-  /**
-   * Enroll in course (student only)
-   */
-  enrollInCourse: async (data: EnrollCourseRequest): Promise<void> => {
-    return api.post<void>(API_ENDPOINTS.COURSES.ENROLL, data);
-  },
+export const listCourses = async (filters?: CourseQueryFilters): Promise<Course[]> => {
+  const params = new URLSearchParams();
+  if (filters?.status) {
+    params.append('status', filters.status);
+  }
+  
+  const url = filters?.status 
+    ? `${API_ENDPOINTS.COURSES.LIST}?${params.toString()}`
+    : API_ENDPOINTS.COURSES.LIST;
+  
+  const response = await api.get<ListCoursesResponse>(url);
+  return response.data;
 };
 
-export default courseService;
+/**
+ * List archived courses (teacher only)
+ */
+export const listArchivedCourses = async (): Promise<Course[]> => {
+  // Use query parameter instead of separate endpoint
+  const params = new URLSearchParams();
+  params.append('status', 'ARCHIVED');
+  
+  const url = `${API_ENDPOINTS.COURSES.LIST}?${params.toString()}`;
+  const response = await api.get<ListCoursesResponse>(url);
+  return response.data;
+};
+
+/**
+ * Get course details by ID
+ */
+export const getCourseById = async (id: string): Promise<Course> => {
+  return await api.get<Course>(API_ENDPOINTS.COURSES.DETAILS(id));
+};
+
+/**
+ * Create new course (teacher only)
+ */
+export const createCourse = async (data: CreateCourseRequest): Promise<CreateCourseResponse> => {
+  return await api.post<CreateCourseResponse>(API_ENDPOINTS.COURSES.CREATE, data);
+};
+
+/**
+ * Update course (teacher only)
+ */
+export const updateCourse = async (id: string, data: UpdateCourseRequest): Promise<Course> => {
+  return await api.put<Course>(API_ENDPOINTS.COURSES.UPDATE(id), data);
+};
+
+/**
+ * Archive course (teacher only)
+ */
+export const archiveCourse = async (id: string): Promise<Course> => {
+  return await api.post<Course>(API_ENDPOINTS.COURSES.ARCHIVE(id));
+};
+
+/**
+ * Delete course (teacher only)
+ */
+export const deleteCourse = async (id: string): Promise<void> => {
+  return await api.delete<void>(API_ENDPOINTS.COURSES.DELETE(id));
+};
+
+/**
+ * Enroll in course (student only)
+ */
+export const enrollInCourse = async (courseCode: string): Promise<void> => {
+  return await api.post<void>(API_ENDPOINTS.COURSES.ENROLL, { courseCode });
+};

@@ -1,30 +1,28 @@
 /**
  * Course Types
  * 
- * TypeScript types for course-related data.
+ * Types related to courses and course management.
  */
 
 import { CourseStatus } from './common.types';
 
 /**
- * Course interface
+ * Course entity
  */
 export interface Course {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   courseCode: string;
   status: CourseStatus;
   teacherId: string;
   createdAt: string;
   updatedAt: string;
-}
-
-/**
- * Course with teacher info
- */
-export interface CourseWithTeacher extends Course {
-  teacherName?: string;
+  teacher?: {
+    id: string;
+    name: string;
+    email: string;
+  };
   enrollmentCount?: number;
 }
 
@@ -33,7 +31,21 @@ export interface CourseWithTeacher extends Course {
  */
 export interface CreateCourseRequest {
   name: string;
-  description: string;
+  description?: string;
+}
+
+/**
+ * Create course response
+ */
+export interface CreateCourseResponse {
+  id: string;
+  name: string;
+  description: string | null;
+  courseCode: string;
+  status: CourseStatus;
+  teacherId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**
@@ -45,8 +57,15 @@ export interface UpdateCourseRequest {
 }
 
 /**
- * Enroll in course request
+ * List courses response
  */
-export interface EnrollCourseRequest {
-  courseCode: string;
+export interface ListCoursesResponse {
+  data: Course[];
+}
+
+/**
+ * Course query filters
+ */
+export interface CourseQueryFilters {
+  status?: CourseStatus;
 }

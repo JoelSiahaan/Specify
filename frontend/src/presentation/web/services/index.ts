@@ -6,4 +6,4 @@
 
 export { api, default as apiClient } from './api';
 export { authService, default as auth } from './authService';
-export { courseService, default as course } from './courseService';
+export * as courseService from './courseService';
