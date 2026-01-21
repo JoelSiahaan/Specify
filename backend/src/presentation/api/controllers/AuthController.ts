@@ -31,9 +31,10 @@ import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddlewar
  * - secure: HTTPS only in production
  * - path: Scoped to /api to limit exposure
  */
+const sameSiteValue = process.env.NODE_ENV === 'production' ? 'strict' : 'lax';
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  sameSite: (process.env.NODE_ENV === 'production' ? 'strict' : 'lax') as const,
+  sameSite: sameSiteValue as 'strict' | 'lax',
   secure: process.env.NODE_ENV === 'production',
   path: '/api'
 };

@@ -43,6 +43,9 @@ export async function cleanupDatabase(prisma: PrismaClient): Promise<void> {
 
 /**
  * Generate test JWT token
+ * 
+ * Generates a token with the same format as JWTService for testing.
+ * Includes issuer and audience claims to match production tokens.
  */
 export function generateTestToken(payload: {
   userId: string;
@@ -51,6 +54,8 @@ export function generateTestToken(payload: {
 }): string {
   return jwt.sign(payload, process.env.JWT_ACCESS_SECRET || 'test-secret', {
     expiresIn: '15m',
+    issuer: 'lms-api',
+    audience: 'lms-client'
   });
 }
 

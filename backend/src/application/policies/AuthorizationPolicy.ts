@@ -19,8 +19,8 @@
 
 import { injectable } from 'tsyringe';
 import { IAuthorizationPolicy, AuthorizationContext } from './IAuthorizationPolicy';
-import { User, Role } from '../../domain/entities/User';
-import { Course, CourseStatus } from '../../domain/entities/Course';
+import { User } from '../../domain/entities/User';
+import { Course } from '../../domain/entities/Course';
 
 @injectable()
 export class AuthorizationPolicy implements IAuthorizationPolicy {
@@ -272,7 +272,7 @@ export class AuthorizationPolicy implements IAuthorizationPolicy {
    * 
    * Requirements: 2.1 (role-based), 2.3 (enrollment)
    */
-  canSubmitAssignment(user: User, course: Course, context: AuthorizationContext): boolean {
+  canSubmitAssignment(user: User, _course: Course, context: AuthorizationContext): boolean {
     // Requirement 2.1: Only students can submit assignments
     if (!user.isStudent()) {
       return false;

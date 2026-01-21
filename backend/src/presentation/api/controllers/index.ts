@@ -5,3 +5,4 @@
  */
 
 export { AuthController } from './AuthController';
+export { CourseController } from './CourseController';

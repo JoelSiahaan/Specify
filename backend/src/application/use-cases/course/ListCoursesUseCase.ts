@@ -11,10 +11,10 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
 import { User, Role } from '../../../domain/entities/User';
 import { CourseStatus } from '../../../domain/entities/Course';
 import { CourseListDTO } from '../../dtos/CourseDTO';
-import { CourseMapper } from '../../mappers/CourseMapper';
 import { ApplicationError } from '../../errors/ApplicationErrors';
 
 /**
@@ -31,7 +31,8 @@ export interface ListCoursesFilter {
 @injectable()
 export class ListCoursesUseCase {
   constructor(
-    @inject('ICourseRepository') private courseRepository: ICourseRepository
+    @inject('ICourseRepository') private courseRepository: ICourseRepository,
+    @inject('IUserRepository') private userRepository: IUserRepository
   ) {}
 
   /**
@@ -58,10 +59,10 @@ export class ListCoursesUseCase {
       // Requirement 5.10: Teachers see their own courses
       courses = await this.courseRepository.findByTeacherId(userId);
       
-      // Apply status filter if provided
-      if (filter?.status) {
-        courses = courses.filter(course => course.getStatus() === filter.status);
-      }
+      // Default to ACTIVE courses if no status filter provided
+      // Teachers must explicitly request ARCHIVED courses with ?status=ARCHIVED
+      const statusFilter = filter?.status || CourseStatus.ACTIVE;
+      courses = courses.filter(course => course.getStatus() === statusFilter);
     } else {
       // Requirement 6.1: Students see all active courses
       // Students can only see active courses (for browsing/enrollment)
@@ -91,32 +92,17 @@ export class ListCoursesUseCase {
    * @private
    */
   private async loadUser(userId: string): Promise<User> {
-    // Note: In a real implementation, we would inject IUserRepository
-    // For now, we create a mock user for role check
-    // This will be properly implemented when IUserRepository is available in DI
-    const { IUserRepository } = await import('../../../domain/repositories/IUserRepository');
-    const { container } = await import('tsyringe');
+    const user = await this.userRepository.findById(userId);
     
-    try {
-      const userRepository = container.resolve<typeof IUserRepository>('IUserRepository' as any);
-      const user = await (userRepository as any).findById(userId);
-      
-      if (!user) {
-        throw new ApplicationError(
-          'AUTH_REQUIRED',
-          'User not found',
-          401
-        );
-      }
-      
-      return user;
-    } catch (error) {
+    if (!user) {
       throw new ApplicationError(
         'AUTH_REQUIRED',
         'User not found',
         401
       );
     }
+    
+    return user;
   }
 
   /**

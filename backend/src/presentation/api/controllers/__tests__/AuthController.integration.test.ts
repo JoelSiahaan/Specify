@@ -51,8 +51,8 @@ describe('AuthController Integration Tests', () => {
 
     await prisma.$connect();
 
-    // Register dependencies
-    container.registerInstance(PrismaClient, prisma);
+    // Register dependencies (same pattern as CourseController)
+    container.registerInstance('PrismaClient', prisma);
     container.registerSingleton('IUserRepository', PrismaUserRepository);
     container.registerSingleton(PasswordService);
     container.registerSingleton(JWTService);

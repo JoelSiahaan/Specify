@@ -46,16 +46,8 @@ export class DeleteCourseUseCase {
       );
     }
 
-    // Validate teacher ownership (Requirement 5.6)
-    if (!this.authPolicy.canDeleteCourse(user, course)) {
-      throw new ApplicationError(
-        'NOT_OWNER',
-        'You do not have permission to delete this course',
-        403
-      );
-    }
-
-    // Validate course is archived (Requirement 5.6)
+    // Validate course is archived FIRST (Requirement 5.6)
+    // Business logic check should happen before authorization check
     // This will throw an error if course is active
     try {
       course.validateCanDelete();
@@ -64,6 +56,15 @@ export class DeleteCourseUseCase {
         'RESOURCE_ACTIVE',
         'Cannot delete active course. Archive the course first',
         400
+      );
+    }
+
+    // Validate teacher ownership (Requirement 5.6)
+    if (!this.authPolicy.canDeleteCourse(user, course)) {
+      throw new ApplicationError(
+        'NOT_OWNER',
+        'You do not have permission to delete this course',
+        403
       );
     }
 
@@ -91,11 +92,10 @@ export class DeleteCourseUseCase {
     // Note: In a real implementation, we would inject IUserRepository
     // For now, we create a mock user for authorization check
     // This will be properly implemented when IUserRepository is available in DI
-    const { IUserRepository } = await import('../../../domain/repositories/IUserRepository');
     const { container } = await import('tsyringe');
     
     try {
-      const userRepository = container.resolve<typeof IUserRepository>('IUserRepository' as any);
+      const userRepository = container.resolve('IUserRepository' as any);
       const user = await (userRepository as any).findById(userId);
       
       if (!user) {

@@ -704,7 +704,7 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 3.4 Presentation Layer - Course API
 
-- [ ] 3.4 Presentation Layer - Course API
+- [x] 3.4 Presentation Layer - Course API
   - Implement API controllers and validation schemas
   - _Requirements: 18.4, 20.2, 5.1, 5.3, 5.4, 5.6, 5.7, 5.10, 18.1, 18.2, 18.3_
 
@@ -716,7 +716,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Define validation rules
   - _Requirements: 18.4, 20.2_
 
-- [ ] 3.4.2 Implement CourseController
+- [x] 3.4.2 Implement CourseController
   - Priority: HIGH
   - Dependencies: 3.3.5, 3.3.6, 3.3.7, 3.3.8, 3.3.9, 3.4.1, 2.4.2, 2.4.3, 2.4.4
   - Can be parallelized: No
@@ -729,7 +729,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - POST /api/courses/:id/archive - ArchiveCourseUseCase (teacher only)
   - _Requirements: 5.1, 5.3, 5.4, 5.6, 5.7, 5.10_
 
-- [ ]* 3.4.3 Write API integration tests for courses
+- [x]* 3.4.3 Write API integration tests for courses
   - Priority: MEDIUM
   - Dependencies: 3.4.2, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)

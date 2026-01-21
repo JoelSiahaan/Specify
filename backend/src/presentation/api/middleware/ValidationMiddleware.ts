@@ -10,7 +10,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { ZodSchema, ZodError } from 'zod';
+import { ZodSchema } from 'zod';
 
 /**
  * Validation target types
@@ -41,21 +41,14 @@ export function validate(schema: ZodSchema, target: ValidationTarget = 'body') {
       const dataToValidate = req[target];
 
       // Validate data against schema
-      const validatedData = schema.parse(dataToValidate);
+      // Use safeParse to handle validation errors gracefully
+      const result = schema.safeParse(dataToValidate);
 
-      // Replace request data with validated (and potentially transformed) data
-      // This ensures any transformations (like toLowerCase, trim) are applied
-      req[target] = validatedData;
-
-      // Continue to next middleware
-      next();
-    } catch (error) {
-      // Handle Zod validation errors
-      if (error instanceof ZodError) {
+      if (!result.success) {
         // Extract field errors from Zod error
         const details: Record<string, string> = {};
         
-        error.errors.forEach((err) => {
+        result.error.errors.forEach((err) => {
           const field = err.path.join('.');
           details[field] = err.message;
         });
@@ -69,7 +62,18 @@ export function validate(schema: ZodSchema, target: ValidationTarget = 'body') {
         return;
       }
 
-      // Unexpected error (should not happen with Zod)
+      // Replace request data with validated (and potentially transformed) data
+      // This ensures any transformations (like toLowerCase, trim) are applied
+      // Note: req.query and req.params are read-only in Express, so we only replace req.body
+      if (target === 'body') {
+        req[target] = result.data;
+      }
+
+      // Continue to next middleware
+      next();
+    } catch (error) {
+      // Unexpected error (should not happen with safeParse)
+      console.error('[ValidationMiddleware] Unexpected error:', error);
       res.status(500).json({
         code: 'INTERNAL_ERROR',
         message: 'An unexpected error occurred during validation'

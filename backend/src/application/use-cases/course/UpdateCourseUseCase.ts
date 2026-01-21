@@ -49,21 +49,22 @@ export class UpdateCourseUseCase {
       );
     }
 
+    // Validate course is active FIRST (Requirement 5.3)
+    // Business logic check should happen before authorization check
+    if (!course.isActive()) {
+      throw new ApplicationError(
+        'RESOURCE_ARCHIVED',
+        'Cannot update archived course',
+        400
+      );
+    }
+
     // Validate teacher ownership (Requirement 5.3)
     if (!this.authPolicy.canModifyCourse(user, course)) {
       throw new ApplicationError(
         'NOT_OWNER',
         'You do not have permission to modify this course',
         403
-      );
-    }
-
-    // Validate course is active (Requirement 5.3)
-    if (!course.isActive()) {
-      throw new ApplicationError(
-        'RESOURCE_ARCHIVED',
-        'Cannot update archived course',
-        400
       );
     }
 
@@ -109,11 +110,10 @@ export class UpdateCourseUseCase {
     // Note: In a real implementation, we would inject IUserRepository
     // For now, we create a mock user for authorization check
     // This will be properly implemented when IUserRepository is available in DI
-    const { IUserRepository } = await import('../../../domain/repositories/IUserRepository');
     const { container } = await import('tsyringe');
     
     try {
-      const userRepository = container.resolve<typeof IUserRepository>('IUserRepository' as any);
+      const userRepository = container.resolve('IUserRepository' as any);
       const user = await (userRepository as any).findById(userId);
       
       if (!user) {

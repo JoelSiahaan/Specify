@@ -48,21 +48,22 @@ export class ArchiveCourseUseCase {
       );
     }
 
+    // Validate course is not already archived FIRST (Requirement 5.4)
+    // Business logic check should happen before authorization check
+    if (course.isArchived()) {
+      throw new ApplicationError(
+        'RESOURCE_ARCHIVED',
+        'Course is already archived',
+        400
+      );
+    }
+
     // Validate teacher ownership (Requirement 5.4)
     if (!this.authPolicy.canArchiveCourse(user, course)) {
       throw new ApplicationError(
         'NOT_OWNER',
         'You do not have permission to archive this course',
         403
-      );
-    }
-
-    // Validate course is not already archived (Requirement 5.4)
-    if (course.isArchived()) {
-      throw new ApplicationError(
-        'RESOURCE_ARCHIVED',
-        'Course is already archived',
-        400
       );
     }
 
@@ -92,11 +93,10 @@ export class ArchiveCourseUseCase {
     // Note: In a real implementation, we would inject IUserRepository
     // For now, we create a mock user for authorization check
     // This will be properly implemented when IUserRepository is available in DI
-    const { IUserRepository } = await import('../../../domain/repositories/IUserRepository');
     const { container } = await import('tsyringe');
     
     try {
-      const userRepository = container.resolve<typeof IUserRepository>('IUserRepository' as any);
+      const userRepository = container.resolve('IUserRepository' as any);
       const user = await (userRepository as any).findById(userId);
       
       if (!user) {
