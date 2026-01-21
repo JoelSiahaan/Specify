@@ -136,7 +136,7 @@ describe('AuthController Integration Tests', () => {
 
         // Assert
         assertSuccessResponse(response, 201);
-        expect(response.body.email).toBe('uppercase@test.com');
+        expect(response.body.user.email).toBe('uppercase@test.com');
       });
     });
 
