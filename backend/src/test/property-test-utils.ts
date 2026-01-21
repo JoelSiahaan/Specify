@@ -51,7 +51,7 @@ export const courseNameArbitrary = () =>
  * Generator for course descriptions
  */
 export const courseDescriptionArbitrary = () =>
-  fc.string({ minLength: 0, maxLength: 1000 });
+  fc.string({ minLength: 1, maxLength: 1000 }).filter(s => s.trim().length > 0);
 
 /**
  * Generator for course status

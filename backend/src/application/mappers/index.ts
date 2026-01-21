@@ -5,3 +5,4 @@
  */
 
 export * from './UserMapper';
+export * from './CourseMapper';

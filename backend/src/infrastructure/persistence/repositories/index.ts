@@ -5,3 +5,4 @@
  */
 
 export { PrismaUserRepository } from './PrismaUserRepository';
+export { PrismaCourseRepository } from './PrismaCourseRepository';

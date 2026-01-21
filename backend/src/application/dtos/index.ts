@@ -5,3 +5,4 @@
  */
 
 export * from './UserDTO';
+export * from './CourseDTO';

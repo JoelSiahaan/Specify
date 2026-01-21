@@ -5,3 +5,4 @@
  */
 
 export { Email } from './Email';
+export { CourseCode } from './CourseCode';

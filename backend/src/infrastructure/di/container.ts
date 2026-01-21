@@ -15,10 +15,11 @@
  */
 
 import { container } from 'tsyringe';
-import { PrismaClient } from '@prisma/client';
 import { prisma } from '../persistence/prisma/client';
 import { IUserRepository } from '../../domain/repositories/IUserRepository';
 import { PrismaUserRepository } from '../persistence/repositories/PrismaUserRepository';
+import { ICourseRepository } from '../../domain/repositories/ICourseRepository';
+import { PrismaCourseRepository } from '../persistence/repositories/PrismaCourseRepository';
 import { JWTService } from '../auth/JWTService';
 import { PasswordService } from '../auth/PasswordService';
 import { RegisterUserUseCase } from '../../application/use-cases/auth/RegisterUserUseCase';
@@ -26,6 +27,13 @@ import { LoginUserUseCase } from '../../application/use-cases/auth/LoginUserUseC
 import { RefreshTokenUseCase } from '../../application/use-cases/auth/RefreshTokenUseCase';
 import { LogoutUserUseCase } from '../../application/use-cases/auth/LogoutUserUseCase';
 import { GetCurrentUserUseCase } from '../../application/use-cases/auth/GetCurrentUserUseCase';
+import { IAuthorizationPolicy } from '../../application/policies/IAuthorizationPolicy';
+import { AuthorizationPolicy } from '../../application/policies/AuthorizationPolicy';
+import { CreateCourseUseCase } from '../../application/use-cases/course/CreateCourseUseCase';
+import { UpdateCourseUseCase } from '../../application/use-cases/course/UpdateCourseUseCase';
+import { ArchiveCourseUseCase } from '../../application/use-cases/course/ArchiveCourseUseCase';
+import { DeleteCourseUseCase } from '../../application/use-cases/course/DeleteCourseUseCase';
+import { ListCoursesUseCase } from '../../application/use-cases/course/ListCoursesUseCase';
 
 /**
  * Initialize the DI container with all application dependencies
@@ -55,6 +63,11 @@ export function configureContainer(): void {
   console.log('[DI] Registering PrismaUserRepository');
   container.registerSingleton<IUserRepository>('IUserRepository', PrismaUserRepository);
   console.log('[DI] IUserRepository registered');
+  
+  // Register Course Repository as singleton (TSyringe will auto-inject PrismaClient)
+  console.log('[DI] Registering PrismaCourseRepository');
+  container.registerSingleton<ICourseRepository>('ICourseRepository', PrismaCourseRepository);
+  console.log('[DI] ICourseRepository registered');
   
   // Repository implementations will be registered here as they are created
   // Example pattern (to be implemented in future tasks):
@@ -115,6 +128,41 @@ export function configureContainer(): void {
     useClass: GetCurrentUserUseCase
   });
   
+  // Register CreateCourseUseCase as transient
+  console.log('[DI] Registering CreateCourseUseCase');
+  container.register(CreateCourseUseCase, {
+    useClass: CreateCourseUseCase
+  });
+  console.log('[DI] CreateCourseUseCase registered');
+  
+  // Register UpdateCourseUseCase as transient
+  console.log('[DI] Registering UpdateCourseUseCase');
+  container.register(UpdateCourseUseCase, {
+    useClass: UpdateCourseUseCase
+  });
+  console.log('[DI] UpdateCourseUseCase registered');
+  
+  // Register ArchiveCourseUseCase as transient
+  console.log('[DI] Registering ArchiveCourseUseCase');
+  container.register(ArchiveCourseUseCase, {
+    useClass: ArchiveCourseUseCase
+  });
+  console.log('[DI] ArchiveCourseUseCase registered');
+  
+  // Register DeleteCourseUseCase as transient
+  console.log('[DI] Registering DeleteCourseUseCase');
+  container.register(DeleteCourseUseCase, {
+    useClass: DeleteCourseUseCase
+  });
+  console.log('[DI] DeleteCourseUseCase registered');
+  
+  // Register ListCoursesUseCase as transient
+  console.log('[DI] Registering ListCoursesUseCase');
+  container.register(ListCoursesUseCase, {
+    useClass: ListCoursesUseCase
+  });
+  console.log('[DI] ListCoursesUseCase registered');
+  
   // Example pattern (to be implemented in future tasks):
   // container.register(CreateCourseUseCase, {
   //   useClass: CreateCourseUseCase
@@ -125,11 +173,12 @@ export function configureContainer(): void {
   // ========================================
   
   // Authorization policies are registered as singletons (stateless, reusable)
-  // Example pattern (to be implemented in future tasks):
-  // container.registerSingleton<IAuthorizationPolicy>(
-  //   'IAuthorizationPolicy',
-  //   AuthorizationPolicy
-  // );
+  console.log('[DI] Registering AuthorizationPolicy');
+  container.registerSingleton<IAuthorizationPolicy>(
+    'IAuthorizationPolicy',
+    AuthorizationPolicy
+  );
+  console.log('[DI] IAuthorizationPolicy registered');
   
   // ========================================
   // Presentation Layer - Controllers

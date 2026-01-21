@@ -27,6 +27,9 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // Relations
+  courses Course[] // Courses created by this teacher
+
   @@map("users")
 }
 
@@ -35,4 +38,29 @@ model User {
 enum Role {
   STUDENT
   TEACHER
+}
+
+// Course model for course management
+// Requirements: 17.1, 17.4, 17.5, 5.1, 5.4, 5.6, 5.7
+model Course {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String
+  description String
+  courseCode  String       @unique
+  status      CourseStatus @default(ACTIVE)
+  teacherId   String       @db.Uuid
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  teacher User @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@map("courses")
+}
+
+// Course status enum
+// Requirements: 5.4 (Course lifecycle: Active → Archived → Deleted)
+enum CourseStatus {
+  ACTIVE
+  ARCHIVED
 }

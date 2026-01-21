@@ -18,3 +18,19 @@ export {
   type RefreshTokenRequest,
   type Role
 } from './authSchemas';
+
+export {
+  CreateCourseRequestSchema,
+  UpdateCourseRequestSchema,
+  EnrollCourseRequestSchema,
+  CourseQuerySchema,
+  CourseNameSchema,
+  CourseDescriptionSchema,
+  CourseCodeSchema,
+  CourseStatusSchema,
+  type CreateCourseRequest,
+  type UpdateCourseRequest,
+  type EnrollCourseRequest,
+  type CourseQuery,
+  type CourseStatus
+} from './courseSchemas';
