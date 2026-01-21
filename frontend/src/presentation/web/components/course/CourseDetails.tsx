@@ -10,7 +10,7 @@
  * - 5.7: Require archiving before deletion
  * - 5.10: View course details
  */
-
+// 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Spinner, ErrorMessage } from '../shared';
