@@ -6,3 +6,4 @@
 
 export { default as authRoutes } from './authRoutes';
 export { default as courseRoutes } from './courseRoutes';
+export { default as materialRoutes } from './materialRoutes';
