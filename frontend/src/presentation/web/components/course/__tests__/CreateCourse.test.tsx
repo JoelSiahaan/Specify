@@ -408,7 +408,7 @@ describe('CreateCourse', () => {
       const viewCourseButton = screen.getByRole('button', { name: /view course/i });
       await user.click(viewCourseButton);
       
-      expect(mockNavigate).toHaveBeenCalledWith('/courses/course-123');
+      expect(mockNavigate).toHaveBeenCalledWith('/teacher/courses/course-123');
     });
   });
 

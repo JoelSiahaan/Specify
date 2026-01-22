@@ -783,7 +783,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Handle course lifecycle (active → archived → deleted)
   - _Requirements: 5.4, 5.6, 5.7, 5.10_
 
-- [ ] 3.5.5 Write React component tests for courses
+- [x] 3.5.5 Write React component tests for courses
 
   - Priority: MEDIUM
   - Dependencies: 3.5.2, 3.5.3, 3.5.4, 1.5 (testing framework)

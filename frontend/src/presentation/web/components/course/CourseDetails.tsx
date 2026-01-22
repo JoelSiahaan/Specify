@@ -23,18 +23,12 @@ import type { Course, ApiError } from '../../types';
 export const CourseDetails: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   // State
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [actionLoading, setActionLoading] = useState<'archive' | 'delete' | null>(null);
-  
-  // Confirmation dialogs
-  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   /**
    * Fetch course details on mount
@@ -65,62 +59,12 @@ export const CourseDetails: React.FC = () => {
   };
 
   /**
-   * Handle archive course
-   */
-  const handleArchive = async () => {
-    if (!courseId || !course) return;
-
-    try {
-      setActionLoading('archive');
-      setError(null);
-      
-      const archivedCourse = await courseService.archiveCourse(courseId);
-      setCourse(archivedCourse);
-      setShowArchiveConfirm(false);
-      
-      // Show success message (could use toast notification)
-      alert('Course archived successfully. All assignments and quizzes have been closed.');
-    } catch (err) {
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to archive course');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  /**
-   * Handle delete course
-   */
-  const handleDelete = async () => {
-    if (!courseId || !course) return;
-
-    try {
-      setActionLoading('delete');
-      setError(null);
-      
-      await courseService.deleteCourse(courseId);
-      
-      // Navigate back to dashboard after successful deletion
-      navigate(ROUTES.TEACHER_DASHBOARD);
-    } catch (err) {
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to delete course');
-      setActionLoading(null);
-    }
-  };
-
-  /**
    * Handle update success
    */
   const handleUpdateSuccess = (updatedCourse: Course) => {
     setCourse(updatedCourse);
     setIsEditing(false);
   };
-
-  /**
-   * Check if user is the course owner
-   */
-  const isOwner = user?.id === course?.teacherId;
 
   // Loading state
   if (loading) {
