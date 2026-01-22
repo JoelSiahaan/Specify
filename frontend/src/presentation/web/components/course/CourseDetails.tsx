@@ -23,12 +23,16 @@ import type { Course, ApiError } from '../../types';
 export const CourseDetails: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // State
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+
+  // Determine dashboard route based on user role
+  const dashboardRoute = user?.role === 'STUDENT' ? ROUTES.STUDENT_DASHBOARD : ROUTES.TEACHER_DASHBOARD;
 
   /**
    * Fetch course details on mount
@@ -82,7 +86,7 @@ export const CourseDetails: React.FC = () => {
         <ErrorMessage message={error} />
         <Button
           variant="secondary"
-          onClick={() => navigate(ROUTES.TEACHER_DASHBOARD)}
+          onClick={() => navigate(dashboardRoute)}
           className="mt-4"
         >
           Back to Dashboard
@@ -101,7 +105,7 @@ export const CourseDetails: React.FC = () => {
           <p className="text-gray-600 mb-6">The course you're looking for doesn't exist.</p>
           <Button
             variant="primary"
-            onClick={() => navigate(ROUTES.TEACHER_DASHBOARD)}
+            onClick={() => navigate(dashboardRoute)}
           >
             Back to Dashboard
           </Button>
@@ -161,7 +165,7 @@ export const CourseDetails: React.FC = () => {
         <div className="flex justify-end pt-4 border-t border-gray-200">
           <Button
             variant="secondary"
-            onClick={() => navigate(ROUTES.TEACHER_DASHBOARD)}
+            onClick={() => navigate(dashboardRoute)}
           >
             Back to Dashboard
           </Button>

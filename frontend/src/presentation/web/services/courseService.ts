@@ -23,8 +23,11 @@ export const listCourses = async (filters?: CourseQueryFilters): Promise<ListCou
   if (filters?.status) {
     params.append('status', filters.status);
   }
+  if (filters?.enrolledOnly !== undefined) {
+    params.append('enrolledOnly', filters.enrolledOnly.toString());
+  }
   
-  const url = filters?.status 
+  const url = params.toString()
     ? `${API_ENDPOINTS.COURSES.LIST}?${params.toString()}`
     : API_ENDPOINTS.COURSES.LIST;
   
@@ -83,4 +86,16 @@ export const deleteCourse = async (id: string): Promise<void> => {
  */
 export const enrollInCourse = async (courseCode: string): Promise<void> => {
   return await api.post<void>(API_ENDPOINTS.COURSES.ENROLL, { courseCode });
+};
+
+/**
+ * Search courses (student only)
+ * Returns courses with enrollment status
+ */
+export const searchCourses = async (query?: string): Promise<ListCoursesResponse> => {
+  const url = query 
+    ? `${API_ENDPOINTS.COURSES.LIST}/search?query=${encodeURIComponent(query)}`
+    : `${API_ENDPOINTS.COURSES.LIST}/search`;
+  
+  return await api.get<ListCoursesResponse>(url);
 };

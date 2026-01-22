@@ -9,3 +9,4 @@ export * from './UpdateCourseUseCase';
 export * from './ArchiveCourseUseCase';
 export * from './DeleteCourseUseCase';
 export * from './ListCoursesUseCase';
+export * from './SearchCoursesUseCase';

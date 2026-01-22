@@ -59,6 +59,19 @@ export interface IEnrollmentRepository {
   findByCourse(courseId: string): Promise<Enrollment[]>;
 
   /**
+   * Find all enrollments for a student
+   * 
+   * Requirements:
+   * - 3.1: Students view enrolled courses on dashboard
+   * 
+   * Used to get all courses a student is enrolled in.
+   * 
+   * @param studentId - Student ID (UUID)
+   * @returns Promise resolving to array of Enrollment entities
+   */
+  findByStudentId(studentId: string): Promise<Enrollment[]>;
+
+  /**
    * Delete all enrollments for a course
    * 
    * Requirements:

@@ -20,6 +20,9 @@ import { UpdateCourseUseCase } from '../../../application/use-cases/course/Updat
 import { ArchiveCourseUseCase } from '../../../application/use-cases/course/ArchiveCourseUseCase';
 import { DeleteCourseUseCase } from '../../../application/use-cases/course/DeleteCourseUseCase';
 import { ListCoursesUseCase } from '../../../application/use-cases/course/ListCoursesUseCase';
+import { SearchCoursesUseCase } from '../../../application/use-cases/course/SearchCoursesUseCase';
+import { EnrollStudentUseCase } from '../../../application/use-cases/enrollment/EnrollStudentUseCase';
+import { BulkUnenrollUseCase } from '../../../application/use-cases/enrollment/BulkUnenrollUseCase';
 import { CourseStatus } from '../../../domain/entities/Course';
 import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware';
 
@@ -70,12 +73,24 @@ export class CourseController {
       // Get status filter from query parameters
       const status = req.query.status as CourseStatus | undefined;
       
+      // Get enrolledOnly filter from query parameters (for students)
+      const enrolledOnly = req.query.enrolledOnly === 'true';
+      
+      console.log('[CourseController] List courses request:', {
+        userId: authenticatedReq.user.userId,
+        status,
+        enrolledOnly,
+        rawEnrolledOnly: req.query.enrolledOnly
+      });
+      
       // Execute use case
       const listCoursesUseCase = container.resolve(ListCoursesUseCase);
       const courses = await listCoursesUseCase.execute(
         authenticatedReq.user.userId,
-        status ? { status } : undefined
+        { status, enrolledOnly }
       );
+      
+      console.log('[CourseController] Returning courses count:', courses.length);
       
       // Return courses wrapped in data object (200 OK)
       res.status(200).json({ data: courses });
@@ -388,6 +403,174 @@ export class CourseController {
       res.status(200).json({
         message: 'Course deleted successfully'
       });
+    } catch (error) {
+      // Pass error to error handler middleware
+      next(error);
+    }
+  }
+
+  /**
+   * Search courses
+   * 
+   * GET /api/courses/search
+   * 
+   * Requires authentication (AuthenticationMiddleware)
+   * 
+   * Query parameters:
+   * - query: string (optional) - Search query to filter courses by name
+   * 
+   * Response (200 OK):
+   * - data: Array of CourseSearchResultDTO with enrollment status
+   * 
+   * Business Rules:
+   * - Only active courses are searchable
+   * - Filter by course name if query provided
+   * - Indicate enrollment status for each course
+   * 
+   * Errors:
+   * - 401: Authentication required (handled by middleware)
+   * - 500: Internal server error
+   * 
+   * Requirements: 6.1, 6.2, 6.3, 6.4
+   */
+  async search(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // User is attached to request by AuthenticationMiddleware
+      const authenticatedReq = req as AuthenticatedRequest;
+      
+      if (!authenticatedReq.user) {
+        res.status(401).json({
+          code: 'AUTH_REQUIRED',
+          message: 'Authentication required'
+        });
+        return;
+      }
+
+      // Get search query from query parameters
+      const query = req.query.query as string | undefined;
+      
+      // Execute use case
+      const searchCoursesUseCase = container.resolve(SearchCoursesUseCase);
+      const courses = await searchCoursesUseCase.execute(
+        authenticatedReq.user.userId,
+        query ? { query } : undefined
+      );
+      
+      // Return courses wrapped in data object (200 OK)
+      res.status(200).json({ data: courses });
+    } catch (error) {
+      // Pass error to error handler middleware
+      next(error);
+    }
+  }
+
+  /**
+   * Enroll in course
+   * 
+   * POST /api/courses/enroll
+   * 
+   * Requires authentication (AuthenticationMiddleware)
+   * Requires student role (validated by use case)
+   * 
+   * Request body (validated by EnrollCourseRequestSchema):
+   * - courseCode: string (6-character alphanumeric)
+   * 
+   * Response (201 Created):
+   * - EnrollmentDTO
+   * 
+   * Errors:
+   * - 400: Validation failed
+   * - 401: Authentication required (handled by middleware)
+   * - 403: Only students can enroll in courses
+   * - 404: Invalid course code
+   * - 409: Course is archived or student already enrolled
+   * - 500: Internal server error
+   * 
+   * Requirements: 6.5, 6.6, 6.7, 6.8
+   */
+  async enroll(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // User is attached to request by AuthenticationMiddleware
+      const authenticatedReq = req as AuthenticatedRequest;
+      
+      if (!authenticatedReq.user) {
+        res.status(401).json({
+          code: 'AUTH_REQUIRED',
+          message: 'Authentication required'
+        });
+        return;
+      }
+
+      // Execute use case
+      const enrollStudentUseCase = container.resolve(EnrollStudentUseCase);
+      const enrollment = await enrollStudentUseCase.execute(
+        req.body,
+        authenticatedReq.user.userId
+      );
+      
+      // Return created enrollment (201 Created)
+      res.status(201).json(enrollment);
+    } catch (error) {
+      // Pass error to error handler middleware
+      next(error);
+    }
+  }
+
+  /**
+   * Bulk unenroll students
+   * 
+   * POST /api/courses/:id/unenroll-bulk
+   * 
+   * Requires authentication (AuthenticationMiddleware)
+   * Requires teacher ownership (validated by use case)
+   * 
+   * Path parameters:
+   * - id: Course ID (UUID)
+   * 
+   * Response (200 OK):
+   * - BulkUnenrollResponseDTO with success status and count
+   * 
+   * Errors:
+   * - 400: Course is not archived
+   * - 401: Authentication required (handled by middleware)
+   * - 403: Not the course owner
+   * - 404: Course not found
+   * - 500: Internal server error
+   * 
+   * Requirements: 5.8
+   */
+  async bulkUnenroll(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // User is attached to request by AuthenticationMiddleware
+      const authenticatedReq = req as AuthenticatedRequest;
+      
+      if (!authenticatedReq.user) {
+        res.status(401).json({
+          code: 'AUTH_REQUIRED',
+          message: 'Authentication required'
+        });
+        return;
+      }
+
+      const courseId = req.params.id as string;
+      
+      if (!courseId) {
+        res.status(400).json({
+          code: 'VALIDATION_FAILED',
+          message: 'Course ID is required'
+        });
+        return;
+      }
+      
+      // Execute use case
+      const bulkUnenrollUseCase = container.resolve(BulkUnenrollUseCase);
+      const result = await bulkUnenrollUseCase.execute(
+        courseId,
+        authenticatedReq.user.userId
+      );
+      
+      // Return success response (200 OK)
+      res.status(200).json(result);
     } catch (error) {
       // Pass error to error handler middleware
       next(error);
