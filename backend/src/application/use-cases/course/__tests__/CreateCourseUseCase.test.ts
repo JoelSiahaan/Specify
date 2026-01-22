@@ -12,27 +12,19 @@
 
 import { CreateCourseUseCase } from '../CreateCourseUseCase';
 import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
 import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
 import { User, Role } from '../../../../domain/entities/User';
 import { Course, CourseStatus } from '../../../../domain/entities/Course';
 import { CreateCourseDTO } from '../../../dtos/CourseDTO';
 import { ApplicationError } from '../../../errors/ApplicationErrors';
 
-// Mock tsyringe container
-jest.mock('tsyringe', () => ({
-  injectable: () => (target: any) => target,
-  inject: () => (target: any, propertyKey: string, parameterIndex: number) => {},
-  container: {
-    resolve: jest.fn()
-  }
-}));
-
 describe('CreateCourseUseCase', () => {
   let createCourseUseCase: CreateCourseUseCase;
   let mockCourseRepository: jest.Mocked<ICourseRepository>;
+  let mockUserRepository: jest.Mocked<IUserRepository>;
   let mockAuthPolicy: jest.Mocked<IAuthorizationPolicy>;
   let mockTeacher: User;
-  let mockStudent: User;
 
   beforeEach(() => {
     // Create mock repository
@@ -45,6 +37,14 @@ describe('CreateCourseUseCase', () => {
       update: jest.fn(),
       delete: jest.fn()
     } as jest.Mocked<ICourseRepository>;
+
+    // Create mock user repository
+    mockUserRepository = {
+      save: jest.fn(),
+      findById: jest.fn(),
+      findByEmail: jest.fn(),
+      delete: jest.fn()
+    } as jest.Mocked<IUserRepository>;
 
     // Create mock authorization policy
     mockAuthPolicy = {
@@ -74,28 +74,13 @@ describe('CreateCourseUseCase', () => {
       passwordHash: 'hashed-password'
     });
 
-    mockStudent = User.create({
-      id: 'student-id',
-      email: 'student@example.com',
-      name: 'Student User',
-      role: Role.STUDENT,
-      passwordHash: 'hashed-password'
-    });
-
-    // Mock container.resolve to return mock user repository
-    const { container } = require('tsyringe');
-    container.resolve.mockImplementation((token: string) => {
-      if (token === 'IUserRepository') {
-        return {
-          findById: jest.fn().mockResolvedValue(mockTeacher)
-        };
-      }
-      return null;
-    });
+    // Mock user repository to return mock teacher
+    mockUserRepository.findById.mockResolvedValue(mockTeacher);
 
     // Create use case with mocks
     createCourseUseCase = new CreateCourseUseCase(
       mockCourseRepository,
+      mockUserRepository,
       mockAuthPolicy
     );
   });

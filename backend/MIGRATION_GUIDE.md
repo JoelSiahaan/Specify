@@ -95,15 +95,44 @@ docker-compose exec postgres psql -U lms_user -d lms_dev
 npx prisma generate
 ```
 
-### Step 5: Test Migration
+### Step 5: Apply Migration to Test Database
+
+**CRITICAL:** Integration tests use a separate test database. You MUST apply migrations to the test database before running integration tests.
+
+```bash
+# From backend folder
+# Set TEST_DATABASE_URL and apply migration
+$env:DATABASE_URL="postgresql://lms_test_user:test_password@localhost:5433/lms_test"
+npx prisma migrate deploy
+```
+
+**Why this step is needed:**
+- Development database (port 5432): Used by `migrate dev` command
+- Test database (port 5433): Used by Jest integration tests
+- Migrations created in dev must be applied to test database separately
+
+**Verification:**
+```bash
+# Check migration status on test database
+$env:DATABASE_URL="postgresql://lms_test_user:test_password@localhost:5433/lms_test"
+npx prisma migrate status
+
+# Should show: "Database schema is up to date!"
+```
+
+### Step 6: Test Migration
 
 ```bash
 # Run tests to verify migration works
 npm test
 
-# Or run specific tests
-npm test -- Material.test.ts
+# Or run specific integration tests
+npm test -- PrismaMaterialRepository.test.ts
 ```
+
+**If tests fail with "table does not exist":**
+- You forgot Step 5 (apply migration to test database)
+- Go back and run `migrate deploy` with TEST_DATABASE_URL
 
 ---
 
@@ -264,6 +293,35 @@ npx prisma generate
 npx prisma migrate dev
 ```
 
+### Problem: Integration tests fail with "table does not exist"
+
+**Error:**
+```
+PrismaClientKnownRequestError: The table `public.materials` does not exist in the current database
+```
+
+**Root Cause:**
+- Migration was applied to dev database (port 5432) but NOT to test database (port 5433)
+- Integration tests use test database, which doesn't have the new table
+
+**Solution:**
+```bash
+# Apply migration to test database
+cd backend
+$env:DATABASE_URL="postgresql://lms_test_user:test_password@localhost:5433/lms_test"
+npx prisma migrate deploy
+
+# Verify migration was applied
+npx prisma migrate status
+
+# Run tests again
+npm test -- PrismaMaterialRepository.test.ts
+```
+
+**Prevention:**
+- Always run Step 5 (Apply Migration to Test Database) after creating a migration
+- Add this to your checklist before running integration tests
+
 ---
 
 ## Production Migrations
@@ -303,7 +361,9 @@ Before committing a migration, verify:
 - [ ] Migration file has descriptive name
 - [ ] Migration SQL is correct (review generated SQL)
 - [ ] Prisma Client regenerated (`npx prisma generate`)
-- [ ] Tests pass (`npm test`)
+- [ ] Migration applied to test database (`migrate deploy` with TEST_DATABASE_URL)
+- [ ] Integration tests pass (`npm test -- RepositoryName.test.ts`)
+- [ ] Unit tests pass (`npm test`)
 - [ ] TypeScript compiles (`npm run build`)
 - [ ] Migration committed to Git (including migration folder)
 - [ ] `.env` file NOT committed (only `.env.example`)
@@ -365,15 +425,23 @@ npx prisma migrate status
 ### Environment Variables
 
 ```bash
-# Development (from docker-compose.yml)
+# Development Database (from docker-compose.yml)
 DATABASE_URL=postgresql://lms_user:dev_password@localhost:5432/lms_dev
 
-# Test (from docker-compose.yml)
-DATABASE_URL=postgresql://lms_test_user:test_password@localhost:5433/lms_test
+# Test Database (from docker-compose.yml)
+TEST_DATABASE_URL=postgresql://lms_test_user:test_password@localhost:5433/lms_test
+
+# For applying migration to test database
+$env:DATABASE_URL="postgresql://lms_test_user:test_password@localhost:5433/lms_test"
 
 # Production (from .env.production)
 DATABASE_URL=postgresql://lms_user:${DB_PASSWORD}@postgres:5432/lms_prod
 ```
+
+**Important:**
+- Dev database: port 5432 (used by `migrate dev`)
+- Test database: port 5433 (used by Jest integration tests)
+- Always apply migrations to BOTH databases
 
 ---
 
@@ -381,19 +449,23 @@ DATABASE_URL=postgresql://lms_user:${DB_PASSWORD}@postgres:5432/lms_prod
 
 **Standard Migration Workflow:**
 
-1. Start Docker Compose: `docker-compose up -d postgres`
+1. Start Docker Compose: `docker-compose up -d postgres postgres-test`
 2. Update schema: Edit `backend/prisma/schema.prisma`
-3. Create migration: `npx prisma migrate dev --name <name>`
-4. Verify: `npm test` and `npx prisma studio`
-5. Commit: Git commit migration files
+3. Create migration: `npx prisma migrate dev --name <name>` (applies to dev DB)
+4. Apply to test DB: `$env:DATABASE_URL="postgresql://lms_test_user:test_password@localhost:5433/lms_test"; npx prisma migrate deploy`
+5. Verify: `npm test` and `npx prisma studio`
+6. Commit: Git commit migration files
 
 **Key Points:**
-- ✅ Use `npx prisma migrate dev` for development
+- ✅ Use `npx prisma migrate dev` for development (port 5432)
+- ✅ Use `npx prisma migrate deploy` for test database (port 5433)
 - ✅ Use `npx prisma migrate deploy` for production
 - ✅ Let Prisma auto-generate timestamps
-- ✅ Use Docker Compose for local database
+- ✅ Use Docker Compose for local databases
+- ✅ Always apply migrations to BOTH dev and test databases
 - ❌ Never manually create migration files
 - ❌ Never use custom timestamps
+- ❌ Never skip test database migration (causes "table does not exist" errors)
 
 ---
 

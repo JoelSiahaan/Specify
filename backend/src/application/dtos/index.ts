@@ -6,3 +6,4 @@
 
 export * from './UserDTO';
 export * from './CourseDTO';
+export * from './MaterialDTO';

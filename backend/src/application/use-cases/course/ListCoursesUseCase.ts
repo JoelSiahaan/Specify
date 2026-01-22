@@ -33,11 +33,7 @@ export class ListCoursesUseCase {
   constructor(
     @inject('ICourseRepository') private courseRepository: ICourseRepository,
     @inject('IUserRepository') private userRepository: IUserRepository
-  ) {
-    console.log('[ListCoursesUseCase] Constructor called');
-    console.log('[ListCoursesUseCase] courseRepository:', courseRepository ? 'OK' : 'UNDEFINED');
-    console.log('[ListCoursesUseCase] userRepository:', userRepository ? 'OK' : 'UNDEFINED');
-  }
+  ) {}
 
   /**
    * Execute course listing
@@ -63,8 +59,8 @@ export class ListCoursesUseCase {
       // Requirement 5.10: Teachers see their own courses
       courses = await this.courseRepository.findByTeacherId(userId);
       
-      // Default to ACTIVE courses if no status filter provided
-      // Teachers must explicitly request ARCHIVED courses with ?status=ARCHIVED
+      // Default to ACTIVE if no filter provided (for backward compatibility)
+      // Teachers must explicitly request ARCHIVED or ALL
       const statusFilter = filter?.status || CourseStatus.ACTIVE;
       courses = courses.filter(course => course.getStatus() === statusFilter);
     } else {

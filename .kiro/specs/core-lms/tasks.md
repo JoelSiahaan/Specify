@@ -1095,7 +1095,7 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 5.2 Infrastructure Layer - Material Persistence and Storage
 
-- [ ] 5.2 Infrastructure Layer - Material Persistence and Storage
+- [x] 5.2 Infrastructure Layer - Material Persistence and Storage
   - Implement Prisma models, repositories, and file storage
   - _Requirements: 17.1, 17.4, 17.5, 17.2, 17.3, 7.1, 7.9, 20.3, 20.5_
 
@@ -1117,7 +1117,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as singleton
   - _Requirements: 17.1, 17.2, 17.3_
 
-- [ ]* 5.2.3 Write integration tests for PrismaMaterialRepository
+- [x]* 5.2.3 Write integration tests for PrismaMaterialRepository
   - Priority: MEDIUM
   - Dependencies: 5.2.2, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -1125,7 +1125,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Test relationship with Course
   - _Requirements: 17.1, 17.2, 17.3_
 
-- [ ] 5.2.4 Implement LocalFileStorage adapter
+- [x] 5.2.4 Implement LocalFileStorage adapter
   - Priority: VERY HIGH
   - Dependencies: 5.1.2 (IFileStorage interface), 1.4 (TSyringe)
   - Can be parallelized: Yes (with 5.2.1, 5.2.2)
@@ -1137,7 +1137,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as singleton
   - _Requirements: 7.1, 7.9, 20.3_
 
-- [ ]* 5.2.5 Write integration tests for file storage
+- [x]* 5.2.5 Write integration tests for file storage
   - Priority: MEDIUM
   - Dependencies: 5.2.4, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -1149,11 +1149,11 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 5.3 Application Layer - Material Use Cases
 
-- [ ] 5.3 Application Layer - Material Use Cases
+- [x] 5.3 Application Layer - Material Use Cases
   - Implement material use cases with file upload and validation
   - _Requirements: 18.4, 7.1, 7.2, 7.3, 7.4, 7.5, 7.8, 7.9, 7.10, 7.11, 20.2, 7.7, 7.6, 8.1, 8.2_
 
-- [ ] 5.3.1 Create material DTOs and mappers
+- [x] 5.3.1 Create material DTOs and mappers
   - Priority: HIGH
   - Dependencies: 5.1.1 (Material entity)
   - Can be parallelized: Yes (with 5.3.2)
@@ -1161,7 +1161,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Create MaterialMapper with toDTO and toDomain methods
   - _Requirements: 18.4_
 
-- [ ] 5.3.2 Implement CreateMaterialUseCase
+- [x] 5.3.2 Implement CreateMaterialUseCase
   - Priority: HIGH
   - Dependencies: 5.1.1, 5.2.2 (repository), 5.2.4 (file storage), 3.3.3 (authorization policy), 5.3.1 (DTOs)
   - Can be parallelized: Yes (with 5.3.4, 5.3.5, 5.3.6, 5.3.7)
@@ -1176,7 +1176,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.8, 7.9, 7.10, 7.11, 20.2_
 
-- [ ]* 5.3.3 Write property test for file upload validation
+- [x]* 5.3.3 Write property test for file upload validation
   - Priority: MEDIUM
   - Dependencies: 5.3.2, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -1184,7 +1184,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - **Validates: Requirements 7.5, 7.9, 20.5**
   - For any file upload, files exceeding 10MB are rejected
 
-- [ ] 5.3.4 Implement UpdateMaterialUseCase
+- [x] 5.3.4 Implement UpdateMaterialUseCase
   - Priority: MEDIUM-HIGH
   - Dependencies: 5.1.1, 5.2.2, 5.2.4, 3.3.3
   - Can be parallelized: Yes (with 5.3.2, 5.3.5, 5.3.6, 5.3.7)
@@ -1196,7 +1196,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 7.7_
 
-- [ ] 5.3.5 Implement DeleteMaterialUseCase
+- [x] 5.3.5 Implement DeleteMaterialUseCase
   - Priority: MEDIUM-HIGH
   - Dependencies: 5.1.1, 5.2.2, 5.2.4, 3.3.3
   - Can be parallelized: Yes (with 5.3.2, 5.3.4, 5.3.6, 5.3.7)
@@ -1207,7 +1207,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 7.6_
 
-- [ ] 5.3.6 Implement ListMaterialsUseCase
+- [x] 5.3.6 Implement ListMaterialsUseCase
   - Priority: HIGH
   - Dependencies: 5.2.2, 3.3.3
   - Can be parallelized: Yes (with 5.3.2, 5.3.4, 5.3.5, 5.3.7)
@@ -1216,7 +1216,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 8.1_
 
-- [ ] 5.3.7 Implement DownloadMaterialUseCase
+- [x] 5.3.7 Implement DownloadMaterialUseCase
   - Priority: HIGH
   - Dependencies: 5.2.2, 5.2.4, 3.3.3
   - Can be parallelized: Yes (with 5.3.2, 5.3.4, 5.3.5, 5.3.6)

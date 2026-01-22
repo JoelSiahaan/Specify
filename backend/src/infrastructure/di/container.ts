@@ -22,6 +22,8 @@ import { ICourseRepository } from '../../domain/repositories/ICourseRepository';
 import { PrismaCourseRepository } from '../persistence/repositories/PrismaCourseRepository';
 import { IMaterialRepository } from '../../domain/repositories/IMaterialRepository';
 import { PrismaMaterialRepository } from '../persistence/repositories/PrismaMaterialRepository';
+import { IFileStorage } from '../../domain/storage/IFileStorage';
+import { LocalFileStorage } from '../storage/LocalFileStorage';
 import { JWTService } from '../auth/JWTService';
 import { PasswordService } from '../auth/PasswordService';
 import { RegisterUserUseCase } from '../../application/use-cases/auth/RegisterUserUseCase';
@@ -36,6 +38,11 @@ import { UpdateCourseUseCase } from '../../application/use-cases/course/UpdateCo
 import { ArchiveCourseUseCase } from '../../application/use-cases/course/ArchiveCourseUseCase';
 import { DeleteCourseUseCase } from '../../application/use-cases/course/DeleteCourseUseCase';
 import { ListCoursesUseCase } from '../../application/use-cases/course/ListCoursesUseCase';
+import { CreateMaterialUseCase } from '../../application/use-cases/material/CreateMaterialUseCase';
+import { UpdateMaterialUseCase } from '../../application/use-cases/material/UpdateMaterialUseCase';
+import { DeleteMaterialUseCase } from '../../application/use-cases/material/DeleteMaterialUseCase';
+import { ListMaterialsUseCase } from '../../application/use-cases/material/ListMaterialsUseCase';
+import { DownloadMaterialUseCase } from '../../application/use-cases/material/DownloadMaterialUseCase';
 
 /**
  * Initialize the DI container with all application dependencies
@@ -90,12 +97,8 @@ export function configureContainer(): void {
   // Infrastructure Layer - Storage
   // ========================================
   
-  // File storage implementations will be registered here
-  // Example pattern (to be implemented in future tasks):
-  // container.registerSingleton<IFileStorage>(
-  //   'IFileStorage',
-  //   LocalFileStorage
-  // );
+  // Register LocalFileStorage as singleton (file storage service)
+  container.registerSingleton<IFileStorage>('IFileStorage', LocalFileStorage);
   
   // ========================================
   // Application Layer - Use Cases
@@ -160,6 +163,41 @@ export function configureContainer(): void {
     useClass: ListCoursesUseCase
   });
   console.log('[DI] ListCoursesUseCase registered');
+  
+  // Register CreateMaterialUseCase as transient
+  console.log('[DI] Registering CreateMaterialUseCase');
+  container.register(CreateMaterialUseCase, {
+    useClass: CreateMaterialUseCase
+  });
+  console.log('[DI] CreateMaterialUseCase registered');
+  
+  // Register UpdateMaterialUseCase as transient
+  console.log('[DI] Registering UpdateMaterialUseCase');
+  container.register(UpdateMaterialUseCase, {
+    useClass: UpdateMaterialUseCase
+  });
+  console.log('[DI] UpdateMaterialUseCase registered');
+  
+  // Register DeleteMaterialUseCase as transient
+  console.log('[DI] Registering DeleteMaterialUseCase');
+  container.register(DeleteMaterialUseCase, {
+    useClass: DeleteMaterialUseCase
+  });
+  console.log('[DI] DeleteMaterialUseCase registered');
+  
+  // Register ListMaterialsUseCase as transient
+  console.log('[DI] Registering ListMaterialsUseCase');
+  container.register(ListMaterialsUseCase, {
+    useClass: ListMaterialsUseCase
+  });
+  console.log('[DI] ListMaterialsUseCase registered');
+  
+  // Register DownloadMaterialUseCase as transient
+  console.log('[DI] Registering DownloadMaterialUseCase');
+  container.register(DownloadMaterialUseCase, {
+    useClass: DownloadMaterialUseCase
+  });
+  console.log('[DI] DownloadMaterialUseCase registered');
   
   // Example pattern (to be implemented in future tasks):
   // container.register(CreateCourseUseCase, {

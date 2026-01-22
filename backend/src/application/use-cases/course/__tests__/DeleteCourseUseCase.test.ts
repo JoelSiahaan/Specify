@@ -11,6 +11,7 @@
 
 import { DeleteCourseUseCase } from '../DeleteCourseUseCase';
 import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
 import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
 import { Course, CourseStatus } from '../../../../domain/entities/Course';
 import { User, Role } from '../../../../domain/entities/User';
@@ -23,6 +24,14 @@ const mockCourseRepository: jest.Mocked<ICourseRepository> = {
   findByTeacherId: jest.fn(),
   findByCode: jest.fn(),
   update: jest.fn(),
+  delete: jest.fn(),
+  findAll: jest.fn()
+};
+
+const mockUserRepository: jest.Mocked<IUserRepository> = {
+  save: jest.fn(),
+  findById: jest.fn(),
+  findByEmail: jest.fn(),
   delete: jest.fn()
 };
 
@@ -44,15 +53,6 @@ const mockAuthPolicy: jest.Mocked<IAuthorizationPolicy> = {
   canViewProgress: jest.fn()
 };
 
-// Mock container for user loading
-jest.mock('tsyringe', () => ({
-  injectable: () => (target: any) => target,
-  inject: () => (target: any, propertyKey: string, parameterIndex: number) => {},
-  container: {
-    resolve: jest.fn()
-  }
-}));
-
 describe('DeleteCourseUseCase', () => {
   let useCase: DeleteCourseUseCase;
   let mockUser: User;
@@ -64,7 +64,7 @@ describe('DeleteCourseUseCase', () => {
     jest.clearAllMocks();
 
     // Create use case instance
-    useCase = new DeleteCourseUseCase(mockCourseRepository, mockAuthPolicy);
+    useCase = new DeleteCourseUseCase(mockCourseRepository, mockUserRepository, mockAuthPolicy);
 
     // Create mock user (teacher)
     mockUser = User.create({
@@ -95,11 +95,8 @@ describe('DeleteCourseUseCase', () => {
       teacherId: 'teacher-id'
     });
 
-    // Mock container resolve for user loading
-    const { container } = require('tsyringe');
-    container.resolve.mockReturnValue({
-      findById: jest.fn().mockResolvedValue(mockUser)
-    });
+    // Mock user repository to return mock user
+    mockUserRepository.findById.mockResolvedValue(mockUser);
   });
 
   describe('execute', () => {
@@ -180,10 +177,7 @@ describe('DeleteCourseUseCase', () => {
 
     it('should throw UnauthorizedError when user not found', async () => {
       // Arrange
-      const { container } = require('tsyringe');
-      container.resolve.mockReturnValue({
-        findById: jest.fn().mockResolvedValue(null)
-      });
+      mockUserRepository.findById.mockResolvedValue(null);
 
       // Act & Assert
       await expect(
