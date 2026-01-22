@@ -843,7 +843,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Create enrollment domain entities and repository interfaces
   - _Requirements: 6.5, 6.8, 17.1, 17.2, 17.3_
 
-- [ ] 4.1.1 Create Enrollment domain entity
+- [x] 4.1.1 Create Enrollment domain entity
   - Priority: VERY HIGH
   - Dependencies: 1.3 (Prisma setup), 3.1.1 (Course entity)
   - Can be parallelized: Yes (with 4.1.3)
@@ -851,7 +851,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Add duplicate enrollment prevention logic
   - _Requirements: 6.5, 6.8_
 
-- [ ]* 4.1.2 Write property test for enrollment
+- [x] 4.1.2 Write property test for enrollment
+
   - Priority: MEDIUM
   - Dependencies: 4.1.1, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -859,7 +860,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - **Validates: Requirements 6.8**
   - For any student and course, only one enrollment can exist
 
-- [ ] 4.1.3 Define IEnrollmentRepository interface
+- [x] 4.1.3 Define IEnrollmentRepository interface
   - Priority: VERY HIGH
   - Dependencies: 4.1.1 (Enrollment entity)
   - Can be parallelized: Yes (with 4.1.1)
