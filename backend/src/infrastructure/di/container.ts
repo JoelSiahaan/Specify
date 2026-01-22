@@ -20,6 +20,8 @@ import { IUserRepository } from '../../domain/repositories/IUserRepository';
 import { PrismaUserRepository } from '../persistence/repositories/PrismaUserRepository';
 import { ICourseRepository } from '../../domain/repositories/ICourseRepository';
 import { PrismaCourseRepository } from '../persistence/repositories/PrismaCourseRepository';
+import { IMaterialRepository } from '../../domain/repositories/IMaterialRepository';
+import { PrismaMaterialRepository } from '../persistence/repositories/PrismaMaterialRepository';
 import { JWTService } from '../auth/JWTService';
 import { PasswordService } from '../auth/PasswordService';
 import { RegisterUserUseCase } from '../../application/use-cases/auth/RegisterUserUseCase';
@@ -63,6 +65,9 @@ export function configureContainer(): void {
   
   // Register Course Repository as singleton (TSyringe will auto-inject PrismaClient)
   container.registerSingleton<ICourseRepository>('ICourseRepository', PrismaCourseRepository);
+  
+  // Register Material Repository as singleton (TSyringe will auto-inject PrismaClient)
+  container.registerSingleton<IMaterialRepository>('IMaterialRepository', PrismaMaterialRepository);
   
   // Repository implementations will be registered here as they are created
   // Example pattern (to be implemented in future tasks):

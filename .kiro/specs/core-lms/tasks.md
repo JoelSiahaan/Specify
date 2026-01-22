@@ -1064,11 +1064,11 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 5.1 Domain Layer - Material Entities
 
-- [ ] 5.1 Domain Layer - Material Entities
+- [x] 5.1 Domain Layer - Material Entities
   - Create material domain entities and repository interfaces
   - _Requirements: 7.1, 7.2, 7.3, 7.10, 7.11, 7.9, 20.3, 17.1, 17.2, 17.3_
 
-- [ ] 5.1.1 Create Material domain entity
+- [x] 5.1.1 Create Material domain entity
   - Priority: VERY HIGH
   - Dependencies: 1.3 (Prisma setup), 3.1.1 (Course entity)
   - Can be parallelized: Yes (with 5.1.2, 5.1.3)
@@ -1077,7 +1077,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement content validation based on type
   - _Requirements: 7.1, 7.2, 7.3, 7.10, 7.11_
 
-- [ ] 5.1.2 Define IFileStorage interface (Port)
+- [x] 5.1.2 Define IFileStorage interface (Port)
   - Priority: VERY HIGH
   - Dependencies: None
   - Can be parallelized: Yes (with 5.1.1, 5.1.3)
@@ -1085,7 +1085,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Define file metadata structure
   - _Requirements: 7.1, 7.9, 20.3_
 
-- [ ] 5.1.3 Define IMaterialRepository interface
+- [x] 5.1.3 Define IMaterialRepository interface
   - Priority: VERY HIGH
   - Dependencies: 5.1.1 (Material entity)
   - Can be parallelized: Yes (with 5.1.1, 5.1.2)
@@ -1099,7 +1099,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement Prisma models, repositories, and file storage
   - _Requirements: 17.1, 17.4, 17.5, 17.2, 17.3, 7.1, 7.9, 20.3, 20.5_
 
-- [ ] 5.2.1 Add Material model to Prisma schema
+- [x] 5.2.1 Add Material model to Prisma schema
   - Priority: CRITICAL
   - Dependencies: 5.1.1 (Material entity), 3.2.1 (Course model)
   - Can be parallelized: No (migrations run sequentially)
@@ -1108,7 +1108,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Generate and run migration
   - _Requirements: 17.1, 17.4, 17.5_
 
-- [ ] 5.2.2 Implement PrismaMaterialRepository
+- [x] 5.2.2 Implement PrismaMaterialRepository
   - Priority: VERY HIGH
   - Dependencies: 5.2.1 (Prisma model), 5.1.3 (interface), 1.4 (TSyringe)
   - Can be parallelized: No
