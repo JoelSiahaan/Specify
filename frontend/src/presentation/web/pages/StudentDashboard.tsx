@@ -135,7 +135,8 @@ export const StudentDashboard: React.FC = () => {
           </div>
         )}
       </div>
-    </DashboardLayout>
+      
+    </div>
   );
 };
 
