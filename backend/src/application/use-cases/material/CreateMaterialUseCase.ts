@@ -81,6 +81,15 @@ export class CreateMaterialUseCase {
       );
     }
 
+    // Validate course is not archived (read-only)
+    if (course.isArchived()) {
+      throw new ApplicationError(
+        'RESOURCE_ARCHIVED',
+        'Cannot add materials to archived course',
+        400
+      );
+    }
+
     // Validate material title
     if (!dto.title || dto.title.trim().length === 0) {
       throw new ApplicationError(

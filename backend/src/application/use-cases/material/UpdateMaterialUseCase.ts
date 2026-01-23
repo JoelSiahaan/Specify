@@ -77,6 +77,15 @@ export class UpdateMaterialUseCase {
       );
     }
 
+    // Validate course is not archived (read-only)
+    if (course.isArchived()) {
+      throw new ApplicationError(
+        'RESOURCE_ARCHIVED',
+        'Cannot update materials in archived course',
+        400
+      );
+    }
+
     // Update title if provided
     if (dto.title !== undefined) {
       if (!dto.title || dto.title.trim().length === 0) {

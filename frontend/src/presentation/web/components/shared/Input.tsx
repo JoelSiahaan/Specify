@@ -8,7 +8,7 @@ import React from 'react';
 
 export interface InputProps {
   label?: string;
-  type?: 'text' | 'email' | 'password' | 'number' | 'date' | 'datetime-local';
+  type?: 'text' | 'email' | 'password' | 'number' | 'date' | 'datetime-local' | 'url';
   name: string;
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;

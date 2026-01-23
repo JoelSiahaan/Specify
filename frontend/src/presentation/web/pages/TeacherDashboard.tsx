@@ -15,6 +15,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Spinner, ErrorMessage } from '../components/shared';
+import { DashboardLayout } from '../components/layout';
 import { useAuth } from '../hooks';
 import { courseService } from '../services';
 import { ROUTES } from '../constants';
@@ -186,90 +187,92 @@ export const TeacherDashboard: React.FC = () => {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      {/* Welcome Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-gray-900 mb-2">
-          Welcome, {user?.name}!
-        </h1>
-        <p className="text-gray-600">
-          {new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
-        </p>
-      </div>
-
-      {/* My Courses Section */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-        {/* Section Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900">My Courses</h2>
-          <Button variant="primary" onClick={handleCreateCourse}>
-            + Create New Course
-          </Button>
+    <DashboardLayout>
+      <div className="px-4 sm:px-6 py-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-semibold text-gray-900 mb-2">
+            Welcome, {user?.name}!
+          </h1>
+          <p className="text-gray-600">
+            {new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </p>
         </div>
 
-        {/* Tab Filters */}
-        <div className="flex gap-2 mb-6 border-b border-gray-200">
-          <button
-            onClick={() => setActiveTab('active')}
-            className={`px-4 py-2 font-medium transition-colors ${
-              activeTab === 'active'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Active
-          </button>
-          <button
-            onClick={() => setActiveTab('archived')}
-            className={`px-4 py-2 font-medium transition-colors ${
-              activeTab === 'archived'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Archived
-          </button>
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`px-4 py-2 font-medium transition-colors ${
-              activeTab === 'all'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            All
-          </button>
-        </div>
-
-        {/* Error Message */}
-        {error && <ErrorMessage message={error} />}
-
-        {/* Loading State */}
-        {loading && (
-          <div className="flex items-center justify-center py-16">
-            <Spinner size="lg" />
+        {/* My Courses Section */}
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+          {/* Section Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900">My Courses</h2>
+            <Button variant="primary" onClick={handleCreateCourse}>
+              + Create New Course
+            </Button>
           </div>
-        )}
 
-        {/* Course List */}
-        {!loading && !error && (
-          <>
-            {courses.length === 0 ? (
-              renderEmptyState()
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {courses.map(renderCourseItem)}
-              </div>
-            )}
-          </>
-        )}
+          {/* Tab Filters */}
+          <div className="flex gap-2 mb-6 border-b border-gray-200">
+            <button
+              onClick={() => setActiveTab('active')}
+              className={`px-4 py-2 font-medium transition-colors ${
+                activeTab === 'active'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Active
+            </button>
+            <button
+              onClick={() => setActiveTab('archived')}
+              className={`px-4 py-2 font-medium transition-colors ${
+                activeTab === 'archived'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Archived
+            </button>
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-4 py-2 font-medium transition-colors ${
+                activeTab === 'all'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              All
+            </button>
+          </div>
+
+          {/* Error Message */}
+          {error && <ErrorMessage message={error} />}
+
+          {/* Loading State */}
+          {loading && (
+            <div className="flex items-center justify-center py-16">
+              <Spinner size="lg" />
+            </div>
+          )}
+
+          {/* Course List */}
+          {!loading && !error && (
+            <>
+              {courses.length === 0 ? (
+                renderEmptyState()
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {courses.map(renderCourseItem)}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

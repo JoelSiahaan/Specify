@@ -102,7 +102,7 @@ describe('CourseDetails Component', () => {
       renderWithAuth();
 
       await waitFor(() => {
-        expect(screen.getByText('Introduction to Programming')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 1, name: 'Introduction to Programming' })).toBeInTheDocument();
       });
 
       expect(screen.getByText('Course Code: ABC123')).toBeInTheDocument();
@@ -128,7 +128,7 @@ describe('CourseDetails Component', () => {
       renderWithAuth();
 
       await waitFor(() => {
-        expect(screen.getByText('Introduction to Programming')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 1, name: 'Introduction to Programming' })).toBeInTheDocument();
       });
 
       expect(screen.getByText('ARCHIVED')).toBeInTheDocument();

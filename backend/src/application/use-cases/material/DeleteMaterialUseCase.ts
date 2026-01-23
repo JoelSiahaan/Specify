@@ -70,6 +70,15 @@ export class DeleteMaterialUseCase {
       );
     }
 
+    // Validate course is not archived (read-only)
+    if (course.isArchived()) {
+      throw new ApplicationError(
+        'RESOURCE_ARCHIVED',
+        'Cannot delete materials from archived course',
+        400
+      );
+    }
+
     // Delete file from storage if material is FILE type
     if (material.isFile()) {
       const filePath = material.getFilePath();

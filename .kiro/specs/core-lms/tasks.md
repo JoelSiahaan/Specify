@@ -1281,7 +1281,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement React components for material management UI
   - _Requirements: 8.1, 8.3, 8.4, 7.1, 7.2, 7.3, 21.6, 7.7, 19.4, 19.5, 19.1, 19.2_
 
-- [ ] 5.5.1 Implement MaterialList component
+- [x] 5.5.1 Implement MaterialList component
   - Priority: MEDIUM-HIGH
   - Dependencies: 5.4.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 5.5.2, 5.5.3, 5.5.4)
@@ -1291,7 +1291,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Add edit/delete buttons (teacher only)
   - _Requirements: 8.1, 8.3, 8.4_
 
-- [ ] 5.5.2 Implement CreateMaterial component
+- [x] 5.5.2 Implement CreateMaterial component
   - Priority: MEDIUM-HIGH
   - Dependencies: 5.4.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 5.5.1, 5.5.3, 5.5.4)
@@ -1303,7 +1303,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Handle errors
   - _Requirements: 7.1, 7.2, 7.3, 21.6_
 
-- [ ] 5.5.3 Implement UpdateMaterial component
+- [x] 5.5.3 Implement UpdateMaterial component
   - Priority: MEDIUM
   - Dependencies: 5.4.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 5.5.1, 5.5.2, 5.5.4)
@@ -1312,7 +1312,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Handle errors
   - _Requirements: 7.7_
 
-- [ ] 5.5.4 Create FileUpload shared component
+- [x] 5.5.4 Create FileUpload shared component
   - Priority: MEDIUM-HIGH
   - Dependencies: 2.5.1 (shared components)
   - Can be parallelized: Yes (with 5.5.1, 5.5.2, 5.5.3)
@@ -1321,7 +1321,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Display file size validation errors
   - _Requirements: 19.4, 19.5, 21.6_
 
-- [ ]* 5.5.5 Write React component tests for materials
+- [ ] 5.5.5 Write React component tests for materials
+
   - Priority: MEDIUM
   - Dependencies: 5.5.2, 5.5.4, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
