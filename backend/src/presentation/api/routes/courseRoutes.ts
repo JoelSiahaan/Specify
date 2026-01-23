@@ -21,8 +21,10 @@ import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware
 import {
   CreateCourseRequestSchema,
   UpdateCourseRequestSchema,
-  CourseQuerySchema
+  CourseQuerySchema,
+  CourseSearchQuerySchema
 } from '../validators/courseSchemas';
+import { EnrollCourseRequestSchema } from '../validators/enrollmentSchemas';
 
 const router = Router();
 const courseController = new CourseController();
@@ -31,6 +33,45 @@ const courseController = new CourseController();
  * All course routes require authentication
  */
 router.use(authenticationMiddleware);
+
+/**
+ * GET /api/courses/search
+ * 
+ * Search courses
+ * 
+ * Protected endpoint (authentication required)
+ * Query parameters: query (optional) - Search query to filter courses by name
+ * 
+ * Business Rules:
+ * - Only active courses are searchable
+ * - Filter by course name if query provided
+ * - Indicate enrollment status for each course
+ */
+router.get(
+  '/search',
+  validateQuery(CourseSearchQuerySchema),
+  courseController.search.bind(courseController)
+);
+
+/**
+ * POST /api/courses/enroll
+ * 
+ * Enroll in course
+ * 
+ * Protected endpoint (authentication required)
+ * Requires student role (validated by use case)
+ * Validates request body with EnrollCourseRequestSchema
+ * 
+ * Business Rules:
+ * - Only students can enroll in courses
+ * - Course must exist and be active
+ * - Student cannot enroll in same course twice
+ */
+router.post(
+  '/enroll',
+  validateBody(EnrollCourseRequestSchema),
+  courseController.enroll.bind(courseController)
+);
 
 /**
  * GET /api/courses
@@ -108,6 +149,21 @@ router.put(
 router.post(
   '/:id/archive',
   courseController.archive.bind(courseController)
+);
+
+/**
+ * POST /api/courses/:id/unenroll-bulk
+ * 
+ * Bulk unenroll students
+ * 
+ * Protected endpoint (authentication required)
+ * Requires teacher ownership (validated by use case)
+ * Only archived courses can have bulk unenrollment
+ * Removes all enrollments for the course
+ */
+router.post(
+  '/:id/unenroll-bulk',
+  courseController.bulkUnenroll.bind(courseController)
 );
 
 /**

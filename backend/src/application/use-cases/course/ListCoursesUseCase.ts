@@ -2,16 +2,18 @@
  * List Courses Use Case
  * 
  * Handles course listing with role-based filtering.
- * Teachers see their own courses, students see all active courses.
+ * Teachers see their own courses, students see enrolled courses or all active courses.
  * 
  * Requirements:
  * - 5.10: Teachers view all their created courses (active and archived separately)
- * - 6.1: Students view only active courses
+ * - 3.1: Students view enrolled courses on dashboard
+ * - 6.1: Students view all active courses for browsing/enrollment
  */
 
 import { injectable, inject } from 'tsyringe';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
 import { User, Role } from '../../../domain/entities/User';
 import { CourseStatus } from '../../../domain/entities/Course';
 import { CourseListDTO } from '../../dtos/CourseDTO';
@@ -26,17 +28,26 @@ export interface ListCoursesFilter {
    * If not provided, returns all courses (based on role)
    */
   status?: CourseStatus;
+  
+  /**
+   * For students: whether to show only enrolled courses
+   * - true: Show only enrolled courses (for dashboard)
+   * - false/undefined: Show all active courses (for browsing/enrollment)
+   */
+  enrolledOnly?: boolean;
 }
 
 @injectable()
 export class ListCoursesUseCase {
   constructor(
     @inject('ICourseRepository') private courseRepository: ICourseRepository,
-    @inject('IUserRepository') private userRepository: IUserRepository
+    @inject('IUserRepository') private userRepository: IUserRepository,
+    @inject('IEnrollmentRepository') private enrollmentRepository: IEnrollmentRepository
   ) {
     console.log('[ListCoursesUseCase] Constructor called');
     console.log('[ListCoursesUseCase] courseRepository:', courseRepository ? 'OK' : 'UNDEFINED');
     console.log('[ListCoursesUseCase] userRepository:', userRepository ? 'OK' : 'UNDEFINED');
+    console.log('[ListCoursesUseCase] enrollmentRepository:', enrollmentRepository ? 'OK' : 'UNDEFINED');
   }
 
   /**
@@ -44,7 +55,8 @@ export class ListCoursesUseCase {
    * 
    * Business Rules:
    * - Teachers: See only their own courses (filtered by teacherId)
-   * - Students: See all active courses (for enrollment/browsing)
+   * - Students (enrolledOnly=true): See only enrolled courses (for dashboard)
+   * - Students (enrolledOnly=false): See all active courses (for browsing/enrollment)
    * - Status filter: Optional filter by ACTIVE or ARCHIVED
    * 
    * @param userId - ID of the user requesting the list
@@ -68,8 +80,7 @@ export class ListCoursesUseCase {
       const statusFilter = filter?.status || CourseStatus.ACTIVE;
       courses = courses.filter(course => course.getStatus() === statusFilter);
     } else {
-      // Requirement 6.1: Students see all active courses
-      // Students can only see active courses (for browsing/enrollment)
+      // Student role
       const statusFilter = filter?.status || CourseStatus.ACTIVE;
       
       // If student requests archived courses, return empty array
@@ -78,13 +89,37 @@ export class ListCoursesUseCase {
         return [];
       }
       
-      courses = await this.courseRepository.findAll(statusFilter);
+      if (filter?.enrolledOnly) {
+        // Requirement 3.1: Students see only enrolled courses (for dashboard)
+        console.log('[ListCoursesUseCase] Filtering by enrolledOnly for student:', userId);
+        const enrollments = await this.enrollmentRepository.findByStudentId(userId);
+        console.log('[ListCoursesUseCase] Found enrollments:', enrollments.length);
+        const enrolledCourseIds = enrollments.map(e => e.getCourseId());
+        console.log('[ListCoursesUseCase] Enrolled course IDs:', enrolledCourseIds);
+        
+        if (enrolledCourseIds.length === 0) {
+          console.log('[ListCoursesUseCase] No enrollments found, returning empty array');
+          return [];
+        }
+        
+        // Get all enrolled courses
+        const allCourses = await Promise.all(
+          enrolledCourseIds.map(id => this.courseRepository.findById(id))
+        );
+        
+        // Filter out null values and apply status filter
+        courses = allCourses
+          .filter(course => course !== null)
+          .filter(course => course!.getStatus() === statusFilter);
+        console.log('[ListCoursesUseCase] Filtered courses count:', courses.length);
+      } else {
+        // Requirement 6.1: Students see all active courses (for browsing/enrollment)
+        courses = await this.courseRepository.findAll(statusFilter);
+      }
     }
 
-    // Convert to DTOs
-    // Note: Teacher name and enrollment count will be added in future iterations
-    // when User and Enrollment repositories are available
-    return courses.map(course => this.toCourseListDTO(course));
+    // Convert to DTOs with enrollment count and teacher name
+    return Promise.all(courses.map(course => this.toCourseListDTO(course)));
   }
 
   /**
@@ -113,10 +148,18 @@ export class ListCoursesUseCase {
    * Convert Course entity to CourseListDTO
    * 
    * @param course - Course entity
-   * @returns CourseListDTO
+   * @returns CourseListDTO with enrollment count
    * @private
    */
-  private toCourseListDTO(course: any): CourseListDTO {
+  private async toCourseListDTO(course: any): Promise<CourseListDTO> {
+    // Get enrollment count for this course
+    const enrollments = await this.enrollmentRepository.findByCourse(course.getId());
+    const enrollmentCount = enrollments.length;
+    
+    // Get teacher information
+    const teacher = await this.userRepository.findById(course.getTeacherId());
+    const teacherName = teacher ? teacher.getName() : undefined;
+    
     return {
       id: course.getId(),
       name: course.getName(),
@@ -124,11 +167,10 @@ export class ListCoursesUseCase {
       courseCode: course.getCourseCode(),
       status: course.getStatus(),
       teacherId: course.getTeacherId(),
+      teacherName,
+      enrollmentCount,
       createdAt: course.getCreatedAt(),
       updatedAt: course.getUpdatedAt(),
-      // These will be populated in future iterations:
-      // teacherName: undefined,
-      // enrollmentCount: undefined
     };
   }
 }

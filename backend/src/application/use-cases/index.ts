@@ -14,3 +14,8 @@ export {
   GetCurrentUserUseCase,
 } from './auth';
 
+// Enrollment use cases
+export {
+  EnrollStudentUseCase,
+} from './enrollment';
+
