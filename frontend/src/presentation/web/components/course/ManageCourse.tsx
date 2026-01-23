@@ -205,15 +205,6 @@ export const ManageCourse: React.FC = () => {
             </Button>
           )}
 
-          {/* Back Button */}
-          {/* <Button
-            variant="secondary"
-            onClick={() => navigate(ROUTES.TEACHER_DASHBOARD)}
-            disabled={actionLoading}
-            className="w-full"
-          >
-            Back to Dashboard
-          </Button> */}
         </div>
       </div>
 

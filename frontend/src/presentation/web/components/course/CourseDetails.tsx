@@ -189,15 +189,6 @@ export const CourseDetails: React.FC = () => {
             </div>
           )}
 
-          {/* Back Button */}
-          {/* <div className="flex justify-end pt-4 border-t border-gray-200">
-            <Button
-              variant="secondary"
-              onClick={() => navigate(ROUTES.TEACHER_DASHBOARD)}
-            >
-              Back to Dashboard
-            </Button>
-          </div> */}
         </div>
 
         {/* Materials Section */}
