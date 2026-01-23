@@ -13,6 +13,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { courseService } from '../../services';
+import { useAuth } from '../../hooks';
 import { ROUTES } from '../../constants';
 import type { Course } from '../../types';
 
@@ -24,13 +25,17 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ type, courseId, courseName }) => {
   const navigate = useNavigate();
-  
+  const { user } = useAuth();
+
   // State for dashboard sidebar
   const [activeCourses, setActiveCourses] = useState<Course[]>([]);
   const [archivedCourses, setArchivedCourses] = useState<Course[]>([]);
   const [showActive, setShowActive] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // Determine dashboard route based on user role
+  const dashboardRoute = user?.role === 'STUDENT' ? ROUTES.STUDENT_DASHBOARD : ROUTES.TEACHER_DASHBOARD;
 
   /**
    * Fetch courses for dashboard sidebar
@@ -238,7 +243,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ type, courseId, courseName }) 
         {/* Back to Dashboard Button */}
         <div className="mt-6 pt-6 border-t border-gray-200">
           <button
-            onClick={() => navigate(ROUTES.TEACHER_DASHBOARD)}
+            onClick={() => navigate(dashboardRoute)}
             className="w-full px-3 py-2 text-sm text-primary hover:bg-primary-lighter rounded transition-colors font-medium"
           >
             ← Back to Dashboard

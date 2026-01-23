@@ -153,8 +153,7 @@ export const CourseDetails: React.FC = () => {
         {/* Breadcrumb */}
         <Breadcrumb
           items={[
-            { label: 'Home', href: ROUTES.TEACHER_DASHBOARD },
-            { label: 'My Courses', href: ROUTES.TEACHER_DASHBOARD },
+            { label: 'Home', path:dashboardRoute },
             { label: course.name }
           ]}
         />
@@ -191,14 +190,14 @@ export const CourseDetails: React.FC = () => {
           )}
 
           {/* Back Button */}
-          <div className="flex justify-end pt-4 border-t border-gray-200">
+          {/* <div className="flex justify-end pt-4 border-t border-gray-200">
             <Button
               variant="secondary"
               onClick={() => navigate(ROUTES.TEACHER_DASHBOARD)}
             >
               Back to Dashboard
             </Button>
-          </div>
+          </div> */}
         </div>
 
         {/* Materials Section */}
