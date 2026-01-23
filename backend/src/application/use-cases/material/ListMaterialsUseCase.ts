@@ -13,6 +13,7 @@ import { injectable, inject } from 'tsyringe';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
 import type { IMaterialRepository } from '../../../domain/repositories/IMaterialRepository';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
 import { User } from '../../../domain/entities/User';
 import { MaterialDTO } from '../../dtos/MaterialDTO';
@@ -25,6 +26,7 @@ export class ListMaterialsUseCase {
     @inject('ICourseRepository') private courseRepository: ICourseRepository,
     @inject('IMaterialRepository') private materialRepository: IMaterialRepository,
     @inject('IUserRepository') private userRepository: IUserRepository,
+    @inject('IEnrollmentRepository') private enrollmentRepository: IEnrollmentRepository,
     @inject('IAuthorizationPolicy') private authPolicy: IAuthorizationPolicy
   ) {}
 
@@ -49,9 +51,8 @@ export class ListMaterialsUseCase {
     const course = await this.loadCourse(courseId);
 
     // Check enrollment status for authorization context
-    // Note: For now, we'll implement a simple check based on role
-    // In a full implementation, this would query an enrollment repository
-    const isEnrolled = user.getRole().toString() === 'STUDENT'; // Simplified for now
+    const enrollment = await this.enrollmentRepository.findByStudentAndCourse(userId, courseId);
+    const isEnrolled = enrollment !== null;
     
     // Validate enrollment or ownership (Requirement 8.1)
     // Students must be enrolled, teachers must own the course
