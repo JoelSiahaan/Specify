@@ -28,8 +28,9 @@ model User {
   updatedAt    DateTime @updatedAt
 
   // Relations
-  courses     Course[]     @relation("TeacherCourses") // Courses created by this teacher
-  enrollments Enrollment[] // Courses enrolled in (for students)
+  courses         Course[]         @relation("TeacherCourses") // Courses created by this teacher
+  enrollments     Enrollment[] // Courses enrolled in (for students)
+  quizSubmissions QuizSubmission[] @relation("StudentQuizSubmissions") // Quiz submissions by this student
 
   @@map("users")
 }
@@ -55,8 +56,9 @@ model Course {
 
   // Relations
   teacher     User         @relation("TeacherCourses", fields: [teacherId], references: [id], onDelete: Cascade)
-  materials Material[] // Materials in this course
+  materials   Material[] // Materials in this course
   enrollments Enrollment[]
+  quizzes     Quiz[] // Quizzes in this course
 
   @@map("courses")
 }
@@ -114,4 +116,58 @@ model Enrollment {
   // Unique constraint: A student can only enroll once per course
   @@unique([studentId, courseId])
   @@map("enrollments")
+}
+
+// Quiz model for timed assessments
+// Requirements: 17.1, 17.4, 17.5, 11.1, 11.2, 11.3, 11.4, 11.5
+model Quiz {
+  id          String   @id @default(uuid()) @db.Uuid
+  courseId    String   @db.Uuid
+  title       String
+  description String   @db.Text
+  dueDate     DateTime
+  timeLimit   Int // Time limit in minutes
+  questions   Json // Array of questions (MCQ and Essay) stored as JSON
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  submissions QuizSubmission[]
+
+  @@map("quizzes")
+}
+
+// Quiz submission model for student quiz attempts
+// Requirements: 17.1, 17.4, 17.5, 21.5, 12.2, 12.4, 12.5, 12.7, 13.3, 13.4, 13.5
+model QuizSubmission {
+  id          String               @id @default(uuid()) @db.Uuid
+  quizId      String               @db.Uuid
+  studentId   String               @db.Uuid
+  answers     Json // Array of answers stored as JSON
+  startedAt   DateTime?
+  submittedAt DateTime?
+  grade       Float? // Grade (0-100)
+  feedback    String?              @db.Text
+  status      QuizSubmissionStatus @default(NOT_STARTED)
+  version     Int                  @default(1) // For optimistic locking
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  // Relations
+  quiz    Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student User @relation("StudentQuizSubmissions", fields: [studentId], references: [id], onDelete: Cascade)
+
+  // Unique constraint: A student can only have one submission per quiz
+  @@unique([quizId, studentId])
+  @@map("quiz_submissions")
+}
+
+// Quiz submission status enum
+// Requirements: 12.2 (IN_PROGRESS), 12.5 (SUBMITTED), 13.7 (GRADED)
+enum QuizSubmissionStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  GRADED
 }
