@@ -305,11 +305,11 @@ export const MaterialList: React.FC<MaterialListProps> = ({ courseId, courseStat
         <span className="text-6xl mb-4 block">📄</span>
         <h3 className="text-xl font-semibold text-gray-900 mb-2">No Materials</h3>
         <p className="text-gray-600 mb-6">This course doesn't have any materials yet.</p>
-        {isTeacher && !isArchived && (
+        {/* {isTeacher && !isArchived && (
           <Button variant="primary">
             Add Material
           </Button>
-        )}
+        )} */}
       </div>
     );
   }

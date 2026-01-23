@@ -18,6 +18,7 @@ import { listCourses } from '../services';
 import { CourseCard } from '../components/course';
 import { buildRoute, ROUTES } from '../constants';
 import { useNavigate } from 'react-router-dom';
+import { CourseStatus } from '../types';
 import type { Course } from '../types';
 
 export const StudentDashboard: React.FC = () => {
@@ -35,7 +36,7 @@ export const StudentDashboard: React.FC = () => {
         // For students, fetch only enrolled courses for the dashboard
         // enrolledOnly=true ensures backend filters by enrollment
         console.log('[StudentDashboard] Fetching courses with enrolledOnly=true');
-        const response = await listCourses({ status: 'ACTIVE', enrolledOnly: true });
+        const response = await listCourses({ status: CourseStatus.ACTIVE, enrolledOnly: true });
         console.log('[StudentDashboard] Received courses:', response.data.length);
         setCourses(response.data);
       } catch (err) {
