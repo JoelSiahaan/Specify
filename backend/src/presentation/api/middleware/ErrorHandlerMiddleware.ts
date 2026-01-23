@@ -114,6 +114,34 @@ export function errorHandler(
     return;
   }
 
+  // Handle Multer errors (file upload errors)
+  if (error.name === 'MulterError') {
+    const multerError = error as any;
+    
+    if (multerError.code === 'LIMIT_FILE_SIZE') {
+      res.status(400).json({
+        code: 'INVALID_FILE_SIZE',
+        message: 'File size exceeds maximum allowed size of 10MB'
+      });
+      return;
+    }
+    
+    if (multerError.code === 'LIMIT_UNEXPECTED_FILE') {
+      res.status(400).json({
+        code: 'INVALID_FILE_FIELD',
+        message: 'Unexpected file field in upload'
+      });
+      return;
+    }
+    
+    // Generic multer error
+    res.status(400).json({
+      code: 'FILE_UPLOAD_ERROR',
+      message: 'File upload failed. Please try again.'
+    });
+    return;
+  }
+
   // Handle JSON parsing errors (malformed JSON from body-parser)
   if (error instanceof SyntaxError && 'body' in error) {
     res.status(400).json({

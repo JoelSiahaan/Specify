@@ -34,6 +34,35 @@ export {
 } from './courseSchemas';
 
 export {
+  MaterialTypeSchema,
+  MaterialTitleSchema,
+  TextContentSchema,
+  VideoURLSchema,
+  FileNameSchema,
+  FileSizeSchema,
+  MimeTypeSchema,
+  CreateTextMaterialRequestSchema,
+  CreateVideoLinkMaterialRequestSchema,
+  CreateFileMaterialRequestSchema,
+  CreateMaterialRequestSchema,
+  UpdateTextMaterialRequestSchema,
+  UpdateVideoLinkMaterialRequestSchema,
+  UpdateFileMaterialRequestSchema,
+  UpdateMaterialRequestSchema,
+  MaterialQuerySchema,
+  type MaterialType,
+  type CreateTextMaterialRequest,
+  type CreateVideoLinkMaterialRequest,
+  type CreateFileMaterialRequest,
+  type CreateMaterialRequest,
+  type UpdateTextMaterialRequest,
+  type UpdateVideoLinkMaterialRequest,
+  type UpdateFileMaterialRequest,
+  type UpdateMaterialRequest,
+  type MaterialQuery
+} from './materialSchemas';
+
+export {
   EnrollCourseRequestSchema,
   BulkUnenrollRequestSchema,
   EnrollmentCourseCodeSchema,

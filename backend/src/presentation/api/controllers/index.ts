@@ -6,3 +6,4 @@
 
 export { AuthController } from './AuthController';
 export { CourseController } from './CourseController';
+export { MaterialController } from './MaterialController';

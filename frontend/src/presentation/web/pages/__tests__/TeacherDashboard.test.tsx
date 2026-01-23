@@ -25,10 +25,13 @@ vi.mock('../../hooks/useAuth', () => ({
 
 // Mock courseService
 vi.mock('../../services/courseService', () => ({
-  courseService: {
-    listCourses: vi.fn(),
-    listArchivedCourses: vi.fn(),
-  },
+  listCourses: vi.fn(),
+  listArchivedCourses: vi.fn(),
+}));
+
+// Mock layout components
+vi.mock('../../components/layout', () => ({
+  DashboardLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 // Mock useNavigate
@@ -107,10 +110,10 @@ describe('TeacherDashboard', () => {
     });
 
     // Default course service mocks
-    vi.mocked(courseService.courseService.listCourses).mockResolvedValue({
+    vi.mocked(courseService.listCourses).mockResolvedValue({
       data: mockCourses,
     });
-    vi.mocked(courseService.courseService.listArchivedCourses).mockResolvedValue({
+    vi.mocked(courseService.listArchivedCourses).mockResolvedValue({
       data: mockArchivedCourses,
     });
   });
@@ -254,10 +257,7 @@ describe('TeacherDashboard', () => {
     it('should show all courses when All tab is clicked', async () => {
       const user = userEvent.setup();
       
-      // Mock all courses response
-      vi.mocked(courseService.courseService.listCourses).mockResolvedValue({
-        data: [...mockCourses, ...mockArchivedCourses],
-      });
+      // Don't mock - let it use the default mocks which already have both active and archived
       
       renderWithRouter(<TeacherDashboard />);
       
@@ -279,7 +279,7 @@ describe('TeacherDashboard', () => {
 
   describe('Empty State', () => {
     it('should display empty state when no courses exist', async () => {
-      vi.mocked(courseService.courseService.listCourses).mockResolvedValue({
+      vi.mocked(courseService.listCourses).mockResolvedValue({
         data: [],
       });
       
@@ -292,7 +292,7 @@ describe('TeacherDashboard', () => {
     });
 
     it('should show Create Course button in empty state', async () => {
-      vi.mocked(courseService.courseService.listCourses).mockResolvedValue({
+      vi.mocked(courseService.listCourses).mockResolvedValue({
         data: [],
       });
       
@@ -307,7 +307,7 @@ describe('TeacherDashboard', () => {
 
   describe('Loading State', () => {
     it('should show loading spinner while fetching courses', async () => {
-      vi.mocked(courseService.courseService.listCourses).mockImplementation(
+      vi.mocked(courseService.listCourses).mockImplementation(
         () => new Promise((resolve) => setTimeout(resolve, 1000))
       );
       
@@ -320,7 +320,7 @@ describe('TeacherDashboard', () => {
 
   describe('Error Handling', () => {
     it('should display error message when API fails', async () => {
-      vi.mocked(courseService.courseService.listCourses).mockRejectedValue({
+      vi.mocked(courseService.listCourses).mockRejectedValue({
         message: 'Failed to load courses',
       });
       
@@ -332,7 +332,7 @@ describe('TeacherDashboard', () => {
     });
 
     it('should display generic error when no message provided', async () => {
-      vi.mocked(courseService.courseService.listCourses).mockRejectedValue({});
+      vi.mocked(courseService.listCourses).mockRejectedValue({});
       
       renderWithRouter(<TeacherDashboard />);
       
@@ -368,7 +368,7 @@ describe('TeacherDashboard', () => {
       const manageButtons = screen.getAllByRole('button', { name: /manage/i });
       await user.click(manageButtons[0]);
       
-      expect(mockNavigate).toHaveBeenCalledWith('/teacher/courses/course-1');
+      expect(mockNavigate).toHaveBeenCalledWith('/teacher/courses/course-1/manage');
     });
 
     it('should navigate to grading page when Grade button is clicked', async () => {

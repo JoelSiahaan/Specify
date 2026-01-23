@@ -14,6 +14,19 @@ export {
   GetCurrentUserUseCase,
 } from './auth';
 
+// Course use cases
+export {
+  CreateCourseUseCase,
+  UpdateCourseUseCase,
+  ArchiveCourseUseCase,
+  DeleteCourseUseCase,
+  ListCoursesUseCase,
+} from './course';
+
+// Material use cases
+export {
+  CreateMaterialUseCase,
+} from './material';
 // Enrollment use cases
 export {
   EnrollStudentUseCase,

@@ -11,6 +11,7 @@
 
 import { ListCoursesUseCase, ListCoursesFilter } from '../ListCoursesUseCase';
 import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
 import { Course, CourseStatus } from '../../../../domain/entities/Course';
 import { User, Role } from '../../../../domain/entities/User';
 import { ApplicationError } from '../../../errors/ApplicationErrors';
@@ -26,14 +27,12 @@ const mockCourseRepository: jest.Mocked<ICourseRepository> = {
   findAll: jest.fn()
 };
 
-// Mock container for user loading
-jest.mock('tsyringe', () => ({
-  injectable: () => (target: any) => target,
-  inject: () => (target: any, propertyKey: string, parameterIndex: number) => {},
-  container: {
-    resolve: jest.fn()
-  }
-}));
+const mockUserRepository: jest.Mocked<IUserRepository> = {
+  save: jest.fn(),
+  findById: jest.fn(),
+  findByEmail: jest.fn(),
+  delete: jest.fn()
+};
 
 describe('ListCoursesUseCase', () => {
   let useCase: ListCoursesUseCase;
@@ -48,7 +47,7 @@ describe('ListCoursesUseCase', () => {
     jest.clearAllMocks();
 
     // Create use case instance
-    useCase = new ListCoursesUseCase(mockCourseRepository);
+    useCase = new ListCoursesUseCase(mockCourseRepository, mockUserRepository);
 
     // Create mock users
     mockTeacher = User.create({
@@ -98,14 +97,11 @@ describe('ListCoursesUseCase', () => {
 
   describe('execute - Teacher role', () => {
     beforeEach(() => {
-      // Mock container resolve for teacher
-      const { container } = require('tsyringe');
-      container.resolve.mockReturnValue({
-        findById: jest.fn().mockResolvedValue(mockTeacher)
-      });
+      // Mock user repository to return teacher
+      mockUserRepository.findById.mockResolvedValue(mockTeacher);
     });
 
-    it('should return all teacher courses when no filter provided', async () => {
+    it('should return only active teacher courses when no filter provided (default behavior)', async () => {
       // Arrange
       mockCourseRepository.findByTeacherId.mockResolvedValue([
         mockActiveCourse1,
@@ -118,10 +114,12 @@ describe('ListCoursesUseCase', () => {
 
       // Assert
       expect(mockCourseRepository.findByTeacherId).toHaveBeenCalledWith('teacher-id');
-      expect(result).toHaveLength(3);
+      // Default behavior: return only ACTIVE courses
+      expect(result).toHaveLength(2);
       expect(result[0].id).toBe('course-1');
+      expect(result[0].status).toBe(CourseStatus.ACTIVE);
       expect(result[1].id).toBe('course-2');
-      expect(result[2].id).toBe('course-3');
+      expect(result[1].status).toBe(CourseStatus.ACTIVE);
     });
 
     it('should filter teacher courses by ACTIVE status', async () => {
@@ -198,11 +196,8 @@ describe('ListCoursesUseCase', () => {
 
   describe('execute - Student role', () => {
     beforeEach(() => {
-      // Mock container resolve for student
-      const { container } = require('tsyringe');
-      container.resolve.mockReturnValue({
-        findById: jest.fn().mockResolvedValue(mockStudent)
-      });
+      // Mock user repository to return student
+      mockUserRepository.findById.mockResolvedValue(mockStudent);
     });
 
     it('should return only active courses for students', async () => {
@@ -262,10 +257,7 @@ describe('ListCoursesUseCase', () => {
   describe('business rules', () => {
     it('should enforce requirement 5.10: teachers see their own courses', async () => {
       // Arrange
-      const { container } = require('tsyringe');
-      container.resolve.mockReturnValue({
-        findById: jest.fn().mockResolvedValue(mockTeacher)
-      });
+      mockUserRepository.findById.mockResolvedValue(mockTeacher);
       mockCourseRepository.findByTeacherId.mockResolvedValue([mockActiveCourse1]);
 
       // Act
@@ -278,10 +270,7 @@ describe('ListCoursesUseCase', () => {
 
     it('should enforce requirement 6.1: students see only active courses', async () => {
       // Arrange
-      const { container } = require('tsyringe');
-      container.resolve.mockReturnValue({
-        findById: jest.fn().mockResolvedValue(mockStudent)
-      });
+      mockUserRepository.findById.mockResolvedValue(mockStudent);
       mockCourseRepository.findAll.mockResolvedValue([mockActiveCourse1]);
 
       // Act
@@ -296,10 +285,7 @@ describe('ListCoursesUseCase', () => {
   describe('error handling', () => {
     it('should throw UnauthorizedError when user not found', async () => {
       // Arrange
-      const { container } = require('tsyringe');
-      container.resolve.mockReturnValue({
-        findById: jest.fn().mockResolvedValue(null)
-      });
+      mockUserRepository.findById.mockResolvedValue(null);
 
       // Act & Assert
       await expect(
@@ -316,10 +302,7 @@ describe('ListCoursesUseCase', () => {
 
     it('should propagate repository errors', async () => {
       // Arrange
-      const { container } = require('tsyringe');
-      container.resolve.mockReturnValue({
-        findById: jest.fn().mockResolvedValue(mockTeacher)
-      });
+      mockUserRepository.findById.mockResolvedValue(mockTeacher);
       mockCourseRepository.findByTeacherId.mockRejectedValue(new Error('Database error'));
 
       // Act & Assert

@@ -12,6 +12,7 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
 import { User } from '../../../domain/entities/User';
 import { CourseCodeGenerator, ICourseCodeChecker } from '../../../domain/services/CourseCodeGenerator';
@@ -37,6 +38,7 @@ class CourseCodeChecker implements ICourseCodeChecker {
 export class CreateCourseUseCase {
   constructor(
     @inject('ICourseRepository') private courseRepository: ICourseRepository,
+    @inject('IUserRepository') private userRepository: IUserRepository,
     @inject('IAuthorizationPolicy') private authPolicy: IAuthorizationPolicy
   ) {}
 
@@ -103,31 +105,17 @@ export class CreateCourseUseCase {
    * @private
    */
   private async loadUser(userId: string): Promise<User> {
-    // Note: In a real implementation, we would inject IUserRepository
-    // For now, we create a mock user for authorization check
-    // This will be properly implemented when IUserRepository is available in DI
-    const { container } = await import('tsyringe');
+    const user = await this.userRepository.findById(userId);
     
-    try {
-      const userRepository = container.resolve('IUserRepository' as any);
-      const user = await (userRepository as any).findById(userId);
-      
-      if (!user) {
-        throw new ApplicationError(
-          'AUTH_REQUIRED',
-          'User not found',
-          401
-        );
-      }
-      
-      return user;
-    } catch (error) {
+    if (!user) {
       throw new ApplicationError(
         'AUTH_REQUIRED',
         'User not found',
         401
       );
     }
+    
+    return user;
   }
 
   /**

@@ -55,6 +55,7 @@ model Course {
 
   // Relations
   teacher     User         @relation("TeacherCourses", fields: [teacherId], references: [id], onDelete: Cascade)
+  materials Material[] // Materials in this course
   enrollments Enrollment[]
 
   @@map("courses")
@@ -65,6 +66,35 @@ model Course {
 enum CourseStatus {
   ACTIVE
   ARCHIVED
+}
+
+// Material model for learning materials (files, text, video links)
+// Requirements: 17.1, 17.4, 17.5, 7.1, 7.2, 7.3, 7.10, 7.11
+model Material {
+  id        String       @id @default(uuid()) @db.Uuid
+  courseId  String       @db.Uuid
+  title     String
+  type      MaterialType
+  content   String?      @db.Text // For TEXT: HTML content; For VIDEO_LINK: URL
+  filePath  String? // For FILE: path to uploaded file
+  fileName  String? // For FILE: original file name
+  fileSize  Int? // For FILE: file size in bytes
+  mimeType  String? // For FILE: MIME type
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  // Relations
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@map("materials")
+}
+
+// Material type enum
+// Requirements: 7.1 (FILE), 7.2 (TEXT), 7.3 (VIDEO_LINK), 7.10 (No video file uploads)
+enum MaterialType {
+  FILE
+  TEXT
+  VIDEO_LINK
 }
 
 // Enrollment model for student course enrollment
