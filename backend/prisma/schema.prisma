@@ -28,7 +28,8 @@ model User {
   updatedAt    DateTime @updatedAt
 
   // Relations
-  courses Course[] // Courses created by this teacher
+  courses     Course[]     @relation("TeacherCourses") // Courses created by this teacher
+  enrollments Enrollment[] // Courses enrolled in (for students)
 
   @@map("users")
 }
@@ -53,8 +54,9 @@ model Course {
   updatedAt   DateTime     @updatedAt
 
   // Relations
-  teacher   User       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacher     User         @relation("TeacherCourses", fields: [teacherId], references: [id], onDelete: Cascade)
   materials Material[] // Materials in this course
+  enrollments Enrollment[]
 
   @@map("courses")
 }
@@ -93,4 +95,23 @@ enum MaterialType {
   FILE
   TEXT
   VIDEO_LINK
+}
+
+// Enrollment model for student course enrollment
+// Requirements: 17.1, 17.4, 17.5, 6.1, 6.5, 6.8
+model Enrollment {
+  id         String   @id @default(uuid()) @db.Uuid
+  studentId  String   @db.Uuid
+  courseId   String   @db.Uuid
+  enrolledAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  student User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course  Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  // Unique constraint: A student can only enroll once per course
+  @@unique([studentId, courseId])
+  @@map("enrollments")
 }

@@ -22,7 +22,6 @@ export {
 export {
   CreateCourseRequestSchema,
   UpdateCourseRequestSchema,
-  EnrollCourseRequestSchema,
   CourseQuerySchema,
   CourseNameSchema,
   CourseDescriptionSchema,
@@ -30,7 +29,6 @@ export {
   CourseStatusSchema,
   type CreateCourseRequest,
   type UpdateCourseRequest,
-  type EnrollCourseRequest,
   type CourseQuery,
   type CourseStatus
 } from './courseSchemas';
@@ -63,3 +61,11 @@ export {
   type UpdateMaterialRequest,
   type MaterialQuery
 } from './materialSchemas';
+
+export {
+  EnrollCourseRequestSchema,
+  BulkUnenrollRequestSchema,
+  EnrollmentCourseCodeSchema,
+  type EnrollCourseRequest,
+  type BulkUnenrollRequest
+} from './enrollmentSchemas';

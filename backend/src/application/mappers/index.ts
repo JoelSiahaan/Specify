@@ -7,3 +7,4 @@
 export * from './UserMapper';
 export * from './CourseMapper';
 export * from './MaterialMapper';
+export * from './EnrollmentMapper';

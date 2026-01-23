@@ -8,3 +8,16 @@ export { api, default as apiClient } from './api';
 export { authService, default as auth } from './authService';
 export * as courseService from './courseService';
 export * as materialService from './materialService';
+
+// Re-export individual course service functions for convenience
+export {
+  listCourses,
+  listArchivedCourses,
+  getCourseById,
+  createCourse,
+  updateCourse,
+  archiveCourse,
+  deleteCourse,
+  enrollInCourse,
+  searchCourses,
+} from './courseService';

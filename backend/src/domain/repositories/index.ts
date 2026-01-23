@@ -7,3 +7,4 @@
 export type { IUserRepository } from './IUserRepository';
 export type { ICourseRepository } from './ICourseRepository';
 export type { IMaterialRepository } from './IMaterialRepository';
+export type { IEnrollmentRepository } from './IEnrollmentRepository';

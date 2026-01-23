@@ -24,6 +24,8 @@ import { IMaterialRepository } from '../../domain/repositories/IMaterialReposito
 import { PrismaMaterialRepository } from '../persistence/repositories/PrismaMaterialRepository';
 import { IFileStorage } from '../../domain/storage/IFileStorage';
 import { LocalFileStorage } from '../storage/LocalFileStorage';
+import { IEnrollmentRepository } from '../../domain/repositories/IEnrollmentRepository';
+import { PrismaEnrollmentRepository } from '../persistence/repositories/PrismaEnrollmentRepository';
 import { JWTService } from '../auth/JWTService';
 import { PasswordService } from '../auth/PasswordService';
 import { RegisterUserUseCase } from '../../application/use-cases/auth/RegisterUserUseCase';
@@ -43,6 +45,9 @@ import { UpdateMaterialUseCase } from '../../application/use-cases/material/Upda
 import { DeleteMaterialUseCase } from '../../application/use-cases/material/DeleteMaterialUseCase';
 import { ListMaterialsUseCase } from '../../application/use-cases/material/ListMaterialsUseCase';
 import { DownloadMaterialUseCase } from '../../application/use-cases/material/DownloadMaterialUseCase';
+import { SearchCoursesUseCase } from '../../application/use-cases/course/SearchCoursesUseCase';
+import { EnrollStudentUseCase } from '../../application/use-cases/enrollment/EnrollStudentUseCase';
+import { BulkUnenrollUseCase } from '../../application/use-cases/enrollment/BulkUnenrollUseCase';
 
 /**
  * Initialize the DI container with all application dependencies
@@ -75,6 +80,8 @@ export function configureContainer(): void {
   
   // Register Material Repository as singleton (TSyringe will auto-inject PrismaClient)
   container.registerSingleton<IMaterialRepository>('IMaterialRepository', PrismaMaterialRepository);
+  // Register Enrollment Repository as singleton (TSyringe will auto-inject PrismaClient)
+  container.registerSingleton<IEnrollmentRepository>('IEnrollmentRepository', PrismaEnrollmentRepository);
   
   // Repository implementations will be registered here as they are created
   // Example pattern (to be implemented in future tasks):
@@ -198,6 +205,26 @@ export function configureContainer(): void {
     useClass: DownloadMaterialUseCase
   });
   console.log('[DI] DownloadMaterialUseCase registered');
+  // Register SearchCoursesUseCase as transient
+  console.log('[DI] Registering SearchCoursesUseCase');
+  container.register(SearchCoursesUseCase, {
+    useClass: SearchCoursesUseCase
+  });
+  console.log('[DI] SearchCoursesUseCase registered');
+  
+  // Register EnrollStudentUseCase as transient
+  console.log('[DI] Registering EnrollStudentUseCase');
+  container.register(EnrollStudentUseCase, {
+    useClass: EnrollStudentUseCase
+  });
+  console.log('[DI] EnrollStudentUseCase registered');
+  
+  // Register BulkUnenrollUseCase as transient
+  console.log('[DI] Registering BulkUnenrollUseCase');
+  container.register(BulkUnenrollUseCase, {
+    useClass: BulkUnenrollUseCase
+  });
+  console.log('[DI] BulkUnenrollUseCase registered');
   
   // Example pattern (to be implemented in future tasks):
   // container.register(CreateCourseUseCase, {

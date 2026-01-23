@@ -16,7 +16,7 @@ import {
   StudentDashboard,
   TeacherDashboard
 } from '../pages';
-import { CreateCourse, UpdateCourse, CourseDetails, ManageCourse } from '../components/course';
+import { CreateCourse, UpdateCourse, CourseDetails, ManageCourse, CourseList } from '../components/course';
 import { ROUTES } from '../constants';
 import { UserRole } from '../types';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -84,7 +84,15 @@ export function AppRouter() {
           path={ROUTES.STUDENT_COURSES}
           element={
             <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
-              <div className="p-8 text-center">Student Courses - Coming Soon</div>
+              <CourseList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.STUDENT_COURSE_DETAILS}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+              <CourseDetails />
             </ProtectedRoute>
           }
         />

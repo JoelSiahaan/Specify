@@ -96,16 +96,6 @@ export const UpdateCourseRequestSchema = z.object({
 );
 
 /**
- * Enroll in course request schema
- * 
- * Validates course enrollment request body
- * Requirements: 6.5, 18.4, 20.2
- */
-export const EnrollCourseRequestSchema = z.object({
-  courseCode: CourseCodeSchema
-});
-
-/**
  * Course query parameters schema
  * 
  * Validates query parameters for listing courses
@@ -116,13 +106,28 @@ export const CourseQuerySchema = z.object({
 });
 
 /**
+ * Course search query parameters schema
+ * 
+ * Validates query parameters for searching courses
+ * Requirements: 6.1, 6.3, 18.4
+ */
+export const CourseSearchQuerySchema = z.object({
+  query: z
+    .string({
+      invalid_type_error: 'Search query must be a string'
+    })
+    .trim()
+    .optional()
+});
+
+/**
  * Type exports for TypeScript
  * 
  * These types can be used throughout the application for type safety
  */
 export type CreateCourseRequest = z.infer<typeof CreateCourseRequestSchema>;
 export type UpdateCourseRequest = z.infer<typeof UpdateCourseRequestSchema>;
-export type EnrollCourseRequest = z.infer<typeof EnrollCourseRequestSchema>;
 export type CourseQuery = z.infer<typeof CourseQuerySchema>;
+export type CourseSearchQuery = z.infer<typeof CourseSearchQuerySchema>;
 export type CourseStatus = z.infer<typeof CourseStatusSchema>;
 

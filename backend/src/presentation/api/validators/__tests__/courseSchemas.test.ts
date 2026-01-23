@@ -8,7 +8,6 @@
 import {
   CreateCourseRequestSchema,
   UpdateCourseRequestSchema,
-  EnrollCourseRequestSchema,
   CourseQuerySchema,
   CourseNameSchema,
   CourseDescriptionSchema,
@@ -354,56 +353,6 @@ describe('Course Validation Schemas', () => {
     it('should reject description exceeding 5000 characters', () => {
       const request = { description: 'a'.repeat(5001) };
       const result = UpdateCourseRequestSchema.safeParse(request);
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('EnrollCourseRequestSchema', () => {
-    it('should accept valid enroll request', () => {
-      const request = { courseCode: 'ABC123' };
-      const result = EnrollCourseRequestSchema.safeParse(request);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.courseCode).toBe('ABC123');
-      }
-    });
-
-    it('should normalize course code to uppercase', () => {
-      const request = { courseCode: 'abc123' };
-      const result = EnrollCourseRequestSchema.safeParse(request);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.courseCode).toBe('ABC123');
-      }
-    });
-
-    it('should trim whitespace', () => {
-      const request = { courseCode: '  ABC123  ' };
-      const result = EnrollCourseRequestSchema.safeParse(request);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.courseCode).toBe('ABC123');
-      }
-    });
-
-    it('should reject missing course code', () => {
-      const request = {};
-      const result = EnrollCourseRequestSchema.safeParse(request);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].path).toContain('courseCode');
-      }
-    });
-
-    it('should reject invalid course code format', () => {
-      const request = { courseCode: 'ABC-12' };
-      const result = EnrollCourseRequestSchema.safeParse(request);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject course code with wrong length', () => {
-      const request = { courseCode: 'ABC12' };
-      const result = EnrollCourseRequestSchema.safeParse(request);
       expect(result.success).toBe(false);
     });
   });

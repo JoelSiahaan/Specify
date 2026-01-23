@@ -35,6 +35,9 @@ export const CourseDetails: React.FC = () => {
   const [showCreateMaterial, setShowCreateMaterial] = useState(false);
   const [refreshMaterials, setRefreshMaterials] = useState(0);
 
+  // Determine dashboard route based on user role
+  const dashboardRoute = user?.role === 'STUDENT' ? ROUTES.STUDENT_DASHBOARD : ROUTES.TEACHER_DASHBOARD;
+
   /**
    * Fetch course details on mount
    */
@@ -100,7 +103,7 @@ export const CourseDetails: React.FC = () => {
         <ErrorMessage message={error} />
         <Button
           variant="secondary"
-          onClick={() => navigate(ROUTES.TEACHER_DASHBOARD)}
+          onClick={() => navigate(dashboardRoute)}
           className="mt-4"
         >
           Back to Dashboard
@@ -119,7 +122,7 @@ export const CourseDetails: React.FC = () => {
           <p className="text-gray-600 mb-6">The course you're looking for doesn't exist.</p>
           <Button
             variant="primary"
-            onClick={() => navigate(ROUTES.TEACHER_DASHBOARD)}
+            onClick={() => navigate(dashboardRoute)}
           >
             Back to Dashboard
           </Button>

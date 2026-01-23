@@ -27,3 +27,8 @@ export {
 export {
   CreateMaterialUseCase,
 } from './material';
+// Enrollment use cases
+export {
+  EnrollStudentUseCase,
+} from './enrollment';
+

@@ -68,6 +68,7 @@ export interface ListCoursesResponse {
  */
 export interface CourseQueryFilters {
   status?: CourseStatus;
+  enrolledOnly?: boolean;
 }
 
 /**
