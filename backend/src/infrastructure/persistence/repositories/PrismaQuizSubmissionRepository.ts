@@ -342,11 +342,19 @@ export class PrismaQuizSubmissionRepository implements IQuizSubmissionRepository
    * @returns Domain QuizSubmission entity
    */
   private toDomain(dbSubmission: any): QuizSubmission {
+    // Parse answers if they're stored as JSON string
+    let answers: QuizAnswer[];
+    if (typeof dbSubmission.answers === 'string') {
+      answers = JSON.parse(dbSubmission.answers);
+    } else {
+      answers = dbSubmission.answers as QuizAnswer[];
+    }
+
     return QuizSubmission.reconstitute({
       id: dbSubmission.id,
       quizId: dbSubmission.quizId,
       studentId: dbSubmission.studentId,
-      answers: dbSubmission.answers as QuizAnswer[], // Prisma handles JSON deserialization
+      answers: answers,
       startedAt: dbSubmission.startedAt,
       submittedAt: dbSubmission.submittedAt,
       grade: dbSubmission.grade,

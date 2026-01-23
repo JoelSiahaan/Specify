@@ -69,3 +69,24 @@ export {
   type EnrollCourseRequest,
   type BulkUnenrollRequest
 } from './enrollmentSchemas';
+
+export {
+  QuestionTypeSchema,
+  MCQQuestionSchema,
+  EssayQuestionSchema,
+  QuestionSchema,
+  AnswerSchema,
+  CreateQuizRequestSchema,
+  UpdateQuizRequestSchema,
+  AutoSaveQuizRequestSchema,
+  SubmitQuizRequestSchema,
+  type QuestionType,
+  type MCQQuestion,
+  type EssayQuestion,
+  type Question,
+  type Answer,
+  type CreateQuizRequest,
+  type UpdateQuizRequest,
+  type AutoSaveQuizRequest,
+  type SubmitQuizRequest
+} from './quizSchemas';

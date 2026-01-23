@@ -3,7 +3,7 @@ import express, { type Express } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { configureContainer } from './infrastructure/di/index.js';
-import { authRoutes, courseRoutes, materialRoutes } from './presentation/api/routes/index.js';
+import { authRoutes, courseRoutes, materialRoutes, quizRoutes } from './presentation/api/routes/index.js';
 import { errorHandler } from './presentation/api/middleware/index.js';
 
 // Initialize dependency injection container
@@ -70,6 +70,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api', materialRoutes);
+app.use('/api', quizRoutes);
 
 // Error handler middleware (must be last)
 app.use(errorHandler);

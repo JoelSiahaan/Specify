@@ -216,6 +216,14 @@ export class PrismaQuizRepository implements IQuizRepository {
    * @returns Domain Quiz entity
    */
   private toDomain(dbQuiz: any): Quiz {
+    // Parse questions if they're stored as JSON string
+    let questions: Question[];
+    if (typeof dbQuiz.questions === 'string') {
+      questions = JSON.parse(dbQuiz.questions);
+    } else {
+      questions = dbQuiz.questions as Question[];
+    }
+
     return Quiz.reconstitute({
       id: dbQuiz.id,
       courseId: dbQuiz.courseId,
@@ -223,7 +231,7 @@ export class PrismaQuizRepository implements IQuizRepository {
       description: dbQuiz.description,
       dueDate: dbQuiz.dueDate,
       timeLimit: dbQuiz.timeLimit,
-      questions: dbQuiz.questions as Question[], // Prisma handles JSON deserialization
+      questions: questions,
       createdAt: dbQuiz.createdAt,
       updatedAt: dbQuiz.updatedAt
     });

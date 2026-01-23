@@ -49,7 +49,7 @@ export class AutoSaveQuizAnswersUseCase {
     dto: AutoSaveQuizDTO
   ): Promise<QuizSubmissionDTO> {
     // Load user to validate authentication
-    const user = await this.loadUser(userId);
+    await this.loadUser(userId);
 
     // Load submission to validate ownership
     const submission = await this.loadSubmission(submissionId);
