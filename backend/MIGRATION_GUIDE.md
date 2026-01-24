@@ -4,6 +4,27 @@
 
 This document defines the **standard migration workflow** for all database schema changes in the LMS project. Following this guide ensures consistency across all migrations and prevents confusion.
 
+## CRITICAL: Use Docker Exec for All Prisma Commands
+
+**⚠️ IMPORTANT:** All Prisma commands MUST be run using `docker-compose exec backend`. Running from host machine will FAIL due to PostgreSQL authentication configuration (scram-sha-256).
+
+**✅ CORRECT:**
+```bash
+docker-compose exec backend npx prisma migrate dev --name add_model
+```
+
+**❌ WRONG:**
+```bash
+cd backend
+npx prisma migrate dev --name add_model  # This will fail with authentication error!
+```
+
+**Why?**
+- PostgreSQL container uses scram-sha-256 authentication
+- Host machine connections fail authentication
+- Container-to-container connections work correctly
+- DATABASE_URL is pre-configured in docker-compose.yml
+
 ---
 
 ## Development Environment Setup
@@ -11,32 +32,50 @@ This document defines the **standard migration workflow** for all database schem
 ### Prerequisites
 
 1. **Docker and Docker Compose** installed
-2. **Node.js 18.20.5** installed locally
-3. **Backend dependencies** installed (`npm install` in backend folder)
+2. **Node.js 18.20.5** installed locally (optional, for IDE support)
+3. **Backend dependencies** installed in container (automatic via docker-compose)
 
-### Start Development Database
+### Start Development Databases
 
 ```bash
 # From project root
-docker-compose up -d postgres
+docker-compose up -d postgres postgres-test
 
-# Verify database is running
-docker-compose ps postgres
+# Verify databases are running
+docker-compose ps postgres postgres-test
 
 # Check database health
 docker-compose logs postgres
+docker-compose logs postgres-test
 ```
 
 **Database Connection Details:**
-- Host: `localhost`
-- Port: `5432`
+
+**Dev Database (postgres container):**
+- Host (from container): `postgres`
+- Host (from host machine): `localhost`
+- Port (from host machine): `5432`
 - Database: `lms_dev`
 - User: `lms_user`
 - Password: `dev_password` (from docker-compose.yml)
+- Connection string: `postgresql://lms_user:dev_password@postgres:5432/lms_dev`
+
+**Test Database (postgres-test container):**
+- Host (from container): `postgres-test`
+- Host (from host machine): `localhost`
+- Port (from host machine): `5433`
+- Database: `lms_test`
+- User: `lms_test_user`
+- Password: `test_password` (from docker-compose.yml)
+- Connection string: `postgresql://lms_test_user:test_password@postgres-test:5432/lms_test`
+
+**Note:** DATABASE_URL is configured in `docker-compose.yml` for the backend container. No `.env` file needed in backend folder.
 
 ---
 
 ## Standard Migration Workflow
+
+**IMPORTANT:** All Prisma commands MUST be run from inside the backend Docker container using `docker-compose exec backend`. Running from host machine will fail due to PostgreSQL authentication configuration.
 
 ### Step 1: Update Prisma Schema
 
@@ -52,87 +91,73 @@ model Material {
 }
 ```
 
-### Step 2: Create Migration with Prisma CLI
+### Step 2: Create Migration Using Docker Exec
 
-**IMPORTANT:** Always use `npx prisma migrate dev` for development migrations.
+**CRITICAL:** Always use `docker-compose exec backend` to run Prisma commands.
 
 ```bash
-# Navigate to backend folder
-cd backend
-
-# Create migration (Prisma will auto-generate timestamp)
-npx prisma migrate dev --name add_material_model
+# From project root
+docker-compose exec backend npx prisma migrate dev --name add_material_model
 
 # Example output:
 # Migration `20260122105652_add_material_model` created
 ```
 
 **What this command does:**
-1. Generates migration SQL file with automatic timestamp
-2. Applies migration to development database
-3. Regenerates Prisma Client
-4. Updates `_prisma_migrations` table
+1. Runs Prisma CLI inside backend container
+2. Generates migration SQL file with automatic timestamp
+3. Applies migration to development database (postgres:5432)
+4. Regenerates Prisma Client
+5. Updates `_prisma_migrations` table
 
-### Step 3: Verify Migration
+**Why docker exec?**
+- PostgreSQL container uses scram-sha-256 authentication
+- Host machine connections fail authentication
+- Container-to-container connections work correctly
+
+### Step 3: Apply Migration to Test Database
+
+**CRITICAL:** Integration tests use a separate test database. You MUST apply migrations to the test database.
 
 ```bash
-# Check migration was created
-ls backend/prisma/migrations/
-
-# Verify database schema
-npx prisma studio
-
-# Or connect to database directly
-docker-compose exec postgres psql -U lms_user -d lms_dev
-\dt  # List tables
-\d materials  # Describe materials table
+# From project root
+docker-compose exec -e DATABASE_URL="postgresql://lms_test_user:test_password@postgres-test:5432/lms_test" backend npx prisma migrate deploy
 ```
 
-### Step 4: Generate Prisma Client
+**What this does:**
+- Sets DATABASE_URL environment variable to point to test database
+- Runs `migrate deploy` (applies pending migrations only)
+- Connects to postgres-test container (port 5433 from host, port 5432 internally)
+
+### Step 4: Verify Migrations
 
 ```bash
-# Generate Prisma Client (usually done automatically by migrate dev)
-npx prisma generate
+# Verify dev database
+docker-compose exec backend npx prisma migrate status
+
+# Verify test database
+docker-compose exec -e DATABASE_URL="postgresql://lms_test_user:test_password@postgres-test:5432/lms_test" backend npx prisma migrate status
+
+# Both should show: "Database schema is up to date!"
 ```
 
-### Step 5: Apply Migration to Test Database
-
-**CRITICAL:** Integration tests use a separate test database. You MUST apply migrations to the test database before running integration tests.
+### Step 5: Verify Prisma Client
 
 ```bash
-# From backend folder
-# Set TEST_DATABASE_URL and apply migration
-$env:DATABASE_URL="postgresql://lms_test_user:test_password@localhost:5433/lms_test"
-npx prisma migrate deploy
-```
-
-**Why this step is needed:**
-- Development database (port 5432): Used by `migrate dev` command
-- Test database (port 5433): Used by Jest integration tests
-- Migrations created in dev must be applied to test database separately
-
-**Verification:**
-```bash
-# Check migration status on test database
-$env:DATABASE_URL="postgresql://lms_test_user:test_password@localhost:5433/lms_test"
-npx prisma migrate status
-
-# Should show: "Database schema is up to date!"
+# Prisma Client is auto-generated by migrate dev
+# Verify it includes new models
+docker-compose exec backend npx prisma generate
 ```
 
 ### Step 6: Test Migration
 
 ```bash
 # Run tests to verify migration works
-npm test
+docker-compose exec backend npm test
 
 # Or run specific integration tests
-npm test -- PrismaMaterialRepository.test.ts
+docker-compose exec backend npm test -- PrismaMaterialRepository.test.ts
 ```
-
-**If tests fail with "table does not exist":**
-- You forgot Step 5 (apply migration to test database)
-- Go back and run `migrate deploy` with TEST_DATABASE_URL
 
 ---
 
@@ -174,11 +199,14 @@ Use descriptive names that explain what the migration does:
 
 ```bash
 # 1. Add model to schema.prisma
-# 2. Create migration
-npx prisma migrate dev --name add_assignment_model
+# 2. Create migration using docker exec
+docker-compose exec backend npx prisma migrate dev --name add_assignment_model
 
-# 3. Verify
-npx prisma studio
+# 3. Apply to test database
+docker-compose exec -e DATABASE_URL="postgresql://lms_test_user:test_password@postgres-test:5432/lms_test" backend npx prisma migrate deploy
+
+# 4. Verify
+docker-compose exec backend npx prisma migrate status
 ```
 
 ### Scenario 2: Add Field to Existing Model
@@ -186,10 +214,13 @@ npx prisma studio
 ```bash
 # 1. Add field to schema.prisma
 # 2. Create migration
-npx prisma migrate dev --name add_course_archived_field
+docker-compose exec backend npx prisma migrate dev --name add_course_archived_field
 
-# 3. Verify
-npm test
+# 3. Apply to test database
+docker-compose exec -e DATABASE_URL="postgresql://lms_test_user:test_password@postgres-test:5432/lms_test" backend npx prisma migrate deploy
+
+# 4. Verify
+docker-compose exec backend npm test
 ```
 
 ### Scenario 3: Add Relation Between Models
@@ -197,11 +228,13 @@ npm test
 ```bash
 # 1. Add relation fields to both models in schema.prisma
 # 2. Create migration
-npx prisma migrate dev --name add_course_material_relation
+docker-compose exec backend npx prisma migrate dev --name add_course_material_relation
 
-# 3. Verify foreign keys
-docker-compose exec postgres psql -U lms_user -d lms_dev
-\d materials  # Check foreign key constraints
+# 3. Apply to test database
+docker-compose exec -e DATABASE_URL="postgresql://lms_test_user:test_password@postgres-test:5432/lms_test" backend npx prisma migrate deploy
+
+# 4. Verify foreign keys
+docker-compose exec postgres psql -U lms_user -d lms_dev -c "\d materials"
 ```
 
 ### Scenario 4: Add Enum Type
@@ -209,11 +242,13 @@ docker-compose exec postgres psql -U lms_user -d lms_dev
 ```bash
 # 1. Add enum to schema.prisma
 # 2. Create migration
-npx prisma migrate dev --name add_material_type_enum
+docker-compose exec backend npx prisma migrate dev --name add_material_type_enum
 
-# 3. Verify enum
-docker-compose exec postgres psql -U lms_user -d lms_dev
-\dT  # List types
+# 3. Apply to test database
+docker-compose exec -e DATABASE_URL="postgresql://lms_test_user:test_password@postgres-test:5432/lms_test" backend npx prisma migrate deploy
+
+# 4. Verify enum
+docker-compose exec postgres psql -U lms_user -d lms_dev -c "\dT"
 ```
 
 ---
@@ -228,36 +263,38 @@ Environment variable not found: DATABASE_URL
 ```
 
 **Solution:**
+**ALWAYS use `docker-compose exec backend` to run Prisma commands.** The backend container has DATABASE_URL configured in docker-compose.yml.
+
 ```bash
-# Option 1: Create .env file in backend folder
-cp backend/.env.example backend/.env
+# ✅ CORRECT - Run from inside container
+docker-compose exec backend npx prisma migrate dev --name add_model
 
-# Option 2: Set environment variable
-export DATABASE_URL="postgresql://lms_user:dev_password@localhost:5432/lms_dev"
-
-# Option 3: Use Docker Compose (recommended)
-docker-compose up -d postgres
-# DATABASE_URL is automatically set in docker-compose.yml
+# ❌ WRONG - Don't run from host machine
+cd backend
+npx prisma migrate dev --name add_model  # This will fail!
 ```
 
-### Problem: Database connection refused
+### Problem: Authentication failed
 
 **Error:**
 ```
-Can't reach database server at `localhost:5432`
+P1000: Authentication failed against database server
 ```
 
+**Root Cause:**
+- PostgreSQL uses scram-sha-256 authentication
+- Host machine connections fail authentication
+- Only container-to-container connections work
+
 **Solution:**
+**ALWAYS use `docker-compose exec backend` to run Prisma commands.**
+
 ```bash
-# Start PostgreSQL container
-docker-compose up -d postgres
+# ✅ CORRECT - Run from inside container
+docker-compose exec backend npx prisma migrate dev --name add_model
 
-# Wait for database to be ready
-docker-compose logs -f postgres
-# Look for: "database system is ready to accept connections"
-
-# Verify connection
-docker-compose exec postgres psql -U lms_user -d lms_dev -c "SELECT 1"
+# ❌ WRONG - Don't run from host machine
+npx prisma migrate dev --name add_model  # Authentication will fail!
 ```
 
 ### Problem: Migration already exists
@@ -301,26 +338,24 @@ PrismaClientKnownRequestError: The table `public.materials` does not exist in th
 ```
 
 **Root Cause:**
-- Migration was applied to dev database (port 5432) but NOT to test database (port 5433)
-- Integration tests use test database, which doesn't have the new table
+- Migration was applied to dev database but NOT to test database
+- Integration tests use test database (postgres-test container)
 
 **Solution:**
 ```bash
-# Apply migration to test database
-cd backend
-$env:DATABASE_URL="postgresql://lms_test_user:test_password@localhost:5433/lms_test"
-npx prisma migrate deploy
+# Apply migration to test database using docker exec
+docker-compose exec -e DATABASE_URL="postgresql://lms_test_user:test_password@postgres-test:5432/lms_test" backend npx prisma migrate deploy
 
 # Verify migration was applied
-npx prisma migrate status
+docker-compose exec -e DATABASE_URL="postgresql://lms_test_user:test_password@postgres-test:5432/lms_test" backend npx prisma migrate status
 
 # Run tests again
-npm test -- PrismaMaterialRepository.test.ts
+docker-compose exec backend npm test -- PrismaMaterialRepository.test.ts
 ```
 
 **Prevention:**
-- Always run Step 5 (Apply Migration to Test Database) after creating a migration
-- Add this to your checklist before running integration tests
+- ALWAYS apply migrations to BOTH dev and test databases
+- Use the commands in Step 2 and Step 3 of Standard Migration Workflow
 
 ---
 
@@ -357,16 +392,16 @@ npx prisma migrate deploy
 
 Before committing a migration, verify:
 
-- [ ] Migration created with `npx prisma migrate dev`
+- [ ] Migration created with `docker-compose exec backend npx prisma migrate dev`
 - [ ] Migration file has descriptive name
 - [ ] Migration SQL is correct (review generated SQL)
-- [ ] Prisma Client regenerated (`npx prisma generate`)
-- [ ] Migration applied to test database (`migrate deploy` with TEST_DATABASE_URL)
-- [ ] Integration tests pass (`npm test -- RepositoryName.test.ts`)
-- [ ] Unit tests pass (`npm test`)
-- [ ] TypeScript compiles (`npm run build`)
+- [ ] Prisma Client regenerated (automatic with migrate dev)
+- [ ] Migration applied to test database (`docker-compose exec -e DATABASE_URL=... backend npx prisma migrate deploy`)
+- [ ] Integration tests pass (`docker-compose exec backend npm test`)
+- [ ] Unit tests pass (`docker-compose exec backend npm test`)
+- [ ] TypeScript compiles (`docker-compose exec backend npm run build`)
 - [ ] Migration committed to Git (including migration folder)
-- [ ] `.env` file NOT committed (only `.env.example`)
+- [ ] **NO `.env` file in backend folder** (not needed, uses docker-compose.yml)
 
 ---
 
@@ -374,23 +409,25 @@ Before committing a migration, verify:
 
 ### ✅ DO
 
-1. **Always use Docker Compose** for development database
-2. **Always use `npx prisma migrate dev`** for creating migrations
+1. **ALWAYS use `docker-compose exec backend`** for all Prisma commands
+2. **Apply migrations to BOTH databases** (dev and test)
 3. **Use descriptive migration names** (snake_case)
 4. **Review generated SQL** before committing
 5. **Test migrations** before committing
 6. **Commit migration files** to Git
-7. **Use `npx prisma migrate deploy`** in production
+7. **Use `npx prisma migrate deploy`** in production (inside container)
 
 ### ❌ DON'T
 
-1. **Don't manually create migration files** (let Prisma generate them)
-2. **Don't use custom timestamps** (let Prisma auto-generate)
-3. **Don't skip migration testing**
-4. **Don't commit `.env` files**
-5. **Don't use `migrate dev` in production**
-6. **Don't modify existing migrations** (create new ones instead)
-7. **Don't reset production database** (use `migrate deploy` only)
+1. **Don't run Prisma commands from host machine** (authentication will fail)
+2. **Don't manually create migration files** (let Prisma generate them)
+3. **Don't use custom timestamps** (let Prisma auto-generate)
+4. **Don't skip migration testing**
+5. **Don't skip test database migration** (causes "table does not exist" errors)
+6. **Don't commit `.env` files**
+7. **Don't use `migrate dev` in production**
+8. **Don't modify existing migrations** (create new ones instead)
+9. **Don't reset production database** (use `migrate deploy` only)
 
 ---
 
@@ -398,28 +435,32 @@ Before committing a migration, verify:
 
 ### Common Commands
 
+**CRITICAL:** All commands MUST use `docker-compose exec backend`
+
 ```bash
-# Start development database
-docker-compose up -d postgres
+# Start development databases
+docker-compose up -d postgres postgres-test
 
-# Create new migration
-cd backend
-npx prisma migrate dev --name <migration_name>
+# Create new migration (applies to dev database)
+docker-compose exec backend npx prisma migrate dev --name <migration_name>
 
-# Apply migrations (production)
-npx prisma migrate deploy
+# Apply migration to test database
+docker-compose exec -e DATABASE_URL="postgresql://lms_test_user:test_password@postgres-test:5432/lms_test" backend npx prisma migrate deploy
 
-# Reset database (development only!)
-npx prisma migrate reset
+# Check migration status (dev database)
+docker-compose exec backend npx prisma migrate status
 
-# View database in GUI
-npx prisma studio
+# Check migration status (test database)
+docker-compose exec -e DATABASE_URL="postgresql://lms_test_user:test_password@postgres-test:5432/lms_test" backend npx prisma migrate status
 
 # Generate Prisma Client
-npx prisma generate
+docker-compose exec backend npx prisma generate
 
-# Check migration status
-npx prisma migrate status
+# View database in GUI
+docker-compose exec backend npx prisma studio
+
+# Run tests
+docker-compose exec backend npm test
 ```
 
 ### Environment Variables
@@ -451,21 +492,26 @@ DATABASE_URL=postgresql://lms_user:${DB_PASSWORD}@postgres:5432/lms_prod
 
 1. Start Docker Compose: `docker-compose up -d postgres postgres-test`
 2. Update schema: Edit `backend/prisma/schema.prisma`
-3. Create migration: `npx prisma migrate dev --name <name>` (applies to dev DB)
-4. Apply to test DB: `$env:DATABASE_URL="postgresql://lms_test_user:test_password@localhost:5433/lms_test"; npx prisma migrate deploy`
-5. Verify: `npm test` and `npx prisma studio`
+3. Create migration: `docker-compose exec backend npx prisma migrate dev --name <name>`
+4. Apply to test DB: `docker-compose exec -e DATABASE_URL="postgresql://lms_test_user:test_password@postgres-test:5432/lms_test" backend npx prisma migrate deploy`
+5. Verify: `docker-compose exec backend npm test`
 6. Commit: Git commit migration files
 
 **Key Points:**
-- ✅ Use `npx prisma migrate dev` for development (port 5432)
-- ✅ Use `npx prisma migrate deploy` for test database (port 5433)
-- ✅ Use `npx prisma migrate deploy` for production
+- ✅ **ALWAYS use `docker-compose exec backend`** for all Prisma commands
+- ✅ Apply migrations to BOTH dev and test databases
 - ✅ Let Prisma auto-generate timestamps
 - ✅ Use Docker Compose for local databases
-- ✅ Always apply migrations to BOTH dev and test databases
+- ❌ **NEVER run Prisma commands from host machine** (authentication will fail)
 - ❌ Never manually create migration files
 - ❌ Never use custom timestamps
 - ❌ Never skip test database migration (causes "table does not exist" errors)
+
+**Why docker exec?**
+- PostgreSQL uses scram-sha-256 authentication
+- Host machine connections fail authentication
+- Container-to-container connections work correctly
+- DATABASE_URL is pre-configured in docker-compose.yml
 
 ---
 

@@ -1325,7 +1325,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Display file size validation errors
   - _Requirements: 19.4, 19.5, 21.6_
 
-- [ ] 5.5.5 Write React component tests for materials
+- [x] 5.5.5 Write React component tests for materials
 
   - Priority: MEDIUM
   - Dependencies: 5.5.2, 5.5.4, 1.5 (testing framework)
@@ -1342,7 +1342,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Run all tests and perform end-to-end validation
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 7.11, 8.1, 8.2, 20.3, 20.4, 20.5_
 
-- [ ] 5.6.1 Run all material management tests
+- [x] 5.6.1 Run all material management tests
   - Priority: HIGH
   - Dependencies: All Section 5 tasks (5.1.x - 5.5.x)
   - Can be parallelized: No
@@ -1676,7 +1676,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Create quiz domain entities with timer logic
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9, 12.10, 17.1, 17.2, 17.3_
 
-- [ ] 7.1.1 Create Quiz domain entity
+- [x] 7.1.1 Create Quiz domain entity
   - Priority: VERY HIGH
   - Dependencies: 1.3 (Prisma setup), 3.1.1 (Course entity)
   - Can be parallelized: Yes (with 7.1.3, 7.1.4, 7.1.6)
@@ -1686,7 +1686,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement canEdit() method (before due date and no submissions)
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7_
 
-- [ ]* 7.1.2 Write property test for Quiz editing rules
+- [x]* 7.1.2 Write property test for Quiz editing rules
   - Priority: MEDIUM
   - Dependencies: 7.1.1, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -1694,7 +1694,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - **Validates: Requirements 11.6, 11.7**
   - For any quiz, editing is only allowed before due date and before any submissions
 
-- [ ] 7.1.3 Create Question value objects
+- [x] 7.1.3 Create Question value objects
   - Priority: HIGH
   - Dependencies: None
   - Can be parallelized: Yes (with 7.1.1, 7.1.4, 7.1.6)
@@ -1703,7 +1703,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Add validation for MCQ (2+ options, valid correctAnswer index)
   - _Requirements: 11.3, 11.4_
 
-- [ ] 7.1.4 Create QuizSubmission domain entity
+- [x] 7.1.4 Create QuizSubmission domain entity
   - Priority: VERY HIGH
   - Dependencies: 1.3 (Prisma setup), 7.1.1 (Quiz entity)
   - Can be parallelized: Yes (with 7.1.3, 7.1.6)
@@ -1713,7 +1713,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Add version field for optimistic locking
   - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9, 12.10_
 
-- [ ]* 7.1.5 Write property tests for Quiz
+- [ ] 7.1.5 Write property tests for Quiz
+
   - Priority: MEDIUM
   - Dependencies: 7.1.4, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -1722,7 +1723,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - **Validates: Requirements 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8**
   - For any quiz submission, time limit is enforced and auto-submit occurs on timeout
 
-- [ ] 7.1.6 Create QuizTimingService domain service
+- [x] 7.1.6 Create QuizTimingService domain service
   - Priority: HIGH
   - Dependencies: 7.1.4 (QuizSubmission entity)
   - Can be parallelized: Yes (with 7.1.1, 7.1.3)
@@ -1730,7 +1731,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement isExpired() method
   - _Requirements: 12.2, 12.3, 12.4, 12.5_
 
-- [ ] 7.1.7 Define IQuizRepository and IQuizSubmissionRepository interfaces
+- [x] 7.1.7 Define IQuizRepository and IQuizSubmissionRepository interfaces
   - Priority: VERY HIGH
   - Dependencies: 7.1.1 (Quiz entity), 7.1.4 (QuizSubmission entity)
   - Can be parallelized: Yes (with 7.1.3, 7.1.6)
@@ -1743,7 +1744,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement Prisma models with JSON storage for questions
   - _Requirements: 17.1, 17.4, 17.5, 21.5, 17.2, 17.3_
 
-- [ ] 7.2.1 Add Quiz and QuizSubmission models to Prisma schema
+- [x] 7.2.1 Add Quiz and QuizSubmission models to Prisma schema
   - Priority: CRITICAL
   - Dependencies: 7.1.1 (Quiz entity), 7.1.4 (QuizSubmission entity), 3.2.1 (Course model), 2.2.1 (User model)
   - Can be parallelized: No (migrations run sequentially)
@@ -1754,7 +1755,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Generate and run migration
   - _Requirements: 17.1, 17.4, 17.5, 21.5_
 
-- [ ] 7.2.2 Implement Prisma repositories
+- [x] 7.2.2 Implement Prisma repositories
   - Priority: VERY HIGH
   - Dependencies: 7.2.1 (Prisma models), 7.1.7 (interfaces), 1.4 (TSyringe)
   - Can be parallelized: No
@@ -1764,7 +1765,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as singletons
   - _Requirements: 17.1, 17.2, 17.3_
 
-- [ ]* 7.2.3 Write integration tests for repositories
+- [ ] 7.2.3 Write integration tests for repositories
+
   - Priority: MEDIUM
   - Dependencies: 7.2.2, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -1779,7 +1781,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement quiz use cases with timer and auto-save logic
   - _Requirements: 18.4, 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9, 12.10_
 
-- [ ] 7.3.1 Create DTOs and mappers
+- [x] 7.3.1 Create DTOs and mappers
   - Priority: HIGH
   - Dependencies: 7.1.1 (Quiz entity), 7.1.4 (QuizSubmission entity)
   - Can be parallelized: Yes (with 7.3.2)
@@ -1787,7 +1789,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Create mappers
   - _Requirements: 18.4_
 
-- [ ] 7.3.2 Implement CreateQuizUseCase
+- [x] 7.3.2 Implement CreateQuizUseCase
   - Priority: HIGH
   - Dependencies: 7.1.1, 7.2.2 (repositories), 3.3.3 (authorization policy), 7.3.1 (DTOs)
   - Can be parallelized: Yes (with 7.3.4, 7.3.5, 7.3.6, 7.3.7, 7.3.8, 7.3.9)
@@ -1805,7 +1807,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - **Validates: Requirements 11.3, 11.4**
   - For any MCQ question, it must have 2+ options and valid correctAnswer index
 
-- [ ] 7.3.4 Implement UpdateQuizUseCase
+- [x] 7.3.4 Implement UpdateQuizUseCase
   - Priority: MEDIUM-HIGH
   - Dependencies: 7.1.1, 7.2.2, 3.3.3
   - Can be parallelized: Yes (with 7.3.2, 7.3.5, 7.3.6, 7.3.7, 7.3.8, 7.3.9)
@@ -1814,7 +1816,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 11.6, 11.7_
 
-- [ ] 7.3.5 Implement DeleteQuizUseCase
+- [x] 7.3.5 Implement DeleteQuizUseCase
   - Priority: MEDIUM-HIGH
   - Dependencies: 7.1.1, 7.2.2, 3.3.3
   - Can be parallelized: Yes (with 7.3.2, 7.3.4, 7.3.6, 7.3.7, 7.3.8, 7.3.9)
@@ -1822,7 +1824,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 11.8_
 
-- [ ] 7.3.6 Implement ListQuizzesUseCase
+- [x] 7.3.6 Implement ListQuizzesUseCase
   - Priority: HIGH
   - Dependencies: 7.2.2, 3.3.3
   - Can be parallelized: Yes (with 7.3.2, 7.3.4, 7.3.5, 7.3.7, 7.3.8, 7.3.9)
@@ -1831,7 +1833,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 11.9_
 
-- [ ] 7.3.7 Implement StartQuizUseCase
+- [x] 7.3.7 Implement StartQuizUseCase
   - Priority: HIGH
   - Dependencies: 7.1.1, 7.1.4, 7.2.2, 3.3.3
   - Can be parallelized: Yes (with 7.3.2, 7.3.4, 7.3.5, 7.3.6, 7.3.8, 7.3.9)
@@ -1842,7 +1844,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 12.1, 12.2, 12.3, 12.9_
 
-- [ ] 7.3.8 Implement AutoSaveQuizAnswersUseCase
+- [x] 7.3.8 Implement AutoSaveQuizAnswersUseCase
   - Priority: HIGH
   - Dependencies: 7.1.4, 7.2.2, 3.3.3
   - Can be parallelized: Yes (with 7.3.2, 7.3.4, 7.3.5, 7.3.6, 7.3.7, 7.3.9)
@@ -1851,7 +1853,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 12.4, 12.5_
 
-- [ ] 7.3.9 Implement SubmitQuizUseCase
+- [x] 7.3.9 Implement SubmitQuizUseCase
   - Priority: HIGH
   - Dependencies: 7.1.4, 7.2.2, 3.3.3
   - Can be parallelized: Yes (with 7.3.2, 7.3.4, 7.3.5, 7.3.6, 7.3.7, 7.3.8)
@@ -1864,18 +1866,18 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 7.4 Presentation Layer - Quiz API
 
-- [ ] 7.4 Presentation Layer - Quiz API
+- [x] 7.4 Presentation Layer - Quiz API
   - Implement API controllers for quiz management and taking
   - _Requirements: 18.4, 20.2, 11.1, 11.6, 11.8, 11.9, 12.1, 12.4, 12.6, 18.1, 18.2, 18.3_
 
-- [ ] 7.4.1 Create Zod validation schemas for quizzes
+- [x] 7.4.1 Create Zod validation schemas for quizzes
   - Priority: HIGH
   - Dependencies: None
   - Can be parallelized: Yes (with 7.4.2)
   - Create schemas for create, update, start, autosave, submit requests
   - _Requirements: 18.4, 20.2_
 
-- [ ] 7.4.2 Implement QuizController
+- [x] 7.4.2 Implement QuizController
   - Priority: HIGH
   - Dependencies: 7.3.2, 7.3.4, 7.3.5, 7.3.6, 7.3.7, 7.3.8, 7.3.9, 7.4.1, 2.4.2 (auth middleware), 2.4.3 (error handler), 2.4.4 (validation middleware)
   - Can be parallelized: No
@@ -1890,7 +1892,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - GET /api/quizzes/:id/submissions - ListQuizSubmissionsUseCase (teacher)
   - _Requirements: 11.1, 11.6, 11.8, 11.9, 12.1, 12.4, 12.6_
 
-- [ ]* 7.4.3 Write API integration tests for quizzes
+- [x] 7.4.3 Write API integration tests for quizzes
+
   - Priority: MEDIUM
   - Dependencies: 7.4.2, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -1905,7 +1908,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement React components with timer and auto-save functionality
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.9, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9, 12.10, 19.1, 19.2, 19.5_
 
-- [ ] 7.5.1 Implement CreateQuiz component (teacher)
+- [x] 7.5.1 Implement CreateQuiz component (teacher)
   - Priority: MEDIUM-HIGH
   - Dependencies: 7.4.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 7.5.2, 7.5.3, 7.5.4, 7.5.5)
@@ -1915,7 +1918,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Timezone-aware due date picker
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
-- [ ] 7.5.2 Implement UpdateQuiz component (teacher)
+- [x] 7.5.2 Implement UpdateQuiz component (teacher)
   - Priority: MEDIUM
   - Dependencies: 7.4.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 7.5.1, 7.5.3, 7.5.4, 7.5.5)
@@ -1923,7 +1926,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Show editing restrictions (before due date and no submissions)
   - _Requirements: 11.6, 11.7_
 
-- [ ] 7.5.3 Implement QuizList component
+- [x] 7.5.3 Implement QuizList component
   - Priority: MEDIUM-HIGH
   - Dependencies: 7.4.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 7.5.1, 7.5.2, 7.5.4, 7.5.5)
@@ -1932,7 +1935,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Highlight overdue items
   - _Requirements: 11.9_
 
-- [ ] 7.5.4 Implement TakeQuiz component (student)
+- [x] 7.5.4 Implement TakeQuiz component (student)
   - Priority: HIGH
   - Dependencies: 7.4.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 7.5.1, 7.5.2, 7.5.3, 7.5.5)
@@ -1946,7 +1949,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Show submission confirmation
   - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9, 12.10_
 
-- [ ] 7.5.5 Implement QuizResults component (student)
+- [x] 7.5.5 Implement QuizResults component (student)
   - Priority: MEDIUM-HIGH
   - Dependencies: 7.4.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 7.5.1, 7.5.2, 7.5.3, 7.5.4)

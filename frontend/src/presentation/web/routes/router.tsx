@@ -17,10 +17,10 @@ import {
   TeacherDashboard
 } from '../pages';
 import { CreateCourse, UpdateCourse, CourseDetails, ManageCourse, CourseList } from '../components/course';
+import { TakeQuiz, QuizResults, QuizSubmissions, QuizSubmissionDetails } from '../components/quiz';
 import { ROUTES } from '../constants';
 import { UserRole } from '../types';
 import { useParams, useNavigate } from 'react-router-dom';
-// 7766AM
 /**
  * Wrapper component for UpdateCourse that extracts courseId from URL params
  */
@@ -39,6 +39,50 @@ function UpdateCourseWrapper() {
       onCancel={() => navigate(ROUTES.TEACHER_DASHBOARD)}
     />
   );
+}
+
+/**
+ * Wrapper component for TakeQuiz that extracts params from URL
+ */
+function TakeQuizWrapper() {
+  const { courseId, quizId } = useParams<{ courseId: string; quizId: string }>();
+
+  if (!courseId || !quizId) {
+    return <Navigate to={ROUTES.NOT_FOUND} replace />;
+  }
+
+  return <TakeQuiz courseId={courseId} quizId={quizId} />;
+}
+
+/**
+ * Wrapper component for QuizResults that extracts params from URL
+ */
+function QuizResultsWrapper() {
+  const { courseId, quizId } = useParams<{ courseId: string; quizId: string }>();
+
+  if (!courseId || !quizId) {
+    return <Navigate to={ROUTES.NOT_FOUND} replace />;
+  }
+
+  return <QuizResults courseId={courseId} quizId={quizId} />;
+}
+
+/**
+ * Wrapper component for QuizSubmissionDetails that validates params
+ */
+function QuizSubmissionDetailsWrapper() {
+  const { courseId, quizId, submissionId } = useParams<{ 
+    courseId: string; 
+    quizId: string; 
+    submissionId: string;
+  }>();
+
+  if (!courseId || !quizId || !submissionId) {
+    return <Navigate to={ROUTES.NOT_FOUND} replace />;
+  }
+
+  // Component uses useParams internally, no need to pass props
+  return <QuizSubmissionDetails />;
 }
 
 export function AppRouter() {
@@ -96,6 +140,22 @@ export function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path={ROUTES.STUDENT_QUIZ_TAKE}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+              <TakeQuizWrapper />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.STUDENT_QUIZ_RESULTS}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+              <QuizResultsWrapper />
+            </ProtectedRoute>
+          }
+        />
         
         {/* Teacher protected routes */}
         <Route
@@ -135,6 +195,22 @@ export function AppRouter() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
               <ManageCourse />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.TEACHER_QUIZ_SUBMISSIONS}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
+              <QuizSubmissions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.TEACHER_QUIZ_SUBMISSION_DETAILS}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
+              <QuizSubmissionDetailsWrapper />
             </ProtectedRoute>
           }
         />

@@ -21,7 +21,7 @@ import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
 import { User } from '../../../domain/entities/User';
 import { Course } from '../../../domain/entities/Course';
 import { Quiz } from '../../../domain/entities/Quiz';
-import { QuizSubmission } from '../../../domain/entities/QuizSubmission';
+import { QuizSubmission, QuizSubmissionStatus } from '../../../domain/entities/QuizSubmission';
 import { QuizAttemptDTO } from '../../dtos/QuizSubmissionDTO';
 import { QuizSubmissionMapper } from '../../mappers/QuizSubmissionMapper';
 import { ApplicationError } from '../../errors/ApplicationErrors';
@@ -84,18 +84,42 @@ export class StartQuizUseCase {
       );
     }
 
-    // Requirement 12.9: Check for existing submission (prevent multiple attempts)
+    // Requirement 12.9: Check for existing submission
     const existingSubmission = await this.quizSubmissionRepository.findByQuizAndStudent(
       quizId,
       userId
     );
 
+    // If submission already exists
     if (existingSubmission) {
-      throw new ApplicationError(
-        'DUPLICATE_ENTRY',
-        'You have already started or submitted this quiz',
-        409
-      );
+      // If already submitted, prevent re-entry (Requirement 12.7: prevent multiple submissions)
+      if (
+        existingSubmission.getStatus() === QuizSubmissionStatus.SUBMITTED ||
+        existingSubmission.getStatus() === QuizSubmissionStatus.GRADED
+      ) {
+        throw new ApplicationError(
+          'DUPLICATE_ENTRY',
+          'You have already submitted this quiz',
+          409
+        );
+      }
+
+      // Check if time has expired on resume (Edge Case: Time expired during absence)
+      if (existingSubmission.isTimeExpired(quiz.getTimeLimit())) {
+        // Auto-submit the quiz with current answers
+        existingSubmission.autoSubmit(quiz.getTimeLimit());
+        await this.quizSubmissionRepository.save(existingSubmission);
+        
+        throw new ApplicationError(
+          'QUIZ_TIME_EXPIRED',
+          'Quiz time has expired and has been automatically submitted',
+          400
+        );
+      }
+
+      // If started but not submitted, allow resume (Design: Browser Crash Recovery)
+      // Return existing submission to resume quiz with saved answers
+      return QuizSubmissionMapper.toAttemptDTO(existingSubmission, quiz);
     }
 
     // Create new quiz submission

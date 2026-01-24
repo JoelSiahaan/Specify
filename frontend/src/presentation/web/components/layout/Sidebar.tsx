@@ -217,15 +217,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ type, courseId, courseName }) 
             <span className="ml-auto text-xs">Soon</span>
           </button>
 
-          {/* Quizzes (Coming Soon) */}
+          {/* Quizzes */}
           <button
-            disabled
-            className="w-full flex items-center gap-2 px-3 py-2 text-gray-400 cursor-not-allowed rounded text-left"
-            title="Coming Soon"
+            onClick={() => scrollToSection('quizzes-section')}
+            className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors text-left"
           >
             <span>▶</span>
             <span className="text-sm">Quizzes</span>
-            <span className="ml-auto text-xs">Soon</span>
           </button>
 
           {/* Grades (Coming Soon) */}

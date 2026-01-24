@@ -123,4 +123,14 @@ router.get(
   quizController.listSubmissions.bind(quizController)
 );
 
+/**
+ * Get quiz submission details by ID
+ * GET /api/submissions/:id
+ */
+router.get(
+  '/submissions/:id',
+  authenticationMiddleware,
+  quizController.getSubmissionDetails.bind(quizController)
+);
+
 export default router;

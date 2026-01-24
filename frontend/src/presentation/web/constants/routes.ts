@@ -17,6 +17,8 @@ export const ROUTES = {
   STUDENT_COURSE_DETAILS: '/student/courses/:courseId',
   STUDENT_ASSIGNMENTS: '/student/courses/:courseId/assignments',
   STUDENT_QUIZZES: '/student/courses/:courseId/quizzes',
+  STUDENT_QUIZ_TAKE: '/student/courses/:courseId/quizzes/:quizId/take',
+  STUDENT_QUIZ_RESULTS: '/student/courses/:courseId/quizzes/:quizId/results',
   STUDENT_MATERIALS: '/student/courses/:courseId/materials',
   STUDENT_GRADES: '/student/courses/:courseId/grades',
   
@@ -28,6 +30,8 @@ export const ROUTES = {
   TEACHER_EDIT_COURSE: '/teacher/courses/:courseId/edit',
   TEACHER_ASSIGNMENTS: '/teacher/courses/:courseId/assignments',
   TEACHER_QUIZZES: '/teacher/courses/:courseId/quizzes',
+  TEACHER_QUIZ_SUBMISSIONS: '/teacher/courses/:courseId/quizzes/:quizId/submissions',
+  TEACHER_QUIZ_SUBMISSION_DETAILS: '/teacher/courses/:courseId/quizzes/:quizId/submissions/:submissionId',
   TEACHER_MATERIALS: '/teacher/courses/:courseId/materials',
   TEACHER_GRADING: '/teacher/courses/:courseId/grading',
   

@@ -8,6 +8,7 @@ export { api, default as apiClient } from './api';
 export { authService, default as auth } from './authService';
 export * as courseService from './courseService';
 export * as materialService from './materialService';
+export * as quizService from './quizService';
 
 // Re-export individual course service functions for convenience
 export {

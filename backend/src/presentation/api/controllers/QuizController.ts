@@ -646,14 +646,126 @@ export class QuizController {
       const quizSubmissionRepository = container.resolve('IQuizSubmissionRepository' as any);
       const submissions = await (quizSubmissionRepository as any).findByQuizId(quizId);
       
-      // Convert to DTOs
+      // Get student info for each submission
+      const userRepository = container.resolve('IUserRepository' as any);
+      const studentInfo = new Map<string, { name: string; email: string }>();
+      
+      for (const submission of submissions) {
+        const studentId = submission.getStudentId();
+        if (!studentInfo.has(studentId)) {
+          const student = await (userRepository as any).findById(studentId);
+          if (student) {
+            // User.getEmail() returns string directly, not Email value object
+            studentInfo.set(studentId, {
+              name: student.getName(),
+              email: student.getEmail()
+            });
+          }
+        }
+      }
+      
+      // Convert to list DTOs with student info
       const { QuizSubmissionMapper } = await import('../../../application/mappers/QuizSubmissionMapper');
-      const submissionDTOs = submissions.map((submission: any) => 
-        QuizSubmissionMapper.toDTO(submission)
-      );
+      const submissionDTOs = QuizSubmissionMapper.toListDTOList(submissions, studentInfo);
       
       // Return submissions wrapped in data object (200 OK)
       res.status(200).json({ data: submissionDTOs });
+    } catch (error) {
+      // Pass error to error handler middleware
+      next(error);
+    }
+  }
+
+  /**
+   * Get quiz submission details by ID
+   * 
+   * GET /api/submissions/:id
+   * 
+   * Requires authentication (AuthenticationMiddleware)
+   * Requires teacher ownership or student ownership
+   * 
+   * Path parameters:
+   * - id: Submission ID (UUID)
+   * 
+   * Response (200 OK):
+   * - QuizSubmissionDTO with full details
+   * 
+   * Errors:
+   * - 401: Authentication required (handled by middleware)
+   * - 403: Not authorized to view this submission
+   * - 404: Submission not found
+   * - 500: Internal server error
+   * 
+   * Requirements: 14.1, 17.1
+   */
+  async getSubmissionDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // User is attached to request by AuthenticationMiddleware
+      const authenticatedReq = req as AuthenticatedRequest;
+      
+      if (!authenticatedReq.user) {
+        res.status(401).json({
+          code: 'AUTH_REQUIRED',
+          message: 'Authentication required'
+        });
+        return;
+      }
+
+      const submissionId = req.params.id as string;
+      
+      if (!submissionId) {
+        res.status(400).json({
+          code: 'VALIDATION_FAILED',
+          message: 'Submission ID is required'
+        });
+        return;
+      }
+      
+      // Get submission
+      const quizSubmissionRepository = container.resolve('IQuizSubmissionRepository' as any);
+      const submission = await (quizSubmissionRepository as any).findById(submissionId);
+      
+      if (!submission) {
+        res.status(404).json({
+          code: 'RESOURCE_NOT_FOUND',
+          message: 'Submission not found'
+        });
+        return;
+      }
+
+      // Get quiz to check authorization
+      const quizRepository = container.resolve('IQuizRepository' as any);
+      const quiz = await (quizRepository as any).findById(submission.getQuizId());
+      
+      if (!quiz) {
+        res.status(404).json({
+          code: 'RESOURCE_NOT_FOUND',
+          message: 'Quiz not found'
+        });
+        return;
+      }
+
+      // Check authorization: teacher owns course OR student owns submission
+      const courseRepository = container.resolve('ICourseRepository' as any);
+      const course = await (courseRepository as any).findById(quiz.getCourseId());
+      
+      const isTeacher = course && course.getTeacherId() === authenticatedReq.user.userId;
+      const isStudent = submission.getStudentId() === authenticatedReq.user.userId;
+      
+      if (!isTeacher && !isStudent) {
+        res.status(403).json({
+          code: 'NOT_AUTHORIZED',
+          message: 'You do not have permission to view this submission'
+        });
+        return;
+      }
+
+      // Convert to DTO
+      const { QuizSubmissionMapper } = await import('../../../application/mappers/QuizSubmissionMapper');
+      const submissionDTO = QuizSubmissionMapper.toDTO(submission);
+      
+      // Return submission (200 OK)
+      res.status(200).json(submissionDTO);
     } catch (error) {
       // Pass error to error handler middleware
       next(error);

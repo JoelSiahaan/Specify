@@ -19,6 +19,8 @@ export interface InputProps {
   disabled?: boolean;
   className?: string;
   maxLength?: number;
+  min?: string | number;
+  max?: string | number;
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -34,6 +36,8 @@ export const Input: React.FC<InputProps> = ({
   disabled = false,
   className = '',
   maxLength,
+  min,
+  max,
 }) => {
   const inputClasses = `w-full h-10 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:border-transparent ${
     error
@@ -59,6 +63,8 @@ export const Input: React.FC<InputProps> = ({
         required={required}
         disabled={disabled}
         maxLength={maxLength}
+        min={min}
+        max={max}
         className={inputClasses}
       />
       {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
