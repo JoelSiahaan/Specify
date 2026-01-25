@@ -332,7 +332,17 @@ export const QuizList: React.FC<QuizListProps> = ({ courseId, courseStatus = 'AC
                       >
                         Closed
                       </Button>
+                    ) : quiz.hasStarted ? (
+                      // Quiz started but not submitted - show Resume button
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => handleTakeQuiz(quiz.id)}
+                      >
+                        Resume Quiz
+                      </Button>
                     ) : (
+                      // Quiz not started - show Take Quiz button
                       <Button
                         variant="primary"
                         size="sm"

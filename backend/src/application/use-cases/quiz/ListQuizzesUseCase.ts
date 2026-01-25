@@ -18,6 +18,7 @@ import type { IEnrollmentRepository } from '../../../domain/repositories/IEnroll
 import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
 import { User, Role } from '../../../domain/entities/User';
+import { QuizSubmissionStatus } from '../../../domain/entities/QuizSubmission';
 import { QuizListDTO } from '../../dtos/QuizDTO';
 import { QuizMapper } from '../../mappers/QuizMapper';
 import { ApplicationError } from '../../errors/ApplicationErrors';
@@ -50,6 +51,12 @@ export interface QuizWithSubmissionDTO extends QuizListDTO {
    * Only populated for students with graded submissions
    */
   grade?: number;
+  
+  /**
+   * Whether the student has started but not submitted
+   * Only populated for students with in-progress submissions
+   */
+  hasStarted?: boolean;
 }
 
 @injectable()
@@ -138,14 +145,29 @@ export class ListQuizzesUseCase {
           // No submission yet
           return {
             ...quiz,
-            hasSubmission: false
+            hasSubmission: false,
+            hasStarted: false
           };
         }
 
-        // Has submission - add submission details
+        // Check submission status
+        const status = submission.getStatus();
+        
+        // If in progress (started but not submitted)
+        if (status === QuizSubmissionStatus.IN_PROGRESS) {
+          return {
+            ...quiz,
+            hasSubmission: false,
+            hasStarted: true,
+            submissionId: submission.getId()
+          };
+        }
+
+        // If submitted or graded
         return {
           ...quiz,
           hasSubmission: true,
+          hasStarted: false,
           submissionId: submission.getId(),
           isGraded: submission.isGraded(),
           grade: submission.getGrade() ?? undefined

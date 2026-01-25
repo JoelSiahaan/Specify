@@ -17,6 +17,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Spinner, ErrorMessage } from '../shared';
 import { quizService } from '../../services';
 import type { QuizAttempt, Answer, ApiError } from '../../types';
@@ -51,6 +52,9 @@ const getTimerColor = (seconds: number, totalSeconds: number): string => {
 };
 
 export const TakeQuiz: React.FC<TakeQuizProps> = ({ quizId, courseId }) => {
+  // Hooks
+  const navigate = useNavigate();
+  
   // State
   const [quizAttempt, setQuizAttempt] = useState<QuizAttempt | null>(null);
   const [answers, setAnswers] = useState<Answer[]>([]);
@@ -96,6 +100,19 @@ export const TakeQuiz: React.FC<TakeQuizProps> = ({ quizId, courseId }) => {
 
       // Start quiz (or resume if already started)
       const attempt = await quizService.startQuiz(quizId);
+      
+      // Check if quiz was auto-submitted due to time expiration
+      if (attempt.timeExpired) {
+        // Quiz expired during absence, redirect to results page
+        navigate(`/student/courses/${courseId}/quizzes/${quizId}/results`, {
+          state: { 
+            message: 'Quiz time expired and has been automatically submitted.',
+            autoSubmitted: true 
+          }
+        });
+        return;
+      }
+      
       setQuizAttempt(attempt);
       setRemainingSeconds(attempt.remainingTimeSeconds);
 
@@ -103,10 +120,15 @@ export const TakeQuiz: React.FC<TakeQuizProps> = ({ quizId, courseId }) => {
       // Use server answers as source of truth, localStorage is backup only
       if (attempt.currentAnswers && attempt.currentAnswers.length > 0) {
         // Server has answers (resumed quiz) - use server data
-        setAnswers(attempt.currentAnswers);
+        // Convert server format to component format
+        const convertedAnswers: Answer[] = attempt.currentAnswers.map(qa => ({
+          questionIndex: qa.questionIndex,
+          answer: qa.answer
+        }));
+        setAnswers(convertedAnswers);
         // Update localStorage with server data to sync
         try {
-          localStorage.setItem(localStorageKey, JSON.stringify(attempt.currentAnswers));
+          localStorage.setItem(localStorageKey, JSON.stringify(convertedAnswers));
         } catch (err) {
           console.error('Failed to sync localStorage with server:', err);
         }
@@ -292,10 +314,18 @@ export const TakeQuiz: React.FC<TakeQuizProps> = ({ quizId, courseId }) => {
       // Mark as submitted
       setSubmitted(true);
 
-      // Navigate to course page after 2 seconds
-      setTimeout(() => {
-        window.location.href = `/courses/${courseId}`;
-      }, 2000);
+      // Show success message for auto-submit
+      if (isAutoSubmit) {
+        // For auto-submit, show notification and redirect to results
+        setTimeout(() => {
+          window.location.href = `/student/courses/${courseId}/quizzes/${quizId}/results`;
+        }, 2000);
+      } else {
+        // For manual submit, redirect to course page
+        setTimeout(() => {
+          window.location.href = `/courses/${courseId}`;
+        }, 2000);
+      }
     } catch (err) {
       const apiError = err as ApiError;
       
@@ -375,7 +405,7 @@ export const TakeQuiz: React.FC<TakeQuizProps> = ({ quizId, courseId }) => {
           Your quiz has been submitted successfully. Your teacher will grade it and provide feedback soon.
         </p>
         <p className="text-sm text-gray-500 mb-6">
-          Redirecting to course page...
+          Redirecting...
         </p>
         <Spinner size="md" />
       </div>

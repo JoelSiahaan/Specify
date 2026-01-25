@@ -88,6 +88,7 @@ export interface QuizAttemptDTO {
   startedAt: Date;
   remainingTimeSeconds: number;
   currentAnswers: AnswerDTO[];
+  timeExpired?: boolean;     // Flag to indicate quiz was auto-submitted due to time expiration
 }
 
 /**

@@ -98,7 +98,7 @@ export class StartQuizUseCase {
         existingSubmission.getStatus() === QuizSubmissionStatus.GRADED
       ) {
         throw new ApplicationError(
-          'DUPLICATE_ENTRY',
+          'QUIZ_ALREADY_SUBMITTED',
           'You have already submitted this quiz',
           409
         );
@@ -108,13 +108,13 @@ export class StartQuizUseCase {
       if (existingSubmission.isTimeExpired(quiz.getTimeLimit())) {
         // Auto-submit the quiz with current answers
         existingSubmission.autoSubmit(quiz.getTimeLimit());
-        await this.quizSubmissionRepository.save(existingSubmission);
+        const savedSubmission = await this.quizSubmissionRepository.save(existingSubmission);
         
-        throw new ApplicationError(
-          'QUIZ_TIME_EXPIRED',
-          'Quiz time has expired and has been automatically submitted',
-          400
-        );
+        // Return special DTO indicating quiz was auto-submitted due to time expiration
+        // Frontend will detect this and redirect to results page
+        const attemptDTO = QuizSubmissionMapper.toAttemptDTO(savedSubmission, quiz);
+        attemptDTO.timeExpired = true; // Flag to indicate auto-submit happened
+        return attemptDTO;
       }
 
       // If started but not submitted, allow resume (Design: Browser Crash Recovery)

@@ -88,7 +88,23 @@ export class Quiz {
    * @returns Quiz instance
    */
   public static reconstitute(props: QuizProps): Quiz {
-    return new Quiz(props);
+    // Skip due date validation for reconstitution (loading from database)
+    // Past quizzes should still be loadable for display and grading
+    const quiz = Object.create(Quiz.prototype);
+    quiz.id = props.id;
+    quiz.courseId = props.courseId;
+    quiz.title = props.title;
+    quiz.description = props.description;
+    quiz.dueDate = props.dueDate;
+    quiz.timeLimit = props.timeLimit;
+    quiz.questions = props.questions;
+    quiz.createdAt = props.createdAt || new Date();
+    quiz.updatedAt = props.updatedAt || new Date();
+    
+    // Validate everything except due date being in future
+    quiz.validateForReconstitution();
+    
+    return quiz;
   }
 
   /**
@@ -96,7 +112,7 @@ export class Quiz {
    * 
    * Requirements:
    * - 11.1: Title, description, due date, time limit are required
-   * - 11.2: Due date must be in the future
+   * - 11.2: Due date must be in the future (only for create/update)
    * - 11.3: Time limit must be positive integer
    * - 11.5: At least one question required
    * 
@@ -121,10 +137,56 @@ export class Quiz {
       throw new Error('Quiz description is required');
     }
 
-    // Requirement 11.2: Due date must be in the future
+    // Requirement 11.2: Due date must be in the future (for create/update)
     if (this.dueDate <= new Date()) {
       throw new Error('Quiz due date must be in the future');
     }
+
+    // Requirement 11.3: Time limit must be positive integer
+    if (!Number.isInteger(this.timeLimit) || this.timeLimit <= 0) {
+      throw new Error('Quiz time limit must be a positive integer (in minutes)');
+    }
+
+    // Requirement 11.5: At least one question required
+    if (!this.questions || this.questions.length === 0) {
+      throw new Error('Quiz must have at least one question');
+    }
+
+    // Validate each question
+    this.questions.forEach((question, index) => {
+      this.validateQuestion(question, index);
+    });
+  }
+
+  /**
+   * Validate Quiz entity invariants for reconstitution (loading from database)
+   * Same as validate() but skips the "due date must be in future" check
+   * 
+   * @throws Error if validation fails
+   * @private
+   */
+  // @ts-expect-error - Method is used in reconstitute() but TypeScript doesn't detect it
+  private validateForReconstitution(): void {
+    if (!this.id || this.id.trim().length === 0) {
+      throw new Error('Quiz ID is required');
+    }
+
+    if (!this.courseId || this.courseId.trim().length === 0) {
+      throw new Error('Course ID is required');
+    }
+
+    // Requirement 11.1: Title is required
+    if (!this.title || this.title.trim().length === 0) {
+      throw new Error('Quiz title is required');
+    }
+
+    // Requirement 11.1: Description is required
+    if (!this.description || this.description.trim().length === 0) {
+      throw new Error('Quiz description is required');
+    }
+
+    // Skip due date future validation for reconstitution
+    // Past quizzes should still be loadable
 
     // Requirement 11.3: Time limit must be positive integer
     if (!Number.isInteger(this.timeLimit) || this.timeLimit <= 0) {

@@ -15,10 +15,10 @@
  */
 
 import { inject, injectable } from 'tsyringe';
-import { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
-import { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
 import { 
   UnauthorizedError, 
   ForbiddenError, 

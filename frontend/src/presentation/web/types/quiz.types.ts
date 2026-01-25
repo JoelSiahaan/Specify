@@ -60,6 +60,7 @@ export interface QuizListItem {
   submissionId?: string;     // Submission ID if submitted
   isGraded?: boolean;        // Whether submission is graded
   grade?: number;            // Grade if graded (0-100)
+  hasStarted?: boolean;      // Whether student has started but not submitted (for Resume button)
 }
 
 /**
@@ -114,6 +115,7 @@ export interface QuizAttempt {
   startedAt: string;
   remainingTimeSeconds: number;
   currentAnswers: Answer[];
+  timeExpired?: boolean;     // Flag to indicate quiz was auto-submitted due to time expiration
 }
 
 /**

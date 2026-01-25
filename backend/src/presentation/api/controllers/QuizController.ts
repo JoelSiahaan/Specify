@@ -437,10 +437,10 @@ export class QuizController {
    * - id: Quiz ID (UUID)
    * 
    * Request body:
-   * - answers: Record<string, string> (question ID -> answer)
+   * - answers: Array of AnswerDTO
    * 
    * Response (200 OK):
-   * - message: Success message
+   * - QuizSubmissionDTO with updated answers
    * 
    * Errors:
    * - 400: Quiz not started or already submitted
@@ -474,18 +474,31 @@ export class QuizController {
         return;
       }
       
-      // Execute use case
-      const autoSaveQuizAnswersUseCase = container.resolve(AutoSaveQuizAnswersUseCase);
-      await autoSaveQuizAnswersUseCase.execute(
+      // Find the submission by quiz and student
+      const quizSubmissionRepository = container.resolve<IQuizSubmissionRepository>('IQuizSubmissionRepository');
+      const existingSubmission = await quizSubmissionRepository.findByQuizAndStudent(
         quizId,
-        authenticatedReq.user.userId,
-        req.body.answers
+        authenticatedReq.user.userId
       );
       
-      // Return success message (200 OK)
-      res.status(200).json({
-        message: 'Answers auto-saved successfully'
-      });
+      if (!existingSubmission) {
+        res.status(404).json({
+          code: 'RESOURCE_NOT_FOUND',
+          message: 'Quiz submission not found. You must start the quiz first.'
+        });
+        return;
+      }
+      
+      // Execute use case with submissionId
+      const autoSaveQuizAnswersUseCase = container.resolve(AutoSaveQuizAnswersUseCase);
+      const updatedSubmission = await autoSaveQuizAnswersUseCase.execute(
+        existingSubmission.getId(),
+        authenticatedReq.user.userId,
+        req.body  // Pass the whole body (AutoSaveQuizDTO)
+      );
+      
+      // Return updated submission (200 OK)
+      res.status(200).json(updatedSubmission);
     } catch (error) {
       // Pass error to error handler middleware
       next(error);
