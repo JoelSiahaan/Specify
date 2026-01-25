@@ -13,6 +13,8 @@ import type {
   UpdateCourseRequest,
   ListCoursesResponse,
   CourseQueryFilters,
+  EnrollmentWithStudent,
+  ListEnrollmentsResponse,
 } from '../types';
 
 /**
@@ -98,4 +100,11 @@ export const searchCourses = async (query?: string): Promise<ListCoursesResponse
     : `${API_ENDPOINTS.COURSES.LIST}/search`;
   
   return await api.get<ListCoursesResponse>(url);
+};
+
+/**
+ * Get course enrollments with student details (teacher only)
+ */
+export const getCourseEnrollments = async (courseId: string): Promise<ListEnrollmentsResponse> => {
+  return await api.get<ListEnrollmentsResponse>(API_ENDPOINTS.COURSES.ENROLLMENTS(courseId));
 };

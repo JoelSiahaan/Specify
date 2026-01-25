@@ -13,3 +13,5 @@ export { StudentDashboard } from './StudentDashboard';
 export { TeacherDashboard } from './TeacherDashboard';
 export { AssignmentsPage } from './AssignmentsPage';
 export { SubmissionsPage } from './SubmissionsPage';
+export { MaterialsPage } from './MaterialsPage';
+export { QuizzesPage } from './QuizzesPage';

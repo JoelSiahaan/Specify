@@ -52,3 +52,41 @@ export function buildRoute(route: string, params: Record<string, string>): strin
   });
   return path;
 }
+
+/**
+ * Helper function to get course details route based on user role
+ */
+export const COURSE_DETAILS = (courseId: string) => {
+  // Will be determined by current user context in the app
+  return `/courses/${courseId}`;
+};
+
+/**
+ * Helper function to get materials route based on user role
+ */
+export const MATERIALS = (courseId: string, role?: 'STUDENT' | 'TEACHER') => {
+  if (role === 'TEACHER') {
+    return buildRoute(ROUTES.TEACHER_MATERIALS, { courseId });
+  }
+  return buildRoute(ROUTES.STUDENT_MATERIALS, { courseId });
+};
+
+/**
+ * Helper function to get quizzes route based on user role
+ */
+export const QUIZZES = (courseId: string, role?: 'STUDENT' | 'TEACHER') => {
+  if (role === 'TEACHER') {
+    return buildRoute(ROUTES.TEACHER_QUIZZES, { courseId });
+  }
+  return buildRoute(ROUTES.STUDENT_QUIZZES, { courseId });
+};
+
+/**
+ * Helper function to get assignments route based on user role
+ */
+export const ASSIGNMENTS = (courseId: string, role?: 'STUDENT' | 'TEACHER') => {
+  if (role === 'TEACHER') {
+    return buildRoute(ROUTES.TEACHER_ASSIGNMENTS, { courseId });
+  }
+  return buildRoute(ROUTES.STUDENT_ASSIGNMENTS, { courseId });
+};

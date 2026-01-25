@@ -1,27 +1,23 @@
 /**
  * CourseDetails Component
  * 
- * Display course information with archive/delete actions for teachers.
- * Handles course lifecycle: Active → Archived → Deleted
+ * Display course information (overview page).
+ * Shows course name, description, and enrolled students list.
+ * Materials, Quizzes, and Assignments are now in separate pages.
  * 
  * Requirements:
- * - 5.4: Archive courses (auto-closes assignments/quizzes, prevents new enrollments)
- * - 5.6: Delete archived courses only (cascade deletes all related data)
- * - 5.7: Require archiving before deletion
  * - 5.10: View course details
  */
-// 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Spinner, ErrorMessage } from '../shared';
 import { CourseLayout, Breadcrumb } from '../layout';
 import { UpdateCourse } from './UpdateCourse';
-import { MaterialList, CreateMaterial } from '../material';
-import { QuizList, CreateQuiz } from '../quiz';
 import { courseService } from '../../services';
 import { ROUTES } from '../../constants';
 import { useAuth } from '../../hooks';
-import type { Course, ApiError } from '../../types';
+import type { Course, ApiError, EnrollmentWithStudent } from '../../types';
 
 export const CourseDetails: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -33,13 +29,14 @@ export const CourseDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [showCreateMaterial, setShowCreateMaterial] = useState(false);
-  const [showCreateQuiz, setShowCreateQuiz] = useState(false);
-  const [refreshMaterials, setRefreshMaterials] = useState(0);
-  const [refreshQuizzes, setRefreshQuizzes] = useState(0);
+  const [enrollments, setEnrollments] = useState<EnrollmentWithStudent[]>([]);
+  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
 
   // Determine dashboard route based on user role
   const dashboardRoute = user?.role === 'STUDENT' ? ROUTES.STUDENT_DASHBOARD : ROUTES.TEACHER_DASHBOARD;
+
+  // Check if user is teacher
+  const isTeacher = user?.role === 'TEACHER';
 
   /**
    * Fetch course details on mount
@@ -49,6 +46,15 @@ export const CourseDetails: React.FC = () => {
       fetchCourse();
     }
   }, [courseId]);
+
+  /**
+   * Fetch enrollments when course is loaded
+   */
+  useEffect(() => {
+    if (course && courseId) {
+      fetchEnrollments();
+    }
+  }, [course, courseId]);
 
   /**
    * Fetch course from API
@@ -70,33 +76,30 @@ export const CourseDetails: React.FC = () => {
   };
 
   /**
+   * Fetch enrollments from API
+   */
+  const fetchEnrollments = async () => {
+    if (!courseId) return;
+
+    try {
+      setLoadingEnrollments(true);
+      const response = await courseService.getCourseEnrollments(courseId);
+      setEnrollments(response.data || []);
+    } catch (err) {
+      console.error('Failed to load enrollments:', err);
+      // Don't show error to user, just log it
+    } finally {
+      setLoadingEnrollments(false);
+    }
+  };
+
+  /**
    * Handle update success
    */
   const handleUpdateSuccess = (updatedCourse: Course) => {
     setCourse(updatedCourse);
     setIsEditing(false);
   };
-
-  /**
-   * Handle create material success
-   */
-  const handleCreateMaterialSuccess = () => {
-    setShowCreateMaterial(false);
-    setRefreshMaterials(prev => prev + 1); // Trigger MaterialList refresh
-  };
-
-  /**
-   * Handle create quiz success
-   */
-  const handleCreateQuizSuccess = () => {
-    setShowCreateQuiz(false);
-    setRefreshQuizzes(prev => prev + 1); // Trigger QuizList refresh
-  };
-
-  /**
-   * Check if user is teacher
-   */
-  const isTeacher = user?.role === 'TEACHER';
 
   // Loading state
   if (loading) {
@@ -164,7 +167,7 @@ export const CourseDetails: React.FC = () => {
         {/* Breadcrumb */}
         <Breadcrumb
           items={[
-            { label: 'Home', path:dashboardRoute },
+            { label: 'Home', path: dashboardRoute },
             { label: course.name }
           ]}
         />
@@ -190,104 +193,96 @@ export const CourseDetails: React.FC = () => {
                 </span>
               </div>
             </div>
+            {isTeacher && course.status === 'ACTIVE' && (
+              <Button
+                variant="secondary"
+                onClick={() => setIsEditing(true)}
+              >
+                Edit Course
+              </Button>
+            )}
           </div>
 
           {/* Course Description */}
           {course.description && (
-            <div className="mb-6">
+            <div className="mb-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
               <p className="text-gray-700 whitespace-pre-wrap">{course.description}</p>
             </div>
           )}
 
+          {/* Course Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-200">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Teacher</p>
+              <p className="text-gray-900 font-medium">{course.teacherName || 'Unknown'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Enrolled Students</p>
+              <p className="text-gray-900 font-medium">{course.enrollmentCount || 0} students</p>
+            </div>
+          </div>
         </div>
 
-        {/* Materials Section */}
-        <div id="materials-section" className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900">Materials</h2>
-            {isTeacher && !showCreateMaterial && course.status === 'ACTIVE' && (
-              <Button
-                variant="primary"
-                onClick={() => setShowCreateMaterial(true)}
-              >
-                + Add Material
-              </Button>
-            )}
-          </div>
-
-          {/* Archived Course Notice */}
-          {course.status === 'ARCHIVED' && (
-            <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-              <p className="text-sm text-gray-600">
-                📦 This course is archived and read-only. Materials cannot be added, edited, or deleted.
-              </p>
+        {/* Enrolled Students Section (All Users) */}
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            {isTeacher ? 'Enrolled Students' : 'Classmates'}
+          </h2>
+          
+          {loadingEnrollments ? (
+            <div className="flex items-center justify-center py-8">
+              <Spinner size="md" />
+            </div>
+          ) : course.enrollmentCount === 0 ? (
+            <div className="text-center py-8">
+              <span className="text-5xl mb-4 block">👥</span>
+              <p className="text-gray-600">No students enrolled yet.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Enrolled Date
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {enrollments.map((enrollment) => (
+                    <tr key={enrollment.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {enrollment.studentName || 'Unknown'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-600">
+                          {enrollment.studentEmail || '-'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-600">
+                          {new Date(enrollment.enrolledAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-
-          {/* Create Material Modal */}
-          {showCreateMaterial && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <CreateMaterial
-                  courseId={courseId!}
-                  onSuccess={handleCreateMaterialSuccess}
-                  onCancel={() => setShowCreateMaterial(false)}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Material List */}
-          <MaterialList
-            courseId={courseId!}
-            courseStatus={course.status}
-            key={refreshMaterials} // Force re-render when material created
-          />
-        </div>
-
-        {/* Quizzes Section */}
-        <div id="quizzes-section" className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900">Quizzes</h2>
-            {isTeacher && !showCreateQuiz && course.status === 'ACTIVE' && (
-              <Button
-                variant="primary"
-                onClick={() => setShowCreateQuiz(true)}
-              >
-                + Create Quiz
-              </Button>
-            )}
-          </div>
-
-          {/* Archived Course Notice */}
-          {course.status === 'ARCHIVED' && (
-            <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-              <p className="text-sm text-gray-600">
-                📦 This course is archived and read-only. Quizzes cannot be created, edited, or deleted.
-              </p>
-            </div>
-          )}
-
-          {/* Create Quiz Modal */}
-          {showCreateQuiz && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                <CreateQuiz
-                  courseId={courseId!}
-                  onSuccess={handleCreateQuizSuccess}
-                  onCancel={() => setShowCreateQuiz(false)}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Quiz List */}
-          <QuizList 
-            courseId={courseId!} 
-            courseStatus={course.status}
-            key={refreshQuizzes} // Force re-render when quiz created
-          />
         </div>
       </div>
     </CourseLayout>

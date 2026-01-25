@@ -55,10 +55,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         
         {/* Footer info */}
         <div className="flex items-center justify-between text-sm text-gray-500">
-          {course.teacher && (
+          {course.teacherName && (
             <div className="flex items-center gap-1">
               <span>👤</span>
-              <span>{course.teacher.name}</span>
+              <span>{course.teacherName}</span>
             </div>
           )}
           {showEnrollmentCount && course.enrollmentCount !== undefined && (

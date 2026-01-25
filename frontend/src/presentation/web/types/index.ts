@@ -7,6 +7,7 @@
 export * from './common.types';
 export * from './user.types';
 export * from './course.types';
+export * from './enrollment.types';
 
 // Re-export material types (using export type for isolatedModules compliance)
 export type {

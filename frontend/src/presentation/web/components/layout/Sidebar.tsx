@@ -189,22 +189,28 @@ export const Sidebar: React.FC<SidebarProps> = ({ type, courseId, courseName }) 
         {/* Course Navigation */}
         <nav className="space-y-1">
           {/* Overview */}
-          <button
-            onClick={() => scrollToSection('top')}
+          <Link
+            to={user?.role === 'TEACHER' 
+              ? ROUTES.TEACHER_COURSE_DETAILS.replace(':courseId', courseId || '')
+              : ROUTES.STUDENT_COURSE_DETAILS.replace(':courseId', courseId || '')
+            }
             className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors text-left"
           >
             <span>▶</span>
             <span className="text-sm">Overview</span>
-          </button>
+          </Link>
 
           {/* Materials */}
-          <button
-            onClick={() => scrollToSection('materials-section')}
+          <Link
+            to={user?.role === 'TEACHER' 
+              ? ROUTES.TEACHER_MATERIALS.replace(':courseId', courseId || '')
+              : ROUTES.STUDENT_MATERIALS.replace(':courseId', courseId || '')
+            }
             className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors text-left"
           >
             <span>▶</span>
             <span className="text-sm">Materials</span>
-          </button>
+          </Link>
 
           {/* Assignments */}
           <Link
@@ -219,13 +225,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ type, courseId, courseName }) 
           </Link>
 
           {/* Quizzes */}
-          <button
-            onClick={() => scrollToSection('quizzes-section')}
+          <Link
+            to={user?.role === 'TEACHER' 
+              ? ROUTES.TEACHER_QUIZZES.replace(':courseId', courseId || '')
+              : ROUTES.STUDENT_QUIZZES.replace(':courseId', courseId || '')
+            }
             className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors text-left"
           >
             <span>▶</span>
             <span className="text-sm">Quizzes</span>
-          </button>
+          </Link>
 
           {/* Grades (Coming Soon) */}
           <button

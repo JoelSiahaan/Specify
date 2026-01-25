@@ -26,6 +26,7 @@ export const API_ENDPOINTS = {
     ARCHIVE: (id: string) => `/api/courses/${id}/archive`,
     ENROLL: '/api/courses/enroll',
     UNENROLL_BULK: (id: string) => `/api/courses/${id}/unenroll-bulk`,
+    ENROLLMENTS: (id: string) => `/api/courses/${id}/enrollments`,
   },
   
   // Materials

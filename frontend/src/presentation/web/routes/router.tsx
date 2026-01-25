@@ -16,7 +16,9 @@ import {
   StudentDashboard,
   TeacherDashboard,
   AssignmentsPage,
-  SubmissionsPage
+  SubmissionsPage,
+  MaterialsPage,
+  QuizzesPage
 } from '../pages';
 import { CreateCourse, UpdateCourse, CourseDetails, ManageCourse, CourseList } from '../components/course';
 import { TakeQuiz, QuizResults, QuizSubmissions, QuizSubmissionDetails } from '../components/quiz';
@@ -166,6 +168,22 @@ export function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path={ROUTES.STUDENT_MATERIALS}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+              <MaterialsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.STUDENT_QUIZZES}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+              <QuizzesPage />
+            </ProtectedRoute>
+          }
+        />
         
         {/* Teacher protected routes */}
         <Route
@@ -221,6 +239,22 @@ export function AppRouter() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
               <AssignmentsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.TEACHER_MATERIALS}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
+              <MaterialsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.TEACHER_QUIZZES}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
+              <QuizzesPage />
             </ProtectedRoute>
           }
         />

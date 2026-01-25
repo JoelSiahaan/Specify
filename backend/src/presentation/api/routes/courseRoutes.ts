@@ -167,6 +167,20 @@ router.post(
 );
 
 /**
+ * GET /api/courses/:id/enrollments
+ * 
+ * Get course enrollments with student details
+ * 
+ * Protected endpoint (authentication required)
+ * Requires teacher ownership (validated by use case)
+ * Returns list of enrolled students with their details
+ */
+router.get(
+  '/:id/enrollments',
+  courseController.getEnrollments.bind(courseController)
+);
+
+/**
  * DELETE /api/courses/:id
  * 
  * Delete course

@@ -23,6 +23,7 @@ import { ListCoursesUseCase } from '../../../application/use-cases/course/ListCo
 import { SearchCoursesUseCase } from '../../../application/use-cases/course/SearchCoursesUseCase';
 import { EnrollStudentUseCase } from '../../../application/use-cases/enrollment/EnrollStudentUseCase';
 import { BulkUnenrollUseCase } from '../../../application/use-cases/enrollment/BulkUnenrollUseCase';
+import { ListCourseEnrollmentsUseCase } from '../../../application/use-cases/enrollment/ListCourseEnrollmentsUseCase';
 import { CourseStatus } from '../../../domain/entities/Course';
 import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware';
 
@@ -111,7 +112,7 @@ export class CourseController {
    * - id: Course ID (UUID)
    * 
    * Response (200 OK):
-   * - CourseDTO
+   * - CourseListDTO (with teacher name and enrollment count)
    * 
    * Errors:
    * - 401: Authentication required (handled by middleware)
@@ -143,9 +144,12 @@ export class CourseController {
         return;
       }
       
-      // For now, we'll use the repository directly
-      // In future, this should be a GetCourseUseCase
+      // Load repositories (same pattern as other controllers)
       const courseRepository = container.resolve('ICourseRepository' as any);
+      const userRepository = container.resolve('IUserRepository' as any);
+      const enrollmentRepository = container.resolve('IEnrollmentRepository' as any);
+      
+      // Load course
       const course = await (courseRepository as any).findById(courseId);
       
       if (!course) {
@@ -156,9 +160,17 @@ export class CourseController {
         return;
       }
 
-      // Convert to DTO
+      // Load teacher
+      const teacher = await (userRepository as any).findById(course.getTeacherId());
+      const teacherName = teacher ? teacher.getName() : undefined;
+
+      // Load enrollment count
+      const enrollments = await (enrollmentRepository as any).findByCourse(courseId);
+      const enrollmentCount = enrollments.length;
+
+      // Convert to DTO with teacher name and enrollment count
       const { CourseMapper } = await import('../../../application/mappers/CourseMapper');
-      const courseDTO = CourseMapper.toDTO(course);
+      const courseDTO = CourseMapper.toListDTO(course, teacherName, enrollmentCount);
       
       // Return course (200 OK)
       res.status(200).json(courseDTO);
@@ -571,6 +583,66 @@ export class CourseController {
       
       // Return success response (200 OK)
       res.status(200).json(result);
+    } catch (error) {
+      // Pass error to error handler middleware
+      next(error);
+    }
+  }
+
+  /**
+   * Get course enrollments with student details
+   * 
+   * GET /api/courses/:id/enrollments
+   * 
+   * Requires authentication (AuthenticationMiddleware)
+   * Requires teacher ownership (validated by use case)
+   * 
+   * Path parameters:
+   * - id: Course ID (UUID)
+   * 
+   * Response (200 OK):
+   * - data: Array of EnrollmentWithStudentDTO
+   * 
+   * Errors:
+   * - 401: Authentication required (handled by middleware)
+   * - 403: Not the course owner
+   * - 404: Course not found
+   * - 500: Internal server error
+   * 
+   * Requirements: 5.10
+   */
+  async getEnrollments(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // User is attached to request by AuthenticationMiddleware
+      const authenticatedReq = req as AuthenticatedRequest;
+      
+      if (!authenticatedReq.user) {
+        res.status(401).json({
+          code: 'AUTH_REQUIRED',
+          message: 'Authentication required'
+        });
+        return;
+      }
+
+      const courseId = req.params.id as string;
+      
+      if (!courseId) {
+        res.status(400).json({
+          code: 'VALIDATION_FAILED',
+          message: 'Course ID is required'
+        });
+        return;
+      }
+
+      // Execute use case
+      const listEnrollmentsUseCase = container.resolve(ListCourseEnrollmentsUseCase);
+      const enrollments = await listEnrollmentsUseCase.execute(
+        courseId,
+        authenticatedReq.user.userId
+      );
+
+      // Return enrollments wrapped in data object (200 OK)
+      res.status(200).json({ data: enrollments });
     } catch (error) {
       // Pass error to error handler middleware
       next(error);

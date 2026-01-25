@@ -22,4 +22,5 @@ export {
   deleteCourse,
   enrollInCourse,
   searchCourses,
+  getCourseEnrollments,
 } from './courseService';

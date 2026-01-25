@@ -16,14 +16,10 @@ export interface Course {
   courseCode: string;
   status: CourseStatus;
   teacherId: string;
+  teacherName?: string;
+  enrollmentCount?: number;
   createdAt: string;
   updatedAt: string;
-  teacher?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  enrollmentCount?: number;
 }
 
 /**
@@ -69,16 +65,4 @@ export interface ListCoursesResponse {
 export interface CourseQueryFilters {
   status?: CourseStatus;
   enrolledOnly?: boolean;
-}
-
-/**
- * Course with teacher details
- */
-export interface CourseWithTeacher extends Course {
-  teacher?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  enrollmentCount?: number;
 }

@@ -6,3 +6,4 @@
 
 export { EnrollStudentUseCase } from './EnrollStudentUseCase';
 export { BulkUnenrollUseCase } from './BulkUnenrollUseCase';
+export { ListCourseEnrollmentsUseCase } from './ListCourseEnrollmentsUseCase';
