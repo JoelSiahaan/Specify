@@ -47,6 +47,7 @@ export const API_ENDPOINTS = {
     DELETE: (id: string) => `/api/assignments/${id}`,
     SUBMISSIONS: (id: string) => `/api/assignments/${id}/submissions`,
     SUBMIT: (id: string) => `/api/assignments/${id}/submit`,
+    MY_SUBMISSION: (id: string) => `/api/assignments/${id}/my-submission`,
   },
   
   // Quizzes

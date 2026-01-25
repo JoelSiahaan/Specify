@@ -1388,7 +1388,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Create assignment and submission domain entities
   - _Requirements: 9.1, 9.2, 9.8, 10.9, 10.6, 10.8, 13.3, 13.4, 21.5, 17.1, 17.2, 17.3_
 
-- [ ] 6.1.1 Create Assignment domain entity
+- [x] 6.1.1 Create Assignment domain entity
   - Priority: VERY HIGH
   - Dependencies: 1.3 (Prisma setup), 3.1.1 (Course entity)
   - Can be parallelized: Yes (with 6.1.3, 6.1.5, 6.1.6)
@@ -1397,14 +1397,15 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement startGrading() method to lock assignment
   - _Requirements: 9.1, 9.2, 9.8, 10.9_
 
-- [ ]* 6.1.2 Write property test for Assignment grading lock
+- [x] 6.1.2 Write property test for Assignment grading lock
+
   - Priority: MEDIUM
   - Dependencies: 6.1.1, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
   - **Property 3: Grading lock prevents submissions**
   - **Validates: Requirements 10.9, 13.1**
 
-- [ ] 6.1.3 Create Submission domain entity
+- [x] 6.1.3 Create Submission domain entity
   - Priority: VERY HIGH
   - Dependencies: 1.3 (Prisma setup), 6.1.1 (Assignment entity)
   - Can be parallelized: Yes (with 6.1.5, 6.1.6)
@@ -1414,7 +1415,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Add version field for optimistic locking
   - _Requirements: 10.6, 10.8, 13.3, 13.4, 21.5_
 
-- [ ]* 6.1.4 Write property tests for Submission
+- [x] 6.1.4 Write property tests for Submission
+
   - Priority: MEDIUM
   - Dependencies: 6.1.3, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -1423,14 +1425,14 @@ Independent (Can run in parallel with ANY feature after Auth):
   - **Property 19: Grading lock prevents submissions**
   - **Validates: Requirements 13.3, 10.8, 10.9, 10.11_
 
-- [ ] 6.1.5 Create Grade value object
+- [x] 6.1.5 Create Grade value object
   - Priority: HIGH
   - Dependencies: None
   - Can be parallelized: Yes (with 6.1.1, 6.1.3, 6.1.6)
   - Implement Grade value object (0-100 range validation)
   - _Requirements: 13.3_
 
-- [ ] 6.1.6 Define IAssignmentRepository and ISubmissionRepository interfaces
+- [x] 6.1.6 Define IAssignmentRepository and ISubmissionRepository interfaces
   - Priority: VERY HIGH
   - Dependencies: 6.1.1 (Assignment entity), 6.1.3 (Submission entity)
   - Can be parallelized: Yes (with 6.1.5)
@@ -1443,7 +1445,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement Prisma models and repositories with optimistic locking
   - _Requirements: 17.1, 17.4, 17.5, 21.5, 17.2, 17.3_
 
-- [ ] 6.2.1 Add Assignment and Submission models to Prisma schema
+- [x] 6.2.1 Add Assignment and Submission models to Prisma schema
   - Priority: CRITICAL
   - Dependencies: 6.1.1 (Assignment entity), 6.1.3 (Submission entity), 3.2.1 (Course model), 2.2.1 (User model)
   - Can be parallelized: No (migrations run sequentially)
@@ -1453,7 +1455,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Generate and run migration
   - _Requirements: 17.1, 17.4, 17.5, 21.5_
 
-- [ ] 6.2.2 Implement Prisma repositories
+- [x] 6.2.2 Implement Prisma repositories
   - Priority: VERY HIGH
   - Dependencies: 6.2.1 (Prisma models), 6.1.6 (interfaces), 1.4 (TSyringe)
   - Can be parallelized: No
@@ -1462,7 +1464,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as singletons
   - _Requirements: 17.1, 17.2, 17.3_
 
-- [ ]* 6.2.3 Write integration tests for repositories
+- [x] 6.2.3 Write integration tests for repositories
+
   - Priority: MEDIUM
   - Dependencies: 6.2.2, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -1476,7 +1479,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement assignment and submission use cases
   - _Requirements: 18.4, 9.1, 9.2, 9.4, 9.5, 9.7, 9.8, 9.9, 9.10, 9.11, 9.12, 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.10, 10.11, 10.13, 10.12_
 
-- [ ] 6.3.1 Create DTOs and mappers
+- [x] 6.3.1 Create DTOs and mappers
   - Priority: HIGH
   - Dependencies: 6.1.1 (Assignment entity), 6.1.3 (Submission entity)
   - Can be parallelized: Yes (with 6.3.2)
@@ -1484,7 +1487,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Create mappers
   - _Requirements: 18.4_
 
-- [ ] 6.3.2 Implement CreateAssignmentUseCase
+- [x] 6.3.2 Implement CreateAssignmentUseCase
   - Priority: HIGH
   - Dependencies: 6.1.1, 6.2.2 (repositories), 3.3.3 (authorization policy), 6.3.1 (DTOs)
   - Can be parallelized: Yes (with 6.3.4, 6.3.5, 6.3.6, 6.3.7, 6.3.8)
@@ -1493,14 +1496,15 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 9.1, 9.2, 9.4, 9.5, 9.7_
 
-- [ ]* 6.3.3 Write property test for assignment due date
+- [x] 6.3.3 Write property test for assignment due date
+
   - Priority: MEDIUM
   - Dependencies: 6.3.2, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
   - **Property 17: Due date validation**
   - **Validates: Requirements 9.2**
 
-- [ ] 6.3.4 Implement UpdateAssignmentUseCase
+- [x] 6.3.4 Implement UpdateAssignmentUseCase
   - Priority: MEDIUM-HIGH
   - Dependencies: 6.1.1, 6.2.2, 3.3.3
   - Can be parallelized: Yes (with 6.3.2, 6.3.5, 6.3.6, 6.3.7, 6.3.8)
@@ -1509,7 +1513,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 9.8, 9.9_
 
-- [ ] 6.3.5 Implement DeleteAssignmentUseCase
+- [x] 6.3.5 Implement DeleteAssignmentUseCase
   - Priority: MEDIUM-HIGH
   - Dependencies: 6.1.1, 6.2.2, 3.3.3
   - Can be parallelized: Yes (with 6.3.2, 6.3.4, 6.3.6, 6.3.7, 6.3.8)
@@ -1517,7 +1521,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 9.10_
 
-- [ ] 6.3.6 Implement ListAssignmentsUseCase
+- [x] 6.3.6 Implement ListAssignmentsUseCase
   - Priority: HIGH
   - Dependencies: 6.2.2, 3.3.3
   - Can be parallelized: Yes (with 6.3.2, 6.3.4, 6.3.5, 6.3.7, 6.3.8)
@@ -1526,7 +1530,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 9.11, 9.12_
 
-- [ ] 6.3.7 Implement SubmitAssignmentUseCase
+- [x] 6.3.7 Implement SubmitAssignmentUseCase
   - Priority: HIGH
   - Dependencies: 6.1.1, 6.1.3, 6.2.2, 5.2.4 (file storage), 3.3.3
   - Can be parallelized: Yes (with 6.3.2, 6.3.4, 6.3.5, 6.3.6, 6.3.8)
@@ -1539,7 +1543,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.10, 10.11, 10.13_
 
-- [ ] 6.3.8 Implement GetSubmissionUseCase
+- [x] 6.3.8 Implement GetSubmissionUseCase
   - Priority: HIGH
   - Dependencies: 6.2.2, 3.3.3
   - Can be parallelized: Yes (with 6.3.2, 6.3.4, 6.3.5, 6.3.6, 6.3.7)
@@ -1554,14 +1558,14 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement API controllers with file upload support
   - _Requirements: 18.4, 20.2, 9.1, 9.8, 9.10, 9.11, 10.1, 18.1, 18.2, 18.3_
 
-- [ ] 6.4.1 Create Zod validation schemas for assignments
+- [x] 6.4.1 Create Zod validation schemas for assignments
   - Priority: HIGH
   - Dependencies: None
   - Can be parallelized: Yes (with 6.4.2)
   - Create schemas for create, update, submit requests
   - _Requirements: 18.4, 20.2_
 
-- [ ] 6.4.2 Implement AssignmentController
+- [x] 6.4.2 Implement AssignmentController
   - Priority: HIGH
   - Dependencies: 6.3.2, 6.3.4, 6.3.5, 6.3.6, 6.3.7, 6.3.8, 6.4.1, 2.4.2 (auth middleware), 2.4.3 (error handler), 2.4.4 (validation middleware)
   - Can be parallelized: No
@@ -1574,7 +1578,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Use Multer for file uploads
   - _Requirements: 9.1, 9.8, 9.10, 9.11, 10.1_
 
-- [ ]* 6.4.3 Write API integration tests for assignments
+- [x] 6.4.3 Write API integration tests for assignments
+
   - Priority: MEDIUM
   - Dependencies: 6.4.2, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -1588,7 +1593,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement React components for assignment management UI
   - _Requirements: 9.1, 9.2, 9.8, 9.9, 9.11, 9.12, 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.12, 19.1, 19.2, 19.5_
 
-- [ ] 6.5.1 Implement CreateAssignment component (teacher)
+- [x] 6.5.1 Implement CreateAssignment component (teacher)
   - Priority: MEDIUM-HIGH
   - Dependencies: 6.4.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 6.5.2, 6.5.3, 6.5.4)
@@ -1597,14 +1602,14 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Timezone-aware due date picker
   - _Requirements: 9.1, 9.2_
 
-- [ ] 6.5.2 Implement UpdateAssignment component (teacher)
+- [x] 6.5.2 Implement UpdateAssignment component (teacher)
   - Priority: MEDIUM
   - Dependencies: 6.4.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 6.5.1, 6.5.3, 6.5.4)
   - Form for updating assignment
   - _Requirements: 9.8, 9.9_
 
-- [ ] 6.5.3 Implement AssignmentList component
+- [x] 6.5.3 Implement AssignmentList component
   - Priority: MEDIUM-HIGH
   - Dependencies: 6.4.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 6.5.1, 6.5.2, 6.5.4)
@@ -1613,7 +1618,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Highlight overdue items
   - _Requirements: 9.11, 9.12_
 
-- [ ] 6.5.4 Implement SubmitAssignment component (student)
+- [x] 6.5.4 Implement SubmitAssignment component (student)
   - Priority: MEDIUM-HIGH
   - Dependencies: 6.4.2 (API), 2.5.1 (shared components), 5.5.4 (FileUpload component)
   - Can be parallelized: Yes (with 6.5.1, 6.5.2, 6.5.3)
@@ -1624,7 +1629,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Handle closed assignment errors
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.12_
 
-- [ ]* 6.5.5 Write React component tests for assignments
+- [x] 6.5.5 Write React component tests for assignments
+
   - Priority: MEDIUM
   - Dependencies: 6.5.1, 6.5.4, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)

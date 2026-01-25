@@ -8,3 +8,5 @@ export * from './UserMapper';
 export * from './CourseMapper';
 export * from './MaterialMapper';
 export * from './EnrollmentMapper';
+export * from './AssignmentMapper';
+export * from './SubmissionMapper';

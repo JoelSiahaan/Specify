@@ -7,3 +7,4 @@
 export { AuthController } from './AuthController';
 export { CourseController } from './CourseController';
 export { MaterialController } from './MaterialController';
+export { AssignmentController } from './AssignmentController';
