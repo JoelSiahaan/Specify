@@ -175,7 +175,7 @@ export class PrismaAssignmentRepository implements IAssignmentRepository {
       where: { courseId },
       include: {
         _count: {
-          select: { submissions: true }
+          select: { assignmentSubmissions: true }
         }
       },
       orderBy: { dueDate: 'asc' }

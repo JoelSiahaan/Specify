@@ -216,6 +216,7 @@ export function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route
           path={ROUTES.TEACHER_ASSIGNMENTS}
           element={
             <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
@@ -231,6 +232,7 @@ export function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route
           path="/courses/:courseId/assignments/:assignmentId/submissions"
           element={
             <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>

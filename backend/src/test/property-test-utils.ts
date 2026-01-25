@@ -5,6 +5,7 @@
  */
 
 import * as fc from 'fast-check';
+import { Role } from '../domain/entities/User';
 
 /**
  * Generator for valid email addresses
@@ -33,7 +34,7 @@ export const nameArbitrary = () =>
  * Generator for user roles
  */
 export const roleArbitrary = () =>
-  fc.constantFrom('STUDENT', 'TEACHER');
+  fc.constantFrom(Role.STUDENT, Role.TEACHER);
 
 /**
  * Generator for course codes (6-character alphanumeric)

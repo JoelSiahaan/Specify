@@ -28,9 +28,10 @@ model User {
   updatedAt    DateTime @updatedAt
 
   // Relations
-  courses     Course[]     @relation("TeacherCourses") // Courses created by this teacher
-  enrollments Enrollment[] // Courses enrolled in (for students)
-  submissions Submission[] // UNIFIED: All submissions (assignment + quiz) by this student
+  courses               Course[]                @relation("TeacherCourses") // Courses created by this teacher
+  enrollments           Enrollment[]            // Courses enrolled in (for students)
+  assignmentSubmissions AssignmentSubmission[]  // Assignment submissions by this student
+  quizSubmissions       QuizSubmission[]        // Quiz submissions by this student
 
   @@map("users")
 }
@@ -133,8 +134,8 @@ model Quiz {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  submissions Submission[] // UNIFIED: gunakan Submission, bukan QuizSubmission
+  course          Course             @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  quizSubmissions QuizSubmission[]   // Submissions for this quiz
 
   @@map("quizzes")
 }
@@ -153,67 +154,91 @@ model Assignment {
   updatedAt            DateTime       @updatedAt
 
   // Relations
-  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  submissions Submission[] // UNIFIED: tetap gunakan Submission
+  course              Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  assignmentSubmissions AssignmentSubmission[] // Submissions for this assignment
 
   @@map("assignments")
 }
 
-// UNIFIED Submission model (gabungan dari keduanya)
-model Submission {
-  id           String           @id @default(uuid()) @db.Uuid
-  studentId    String           @db.Uuid
-  
-  // Discriminator fields (salah satu harus diisi)
-  assignmentId String?          @db.Uuid  // Nullable: diisi jika assignment submission
-  quizId       String?          @db.Uuid  // Nullable: diisi jika quiz submission
-  
-  // Common fields (untuk assignment dan quiz)
+// AssignmentSubmission model for assignment submissions
+// Requirements: 10.6, 10.8, 10.10, 10.11, 13.3, 13.4, 13.5, 21.5
+model AssignmentSubmission {
+  id           String                       @id @default(uuid()) @db.Uuid
+  assignmentId String                       @db.Uuid
+  studentId    String                       @db.Uuid
+  content      String?                      @db.Text  // Text submission content
+  filePath     String?                      // File submission path
+  fileName     String?                      // Original file name
+  grade        Float?                       // Grade (0-100)
+  feedback     String?                      @db.Text
+  isLate       Boolean                      @default(false)
+  status       AssignmentSubmissionStatus   @default(NOT_SUBMITTED)
+  version      Int                          @default(1) // Optimistic locking
   submittedAt  DateTime?
-  grade        Float?           // Grade (0-100)
-  feedback     String?          @db.Text
-  status       SubmissionStatus @default(NOT_SUBMITTED)
-  version      Int              @default(1) // Optimistic locking
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  
-  // Assignment-specific fields (nullable)
-  content      String?          @db.Text  // Text submission content
-  filePath     String?          // File submission path
-  fileName     String?          // Original file name
-  isLate       Boolean          @default(false)
-  gradedAt     DateTime?        // Grading timestamp
-  
-  // Quiz-specific fields (nullable)
-  answers      Json?            // Array of answers stored as JSON
-  startedAt    DateTime?        // Quiz start time
-  completedAt  DateTime?        // Quiz completion time
+  gradedAt     DateTime?
+  createdAt    DateTime                     @default(now())
+  updatedAt    DateTime                     @updatedAt
 
   // Relations
-  student    User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  assignment Assignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  quiz       Quiz?       @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student    User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 
-  // Unique constraints
-  @@unique([assignmentId, studentId]) // One submission per assignment per student
-  @@unique([quizId, studentId])       // One submission per quiz per student
-  
   // Indexes
   @@index([studentId])
   @@index([assignmentId])
+  @@index([status])
+  @@index([studentId, status])
+  @@index([assignmentId, studentId])
+  
+  @@map("assignment_submissions")
+}
+
+// QuizSubmission model for quiz submissions
+// Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 13.3, 13.4, 13.5, 21.5
+model QuizSubmission {
+  id          String                 @id @default(uuid()) @db.Uuid
+  quizId      String                 @db.Uuid
+  studentId   String                 @db.Uuid
+  answers     Json                   // Array of answers stored as JSON
+  grade       Float?                 // Grade (0-100)
+  feedback    String?                @db.Text
+  status      QuizSubmissionStatus   @default(NOT_STARTED)
+  version     Int                    @default(1) // Optimistic locking
+  startedAt   DateTime?              // Quiz start time
+  completedAt DateTime?              // Quiz completion time
+  submittedAt DateTime?              // Quiz submission time
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  // Relations
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  quiz    Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  // Unique constraint: One submission per quiz per student
+  @@unique([quizId, studentId])
+  
+  // Indexes
+  @@index([studentId])
   @@index([quizId])
   @@index([status])
   @@index([studentId, status])
   
-  @@map("submissions")
+  @@map("quiz_submissions")
 }
 
-// UNIFIED enum (gabungan dari keduanya)
-enum SubmissionStatus {
-  NOT_SUBMITTED  // Assignment: belum submit, Quiz: belum mulai
-  IN_PROGRESS    // Quiz only: sedang mengerjakan
-  SUBMITTED      // Sudah submit, belum graded
-  GRADED         // Sudah di-grade
+// AssignmentSubmission status enum
+enum AssignmentSubmissionStatus {
+  NOT_SUBMITTED  // Not yet submitted
+  SUBMITTED      // Submitted, not yet graded
+  GRADED         // Graded by teacher
+}
+
+// QuizSubmission status enum
+enum QuizSubmissionStatus {
+  NOT_STARTED    // Quiz not started yet
+  IN_PROGRESS    // Quiz in progress
+  SUBMITTED      // Quiz submitted, not yet graded
+  GRADED         // Graded by teacher
 }
 
 // Enums lainnya tetap sama

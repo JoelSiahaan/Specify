@@ -9,7 +9,7 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { ISubmissionRepository } from '../../../domain/repositories/ISubmissionRepository';
+import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository';
 import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
@@ -18,14 +18,14 @@ import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
 import { User } from '../../../domain/entities/User';
 import { Course } from '../../../domain/entities/Course';
 import { Assignment } from '../../../domain/entities/Assignment';
-import { SubmissionDTO } from '../../dtos/AssignmentDTO';
-import { SubmissionMapper } from '../../mappers/SubmissionMapper';
+import { AssignmentSubmissionDTO } from '../../dtos/AssignmentDTO';
+import { AssignmentSubmissionMapper } from '../../mappers/AssignmentSubmissionMapper';
 import { NotFoundError, ForbiddenError } from '../../errors/ApplicationErrors';
 
 @injectable()
 export class GetMySubmissionUseCase {
   constructor(
-    @inject('ISubmissionRepository') private submissionRepository: ISubmissionRepository,
+    @inject('IAssignmentSubmissionRepository') private submissionRepository: IAssignmentSubmissionRepository,
     @inject('IAssignmentRepository') private assignmentRepository: IAssignmentRepository,
     @inject('ICourseRepository') private courseRepository: ICourseRepository,
     @inject('IUserRepository') private userRepository: IUserRepository,
@@ -41,11 +41,11 @@ export class GetMySubmissionUseCase {
    * 
    * @param assignmentId - ID of the assignment
    * @param userId - ID of the student
-   * @returns SubmissionDTO or null if no submission exists
+   * @returns AssignmentSubmissionDTO or null if no submission exists
    * @throws NotFoundError if user, assignment, or course not found
    * @throws ForbiddenError if user is not enrolled in the course
    */
-  async execute(assignmentId: string, userId: string): Promise<SubmissionDTO | null> {
+  async execute(assignmentId: string, userId: string): Promise<AssignmentSubmissionDTO | null> {
     // Load entities
     const user = await this.loadUser(userId);
     const assignment = await this.loadAssignment(assignmentId);
@@ -66,7 +66,7 @@ export class GetMySubmissionUseCase {
     }
 
     // Return submission DTO
-    return SubmissionMapper.toDTO(submission);
+    return AssignmentSubmissionMapper.toDTO(submission);
   }
 
   /**

@@ -22,7 +22,7 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository';
-import type { ISubmissionRepository } from '../../../domain/repositories/ISubmissionRepository';
+import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
 import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
@@ -31,9 +31,9 @@ import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
 import { User } from '../../../domain/entities/User';
 import { Course } from '../../../domain/entities/Course';
 import { Assignment, SubmissionType } from '../../../domain/entities/Assignment';
-import { Submission, SubmissionStatus } from '../../../domain/entities/Submission';
-import { CreateSubmissionDTO, SubmissionDTO } from '../../dtos/AssignmentDTO';
-import { SubmissionMapper } from '../../mappers/SubmissionMapper';
+import { AssignmentSubmission, AssignmentSubmissionStatus } from '../../../domain/entities/AssignmentSubmission';
+import { CreateAssignmentSubmissionDTO, AssignmentSubmissionDTO } from '../../dtos/AssignmentDTO';
+import { AssignmentSubmissionMapper } from '../../mappers/AssignmentSubmissionMapper';
 import { ApplicationError, NotFoundError, ForbiddenError } from '../../errors/ApplicationErrors';
 import { randomUUID } from 'crypto';
 import sanitizeHtml from 'sanitize-html';
@@ -68,7 +68,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 export class SubmitAssignmentUseCase {
   constructor(
     @inject('IAssignmentRepository') private assignmentRepository: IAssignmentRepository,
-    @inject('ISubmissionRepository') private submissionRepository: ISubmissionRepository,
+    @inject('IAssignmentSubmissionRepository') private submissionRepository: IAssignmentSubmissionRepository,
     @inject('ICourseRepository') private courseRepository: ICourseRepository,
     @inject('IEnrollmentRepository') private enrollmentRepository: IEnrollmentRepository,
     @inject('IUserRepository') private userRepository: IUserRepository,
@@ -79,27 +79,27 @@ export class SubmitAssignmentUseCase {
   /**
    * Execute assignment submission
    * 
-   * @param dto - CreateSubmissionDTO with submission data
+   * @param dto - CreateAssignmentSubmissionDTO with submission data
    * @param assignmentId - ID of the assignment being submitted
    * @param userId - ID of the user submitting the assignment
    * @param file - Optional file buffer for file submissions
    * @param fileName - Optional original file name
    * @param mimeType - Optional file MIME type
    * @param fileSize - Optional file size in bytes
-   * @returns SubmissionDTO of the created/updated submission
+   * @returns AssignmentSubmissionDTO of the created/updated submission
    * @throws NotFoundError if user, assignment, or course not found
    * @throws ForbiddenError if user is not authorized
    * @throws ApplicationError if validation fails
    */
   async execute(
-    dto: CreateSubmissionDTO,
+    dto: CreateAssignmentSubmissionDTO,
     assignmentId: string,
     userId: string,
     file?: Buffer,
     fileName?: string,
     mimeType?: string,
     fileSize?: number
-  ): Promise<SubmissionDTO> {
+  ): Promise<AssignmentSubmissionDTO> {
     // Load entities
     const user = await this.loadUser(userId);
     const assignment = await this.loadAssignment(assignmentId);
@@ -154,7 +154,7 @@ export class SubmitAssignmentUseCase {
       userId
     );
 
-    let submission: Submission;
+    let submission: AssignmentSubmission;
 
     if (existingSubmission) {
       // Resubmission (Requirement 10.10, 10.11)
@@ -166,7 +166,7 @@ export class SubmitAssignmentUseCase {
       submission = await this.submissionRepository.update(existingSubmission);
     } else {
       // New submission (Requirement 10.6, 10.7, 10.8)
-      submission = Submission.create({
+      submission = AssignmentSubmission.create({
         id: randomUUID(),
         assignmentId: assignmentId,
         studentId: userId,
@@ -174,7 +174,7 @@ export class SubmitAssignmentUseCase {
         filePath: filePath,
         fileName: storedFileName,
         isLate: isLate,
-        status: SubmissionStatus.SUBMITTED,
+        status: AssignmentSubmissionStatus.SUBMITTED,
         version: 0,
         submittedAt: new Date(),
         createdAt: new Date(),
@@ -185,7 +185,7 @@ export class SubmitAssignmentUseCase {
     }
 
     // Return submission DTO
-    return SubmissionMapper.toDTO(submission);
+    return AssignmentSubmissionMapper.toDTO(submission);
   }
 
   /**
@@ -307,14 +307,14 @@ export class SubmitAssignmentUseCase {
    * - 10.3: Allow both file and text for assignments that accept both
    * 
    * @param assignment - Assignment entity
-   * @param dto - CreateSubmissionDTO
+   * @param dto - CreateAssignmentSubmissionDTO
    * @param file - Optional file buffer
    * @throws ApplicationError if submission type doesn't match
    * @private
    */
   private validateSubmissionType(
     assignment: Assignment,
-    dto: CreateSubmissionDTO,
+    dto: CreateAssignmentSubmissionDTO,
     file?: Buffer
   ): void {
     const submissionType = assignment.getSubmissionType();
@@ -351,14 +351,14 @@ export class SubmitAssignmentUseCase {
    * - 10.4: Reject submission without required content
    * 
    * @param assignment - Assignment entity
-   * @param dto - CreateSubmissionDTO
+   * @param dto - CreateAssignmentSubmissionDTO
    * @param file - Optional file buffer
    * @throws ApplicationError if required content is missing
    * @private
    */
   private validateRequiredContent(
     assignment: Assignment,
-    dto: CreateSubmissionDTO,
+    dto: CreateAssignmentSubmissionDTO,
     file?: Buffer
   ): void {
     const submissionType = assignment.getSubmissionType();
@@ -484,7 +484,7 @@ export class SubmitAssignmentUseCase {
    * @throws ApplicationError if resubmission is not allowed
    * @private
    */
-  private validateResubmission(submission: Submission): void {
+  private validateResubmission(submission: AssignmentSubmission): void {
     if (submission.isGraded()) {
       throw new ApplicationError(
         'SUBMISSION_GRADED',

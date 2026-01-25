@@ -90,6 +90,8 @@ export {
   type AutoSaveQuizRequest,
   type SubmitQuizRequest
 } from './quizSchemas';
+
+export {
   SubmissionTypeSchema,
   AssignmentTitleSchema,
   AssignmentDescriptionSchema,

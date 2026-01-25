@@ -333,7 +333,8 @@ The heart of the application containing business logic and rules. This layer is 
 - `Course`: Course lifecycle, validation, business rules
 - `Assignment`: Due date logic, submission rules, grading state
 - `Quiz`: Time limit logic, question management
-- `Submission`: Submission state, late submission logic
+- `AssignmentSubmission`: Assignment submission state, late submission logic
+- `QuizSubmission`: Quiz submission state, timer logic
 - `Enrollment`: Enrollment validation
 - `User`: User identity and role management
 
@@ -351,7 +352,8 @@ The heart of the application containing business logic and rules. This layer is 
 - `ICourseRepository`: Course data operations
 - `IAssignmentRepository`: Assignment data operations
 - `IQuizRepository`: Quiz data operations
-- `ISubmissionRepository`: Submission data operations
+- `IAssignmentSubmissionRepository`: Assignment submission data operations
+- `IQuizSubmissionRepository`: Quiz submission data operations
 - `IEnrollmentRepository`: Enrollment data operations
 - `IUserRepository`: User data operations
 
@@ -374,27 +376,30 @@ Orchestrates the flow of data between domain and outer layers. Contains applicat
 - `CreateCourseUseCase`: Create new course with validation
 - `EnrollStudentUseCase`: Enroll student in course
 - `SubmitAssignmentUseCase`: Submit assignment with validation
-- `GradeSubmissionUseCase`: Grade submission and close assignment
+- `GradeAssignmentSubmissionUseCase`: Grade assignment submission and close assignment
 - `StartQuizUseCase`: Start quiz attempt with timer
 - `SubmitQuizUseCase`: Submit quiz answers
+- `GradeQuizSubmissionUseCase`: Grade quiz submission
 - `ArchiveCourseUseCase`: Archive course and close assignments
 - `ExportGradesUseCase`: Export grades to CSV
 
 **DTOs (Data Transfer Objects)** - Data structures for layer communication
 - `CreateCourseDTO`, `CourseResponseDTO`
-- `SubmitAssignmentDTO`, `SubmissionResponseDTO`
-- `StartQuizDTO`, `QuizAttemptDTO`
+- `SubmitAssignmentDTO`, `AssignmentSubmissionResponseDTO`
+- `StartQuizDTO`, `QuizAttemptDTO`, `QuizSubmissionResponseDTO`
 
 **Mappers** - Convert between DTOs and domain entities
 - `CourseMapper`: Map Course entity ↔ DTOs
 - `AssignmentMapper`: Map Assignment entity ↔ DTOs
-- `SubmissionMapper`: Map Submission entity ↔ DTOs
+- `AssignmentSubmissionMapper`: Map AssignmentSubmission entity ↔ DTOs
+- `QuizSubmissionMapper`: Map QuizSubmission entity ↔ DTOs
 
 **Authorization Policies** - Access control rules (pure functions)
 - `IAuthorizationPolicy`: Interface for authorization decisions
 - `AuthorizationPolicy`: Implementation with role-based and resource-based checks
 - Policies receive data from Use Cases, don't query repositories
 - Pure functions: `(user, resource, context) => boolean`
+- Methods include: `canAccessCourse`, `canModifyCourse`, `canGradeAssignmentSubmission`, `canGradeQuizSubmission`
 
 #### **3. Infrastructure Layer (Outer - Implementations)**
 
@@ -406,7 +411,8 @@ Implements interfaces defined in domain layer. Contains framework-specific code.
 - `PrismaCourseRepository implements ICourseRepository`
 - `PrismaAssignmentRepository implements IAssignmentRepository`
 - `PrismaQuizRepository implements IQuizRepository`
-- `PrismaSubmissionRepository implements ISubmissionRepository`
+- `PrismaAssignmentSubmissionRepository implements IAssignmentSubmissionRepository`
+- `PrismaQuizSubmissionRepository implements IQuizSubmissionRepository`
 - `PrismaEnrollmentRepository implements IEnrollmentRepository`
 - `PrismaUserRepository implements IUserRepository`
 
@@ -698,9 +704,9 @@ graph TB
 - Course already archived
 - Database error during any step
 
-#### Scenario 2: Grade Submission (Multi-Entity with Lock)
+#### Scenario 2: Grade Assignment Submission (Multi-Entity with Lock)
 **Operations**:
-1. Load submission entity
+1. Load assignment submission entity
 2. Check authorization (policy)
 3. Load assignment entity
 4. Check if `gradingStarted = false` (first grading)
@@ -918,7 +924,8 @@ src/
 │   │   ├── Course.ts
 │   │   ├── Assignment.ts
 │   │   ├── Quiz.ts
-│   │   ├── Submission.ts
+│   │   ├── AssignmentSubmission.ts
+│   │   ├── QuizSubmission.ts
 │   │   ├── Enrollment.ts
 │   │   └── User.ts
 │   ├── value-objects/        # Value Objects
@@ -934,7 +941,8 @@ src/
 │   │   ├── ICourseRepository.ts
 │   │   ├── IAssignmentRepository.ts
 │   │   ├── IQuizRepository.ts
-│   │   ├── ISubmissionRepository.ts
+│   │   ├── IAssignmentSubmissionRepository.ts
+│   │   ├── IQuizSubmissionRepository.ts
 │   │   ├── IEnrollmentRepository.ts
 │   │   └── IUserRepository.ts
 │   ├── storage/              # Storage Interfaces (Ports)
@@ -960,23 +968,26 @@ src/
 │   │   ├── assignment/
 │   │   │   ├── CreateAssignmentUseCase.ts
 │   │   │   ├── SubmitAssignmentUseCase.ts
-│   │   │   └── ListSubmissionsUseCase.ts
+│   │   │   └── ListAssignmentSubmissionsUseCase.ts
 │   │   ├── quiz/
 │   │   │   ├── CreateQuizUseCase.ts
 │   │   │   ├── StartQuizUseCase.ts
 │   │   │   └── SubmitQuizUseCase.ts
 │   │   └── grading/
-│   │       ├── GradeSubmissionUseCase.ts
+│   │       ├── GradeAssignmentSubmissionUseCase.ts
+│   │       ├── GradeQuizSubmissionUseCase.ts
 │   │       └── ExportGradesUseCase.ts
 │   ├── dtos/                # Data Transfer Objects
 │   │   ├── CourseDTO.ts
 │   │   ├── AssignmentDTO.ts
 │   │   ├── QuizDTO.ts
-│   │   └── SubmissionDTO.ts
+│   │   ├── AssignmentSubmissionDTO.ts
+│   │   └── QuizSubmissionDTO.ts
 │   ├── mappers/             # Entity ↔ DTO Mappers
 │   │   ├── CourseMapper.ts
 │   │   ├── AssignmentMapper.ts
-│   │   └── SubmissionMapper.ts
+│   │   ├── AssignmentSubmissionMapper.ts
+│   │   └── QuizSubmissionMapper.ts
 │   ├── policies/            # Authorization Policies
 │   │   ├── IAuthorizationPolicy.ts
 │   │   └── AuthorizationPolicy.ts
@@ -990,7 +1001,8 @@ src/
 │   │       ├── PrismaCourseRepository.ts
 │   │       ├── PrismaAssignmentRepository.ts
 │   │       ├── PrismaQuizRepository.ts
-│   │       ├── PrismaSubmissionRepository.ts
+│   │       ├── PrismaAssignmentSubmissionRepository.ts
+│   │       ├── PrismaQuizSubmissionRepository.ts
 │   │       ├── PrismaEnrollmentRepository.ts
 │   │       └── PrismaUserRepository.ts
 │   ├── storage/            # File Storage Implementation
@@ -1026,7 +1038,7 @@ src/
 ### Clean Architecture Layer Responsibilities
 
 **Domain Layer**:
-- **Entities**: Rich objects with business logic (Course, Assignment, Quiz, Submission)
+- **Entities**: Rich objects with business logic (Course, Assignment, Quiz, AssignmentSubmission, QuizSubmission)
   - Enforce business rules through methods (e.g., `course.archive()`, `assignment.startGrading()`)
   - Validate their own state
   - Provide factory methods for creation and reconstitution
@@ -1105,7 +1117,7 @@ POST   /api/courses/:courseId/assignments   // CreateAssignmentUseCase (teacher 
 GET    /api/assignments/:id                 // GetAssignmentUseCase
 PUT    /api/assignments/:id                 // UpdateAssignmentUseCase (teacher only)
 DELETE /api/assignments/:id                 // DeleteAssignmentUseCase (teacher only)
-GET    /api/assignments/:id/submissions     // ListSubmissionsUseCase (teacher only)
+GET    /api/assignments/:id/submissions     // ListAssignmentSubmissionsUseCase (teacher only)
 POST   /api/assignments/:id/submit          // SubmitAssignmentUseCase (student only)
 ```
 
@@ -1124,8 +1136,10 @@ GET    /api/quizzes/:id/submissions         // ListQuizSubmissionsUseCase (teach
 
 #### Grading
 ```typescript
-GET    /api/submissions/:id                 // GetSubmissionUseCase
-POST   /api/submissions/:id/grade           // GradeSubmissionUseCase (teacher only)
+GET    /api/assignment-submissions/:id      // GetAssignmentSubmissionUseCase
+POST   /api/assignment-submissions/:id/grade // GradeAssignmentSubmissionUseCase (teacher only)
+GET    /api/quiz-submissions/:id            // GetQuizSubmissionUseCase
+POST   /api/quiz-submissions/:id/grade      // GradeQuizSubmissionUseCase (teacher only)
 PUT    /api/submissions/:id/grade           // UpdateGradeUseCase (teacher only)
 GET    /api/courses/:id/grades/export       // ExportGradesUseCase (teacher only)
 GET    /api/courses/:id/progress            // GetStudentProgressUseCase (student only)
@@ -1528,59 +1542,83 @@ The Material entity uses a discriminated union pattern to handle different mater
 - `courseId` MUST reference an existing Course
 - Materials can be edited or deleted at any time (Req 7.7)
 
-#### Submission Entity Validation Rules
+#### AssignmentSubmission Entity Validation Rules
 
-The Submission entity uses a discriminated union pattern based on the Assignment's `submissionType`. The following validation rules MUST be enforced:
+The AssignmentSubmission entity handles student submissions for assignments. The following validation rules MUST be enforced:
 
-**Type-Based Validation (Assignment Submissions):**
+**Type-Based Validation (Based on Assignment.submissionType):**
 1. **If Assignment.submissionType = "FILE"`**:
    - `filePath` MUST be non-empty string
    - `fileName` MUST be non-empty string
-   - `textContent` MUST be null
+   - `content` (text content) MUST be null
    - File type MUST be in allowed formats: PDF, DOCX, JPG, PNG (Req 10.13)
    - File size MUST NOT exceed 10MB
    
 2. **If Assignment.submissionType = "TEXT"`**:
-   - `textContent` MUST be non-empty string
+   - `content` (text content) MUST be non-empty string
    - `filePath` MUST be null
    - `fileName` MUST be null
    
 3. **If Assignment.submissionType = "BOTH"`**:
    - `filePath` MUST be non-empty string
    - `fileName` MUST be non-empty string
-   - `textContent` MUST be non-empty string
+   - `content` (text content) MUST be non-empty string
    - File type MUST be in allowed formats: PDF, DOCX, JPG, PNG (Req 10.13)
    - File size MUST NOT exceed 10MB
 
+**General Validation:**
+- `studentId` MUST reference an existing User with role STUDENT
+- `assignmentId` MUST reference an existing Assignment
+- `grade` MUST be between 0 and 100 if set (Req 13.3)
+- `version` MUST be positive integer (for optimistic locking)
+- `isLate` MUST be boolean indicating if submission was after due date
+- Resubmission allowed before grading starts (Req 10.10, 10.11)
+- Submission cannot be modified after grading starts (Req 10.9)
+- `submittedAt` MUST be set when submission is created
+- `gradedAt` MUST be set when grade is assigned
+
+#### QuizSubmission Entity Validation Rules
+
+The QuizSubmission entity handles student quiz attempts. The following validation rules MUST be enforced:
+
 **Quiz Submission Validation:**
 - Unique constraint `(studentId, quizId)` MUST prevent multiple quiz submissions (Req 12.7)
-- Database enforces uniqueness at schema level for quiz submissions
+- Database enforces uniqueness at schema level
 - `startedAt` MUST be set when quiz is started
 - `completedAt` MUST be set when quiz is submitted
 - `completedAt` MUST be after `startedAt`
 - Quiz submission MUST be within time limit (Req 12.4)
 - Quiz submission MUST be before due date (Req 12.6)
+- `answers` field stores array of question answers as JSON
+- `grade` MUST be between 0 and 100 if set (Req 13.3)
+- `version` MUST be positive integer (for optimistic locking)
 
 **General Validation:**
 - `studentId` MUST reference an existing User with role STUDENT
-- Exactly ONE of (`assignmentId`, `quizId`) must be set, never both or neither
-- `grade` MUST be between 0 and 100 if set (Req 13.3)
-- `version` MUST be positive integer (for optimistic locking)
-- **Assignment submissions**: Resubmission allowed before grading starts (Req 10.10, 10.11)
-- **Quiz submissions**: No resubmission allowed (enforced by unique constraint)
-- Submission cannot be modified after grading starts (Req 10.9)
+- `quizId` MUST reference an existing Quiz
+- No resubmission allowed (enforced by unique constraint)
+- Submission cannot be modified after completion
 
-**Submission**
-- Polymorphic entity for both assignment and quiz submissions
+**AssignmentSubmission**
+- Entity for assignment submissions only
 - Uses discriminated union pattern based on Assignment.submissionType
-- For FILE submissions: `filePath` and `fileName` are required; `textContent` is null
-- For TEXT submissions: `textContent` is required; `filePath` and `fileName` are null
-- For BOTH submissions: `filePath`, `fileName`, and `textContent` are all required
-- Unique constraint `(studentId, quizId)` prevents multiple quiz submissions (Req 12.7)
-- Assignments allow resubmission before grading (Req 10.10), no unique constraint needed
+- For FILE submissions: `filePath` and `fileName` are required; `content` is null
+- For TEXT submissions: `content` is required; `filePath` and `fileName` are null
+- For BOTH submissions: `filePath`, `fileName`, and `content` are all required
+- Allows resubmission before grading (Req 10.10), no unique constraint needed
 - Version field enables optimistic locking for concurrent grading prevention
-- Tracks submission timing (submittedAt for assignments, startedAt/completedAt for quizzes)
+- Tracks submission timing (`submittedAt`, `gradedAt`)
 - Stores grade and feedback from teacher (null until graded)
+- `isLate` flag indicates if submission was after due date
+
+**QuizSubmission**
+- Entity for quiz submissions only
+- Unique constraint `(studentId, quizId)` prevents multiple quiz submissions (Req 12.7)
+- Version field enables optimistic locking for concurrent grading prevention
+- Tracks quiz timing (`startedAt`, `completedAt`)
+- Stores answers as JSON array
+- Stores grade and feedback from teacher (null until graded)
+- No resubmission allowed (enforced by unique constraint)
 
 **Answer**
 - Individual question responses within quiz submission

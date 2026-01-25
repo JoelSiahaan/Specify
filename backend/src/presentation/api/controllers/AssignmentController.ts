@@ -399,7 +399,7 @@ export class AssignmentController {
    * - file: File (optional, for FILE or BOTH submissions)
    * 
    * Response (201 Created):
-   * - SubmissionDTO
+   * - AssignmentSubmissionDTO
    * 
    * Errors:
    * - 400: Validation failed, assignment closed, or invalid submission type
@@ -473,7 +473,7 @@ export class AssignmentController {
    * - id: Submission ID (UUID)
    * 
    * Response (200 OK):
-   * - SubmissionDTO
+   * - AssignmentSubmissionDTO
    * 
    * Business Rules:
    * - Students: Can view their own submissions
@@ -536,7 +536,7 @@ export class AssignmentController {
    * - id: Assignment ID (UUID)
    * 
    * Response (200 OK):
-   * - SubmissionDTO or null if no submission exists
+   * - AssignmentSubmissionDTO or null if no submission exists
    * 
    * Business Rules:
    * - Students: Can view their own submission for the assignment
@@ -600,7 +600,7 @@ export class AssignmentController {
    * - id: Assignment ID (UUID)
    * 
    * Response (200 OK):
-   * - data: Array of SubmissionDTO
+   * - data: Array of AssignmentSubmissionListDTO
    * 
    * Business Rules:
    * - Only teachers can list submissions

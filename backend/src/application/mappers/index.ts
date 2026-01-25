@@ -11,4 +11,4 @@ export * from './EnrollmentMapper';
 export * from './QuizMapper';
 export * from './QuizSubmissionMapper';
 export * from './AssignmentMapper';
-export * from './SubmissionMapper';
+export * from './AssignmentSubmissionMapper';

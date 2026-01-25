@@ -15,14 +15,14 @@ import type { ICourseRepository } from '../../../domain/repositories/ICourseRepo
 import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
 import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
-import type { ISubmissionRepository } from '../../../domain/repositories/ISubmissionRepository';
+import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
 import { User } from '../../../domain/entities/User';
 import { Course } from '../../../domain/entities/Course';
 import { AssignmentListDTO } from '../../dtos/AssignmentDTO';
 import { AssignmentMapper } from '../../mappers/AssignmentMapper';
 import { ApplicationError } from '../../errors/ApplicationErrors';
-import { SubmissionStatus } from '../../../domain/entities/Submission';
+import { AssignmentSubmissionStatus } from '../../../domain/entities/AssignmentSubmission';
 
 @injectable()
 export class ListAssignmentsUseCase {
@@ -31,7 +31,7 @@ export class ListAssignmentsUseCase {
     @inject('IAssignmentRepository') private assignmentRepository: IAssignmentRepository,
     @inject('IUserRepository') private userRepository: IUserRepository,
     @inject('IEnrollmentRepository') private enrollmentRepository: IEnrollmentRepository,
-    @inject('ISubmissionRepository') private submissionRepository: ISubmissionRepository,
+    @inject('IAssignmentSubmissionRepository') private assignmentSubmissionRepository: IAssignmentSubmissionRepository,
     @inject('IAuthorizationPolicy') private authPolicy: IAuthorizationPolicy
   ) {}
 
@@ -104,11 +104,11 @@ export class ListAssignmentsUseCase {
       console.log('[ListAssignmentsUseCase] Building student assignment list for student:', studentId);
       
       // Get all submissions for this student
-      const submissions = await this.submissionRepository.findByStudentId(studentId);
+      const submissions = await this.assignmentSubmissionRepository.findByStudentId(studentId);
       console.log('[ListAssignmentsUseCase] Found submissions:', submissions.length);
       
       // Create maps for quick lookup
-      const submissionStatusMap = new Map<string, SubmissionStatus>();
+      const submissionStatusMap = new Map<string, AssignmentSubmissionStatus>();
       const gradeMap = new Map<string, number>();
       const lateMap = new Map<string, boolean>();
       

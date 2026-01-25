@@ -32,8 +32,8 @@ import { IQuizSubmissionRepository } from '../../domain/repositories/IQuizSubmis
 import { PrismaQuizSubmissionRepository } from '../persistence/repositories/PrismaQuizSubmissionRepository';
 import { IAssignmentRepository } from '../../domain/repositories/IAssignmentRepository';
 import { PrismaAssignmentRepository } from '../persistence/repositories/PrismaAssignmentRepository';
-import { ISubmissionRepository } from '../../domain/repositories/ISubmissionRepository';
-import { PrismaSubmissionRepository } from '../persistence/repositories/PrismaSubmissionRepository';
+import { IAssignmentSubmissionRepository } from '../../domain/repositories/IAssignmentSubmissionRepository';
+import { PrismaAssignmentSubmissionRepository } from '../persistence/repositories/PrismaAssignmentSubmissionRepository';
 import { JWTService } from '../auth/JWTService';
 import { PasswordService } from '../auth/PasswordService';
 import { RegisterUserUseCase } from '../../application/use-cases/auth/RegisterUserUseCase';
@@ -114,8 +114,8 @@ export function configureContainer(): void {
   // Register Assignment Repository as singleton (TSyringe will auto-inject PrismaClient)
   container.registerSingleton<IAssignmentRepository>('IAssignmentRepository', PrismaAssignmentRepository);
   
-  // Register Submission Repository as singleton (TSyringe will auto-inject PrismaClient)
-  container.registerSingleton<ISubmissionRepository>('ISubmissionRepository', PrismaSubmissionRepository);
+  // Register AssignmentSubmission Repository as singleton (TSyringe will auto-inject PrismaClient)
+  container.registerSingleton<IAssignmentSubmissionRepository>('IAssignmentSubmissionRepository', PrismaAssignmentSubmissionRepository);
   
   // Repository implementations will be registered here as they are created
   // Example pattern (to be implemented in future tasks):

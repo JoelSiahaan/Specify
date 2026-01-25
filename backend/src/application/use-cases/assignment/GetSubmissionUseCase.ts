@@ -9,23 +9,23 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { ISubmissionRepository } from '../../../domain/repositories/ISubmissionRepository';
+import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository';
 import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
 import { User } from '../../../domain/entities/User';
 import { Course } from '../../../domain/entities/Course';
-import { Submission } from '../../../domain/entities/Submission';
+import { AssignmentSubmission } from '../../../domain/entities/AssignmentSubmission';
 import { Assignment } from '../../../domain/entities/Assignment';
-import { SubmissionDTO } from '../../dtos/AssignmentDTO';
-import { SubmissionMapper } from '../../mappers/SubmissionMapper';
+import { AssignmentSubmissionDTO } from '../../dtos/AssignmentDTO';
+import { AssignmentSubmissionMapper } from '../../mappers/AssignmentSubmissionMapper';
 import { NotFoundError, ForbiddenError } from '../../errors/ApplicationErrors';
 
 @injectable()
 export class GetSubmissionUseCase {
   constructor(
-    @inject('ISubmissionRepository') private submissionRepository: ISubmissionRepository,
+    @inject('IAssignmentSubmissionRepository') private submissionRepository: IAssignmentSubmissionRepository,
     @inject('IAssignmentRepository') private assignmentRepository: IAssignmentRepository,
     @inject('ICourseRepository') private courseRepository: ICourseRepository,
     @inject('IUserRepository') private userRepository: IUserRepository,
@@ -41,11 +41,11 @@ export class GetSubmissionUseCase {
    * 
    * @param submissionId - ID of the submission to retrieve
    * @param userId - ID of the user requesting the submission
-   * @returns SubmissionDTO of the requested submission
+   * @returns AssignmentSubmissionDTO of the requested submission
    * @throws NotFoundError if user, submission, assignment, or course not found
    * @throws ForbiddenError if user is not authorized to view the submission
    */
-  async execute(submissionId: string, userId: string): Promise<SubmissionDTO> {
+  async execute(submissionId: string, userId: string): Promise<AssignmentSubmissionDTO> {
     // Load entities
     const user = await this.loadUser(userId);
     const submission = await this.loadSubmission(submissionId);
@@ -56,7 +56,7 @@ export class GetSubmissionUseCase {
     this.validateAuthorization(user, submission, course);
 
     // Return submission DTO
-    return SubmissionMapper.toDTO(submission);
+    return AssignmentSubmissionMapper.toDTO(submission);
   }
 
   /**
@@ -84,11 +84,11 @@ export class GetSubmissionUseCase {
    * Load submission from repository
    * 
    * @param submissionId - Submission ID
-   * @returns Submission entity
+   * @returns AssignmentSubmission entity
    * @throws NotFoundError if submission not found
    * @private
    */
-  private async loadSubmission(submissionId: string): Promise<Submission> {
+  private async loadSubmission(submissionId: string): Promise<AssignmentSubmission> {
     const submission = await this.submissionRepository.findById(submissionId);
     
     if (!submission) {
@@ -155,12 +155,12 @@ export class GetSubmissionUseCase {
    * - Teachers: Can view all submissions in courses they own
    * 
    * @param user - User entity
-   * @param submission - Submission entity
+   * @param submission - AssignmentSubmission entity
    * @param course - Course entity
    * @throws ForbiddenError if user is not authorized
    * @private
    */
-  private validateAuthorization(user: User, submission: Submission, course: Course): void {
+  private validateAuthorization(user: User, submission: AssignmentSubmission, course: Course): void {
     if (!this.authPolicy.canViewSubmission(user, submission.getStudentId(), course)) {
       throw new ForbiddenError(
         'FORBIDDEN_RESOURCE',

@@ -1,5 +1,5 @@
 /**
- * Submission Domain Entity
+ * AssignmentSubmission Domain Entity
  * 
  * Represents a student's submission for an assignment with grading and late submission tracking.
  * Supports optimistic locking for concurrent grading prevention.
@@ -7,18 +7,20 @@
  * Requirements:
  * - 10.6: Record submission timestamp
  * - 10.8: Mark submissions after due date as late
+ * - 10.10: Allow resubmission before grading starts
+ * - 10.11: Reject resubmission after grading starts
  * - 13.3: Validate grade is between 0 and 100
  * - 13.4: Store grade with submission
  * - 21.5: Handle concurrent user requests without data corruption (optimistic locking)
  */
 
-export enum SubmissionStatus {
+export enum AssignmentSubmissionStatus {
   NOT_SUBMITTED = 'NOT_SUBMITTED',
   SUBMITTED = 'SUBMITTED',
   GRADED = 'GRADED'
 }
 
-export interface SubmissionProps {
+export interface AssignmentSubmissionProps {
   id: string;
   assignmentId: string;
   studentId: string;
@@ -28,7 +30,7 @@ export interface SubmissionProps {
   grade?: number;             // Grade (0-100)
   feedback?: string;          // Teacher feedback
   isLate: boolean;            // Late submission flag
-  status: SubmissionStatus;   // Submission status
+  status: AssignmentSubmissionStatus;   // Submission status
   version: number;            // Optimistic locking version
   submittedAt?: Date;         // Submission timestamp
   gradedAt?: Date;            // Grading timestamp
@@ -36,7 +38,7 @@ export interface SubmissionProps {
   updatedAt?: Date;
 }
 
-export class Submission {
+export class AssignmentSubmission {
   private readonly id: string;
   private readonly assignmentId: string;
   private readonly studentId: string;
@@ -46,14 +48,14 @@ export class Submission {
   private grade?: number;
   private feedback?: string;
   private isLate: boolean;
-  private status: SubmissionStatus;
+  private status: AssignmentSubmissionStatus;
   private version: number;
   private submittedAt?: Date;
   private gradedAt?: Date;
   private readonly createdAt: Date;
   private updatedAt: Date;
 
-  private constructor(props: SubmissionProps) {
+  private constructor(props: AssignmentSubmissionProps) {
     this.id = props.id;
     this.assignmentId = props.assignmentId;
     this.studentId = props.studentId;
@@ -74,28 +76,28 @@ export class Submission {
   }
 
   /**
-   * Create a new Submission entity
+   * Create a new AssignmentSubmission entity
    * 
-   * @param props - Submission properties
-   * @returns Submission instance
+   * @param props - AssignmentSubmission properties
+   * @returns AssignmentSubmission instance
    * @throws Error if validation fails
    */
-  public static create(props: SubmissionProps): Submission {
-    return new Submission(props);
+  public static create(props: AssignmentSubmissionProps): AssignmentSubmission {
+    return new AssignmentSubmission(props);
   }
 
   /**
-   * Reconstitute Submission from persistence
+   * Reconstitute AssignmentSubmission from persistence
    * 
-   * @param props - Submission properties from database
-   * @returns Submission instance
+   * @param props - AssignmentSubmission properties from database
+   * @returns AssignmentSubmission instance
    */
-  public static reconstitute(props: SubmissionProps): Submission {
-    return new Submission(props);
+  public static reconstitute(props: AssignmentSubmissionProps): AssignmentSubmission {
+    return new AssignmentSubmission(props);
   }
 
   /**
-   * Validate Submission entity invariants
+   * Validate AssignmentSubmission entity invariants
    * 
    * Requirements:
    * - 10.6: Submission must have assignment and student IDs
@@ -105,7 +107,7 @@ export class Submission {
    */
   private validate(): void {
     if (!this.id || this.id.trim().length === 0) {
-      throw new Error('Submission ID is required');
+      throw new Error('AssignmentSubmission ID is required');
     }
 
     if (!this.assignmentId || this.assignmentId.trim().length === 0) {
@@ -117,7 +119,7 @@ export class Submission {
     }
 
     // Status validation
-    if (!Object.values(SubmissionStatus).includes(this.status)) {
+    if (!Object.values(AssignmentSubmissionStatus).includes(this.status)) {
       throw new Error(`Invalid submission status: ${this.status}. Must be NOT_SUBMITTED, SUBMITTED, or GRADED`);
     }
 
@@ -137,7 +139,7 @@ export class Submission {
     }
 
     // If graded, grade must be present
-    if (this.status === SubmissionStatus.GRADED && (this.grade === undefined || this.grade === null)) {
+    if (this.status === AssignmentSubmissionStatus.GRADED && (this.grade === undefined || this.grade === null)) {
       throw new Error('Graded submission must have a grade');
     }
   }
@@ -167,11 +169,11 @@ export class Submission {
    * @throws Error if already submitted
    */
   public submit(isLate: boolean): void {
-    if (this.status !== SubmissionStatus.NOT_SUBMITTED) {
+    if (this.status !== AssignmentSubmissionStatus.NOT_SUBMITTED) {
       throw new Error('Submission has already been submitted');
     }
 
-    this.status = SubmissionStatus.SUBMITTED;
+    this.status = AssignmentSubmissionStatus.SUBMITTED;
     this.isLate = isLate;
     this.submittedAt = new Date();
     this.updatedAt = new Date();
@@ -189,11 +191,11 @@ export class Submission {
    * @throws Error if already graded
    */
   public resubmit(isLate: boolean): void {
-    if (this.status === SubmissionStatus.GRADED) {
+    if (this.status === AssignmentSubmissionStatus.GRADED) {
       throw new Error('Cannot resubmit after grading has started');
     }
 
-    this.status = SubmissionStatus.SUBMITTED;
+    this.status = AssignmentSubmissionStatus.SUBMITTED;
     this.isLate = isLate;
     this.submittedAt = new Date();
     this.version += 1; // Increment version for optimistic locking
@@ -228,14 +230,14 @@ export class Submission {
     }
 
     // Can only grade submitted submissions
-    if (this.status === SubmissionStatus.NOT_SUBMITTED) {
+    if (this.status === AssignmentSubmissionStatus.NOT_SUBMITTED) {
       throw new Error('Cannot grade submission that has not been submitted');
     }
 
     // Requirement 13.4: Store grade with submission
     this.grade = grade;
     this.feedback = feedback;
-    this.status = SubmissionStatus.GRADED;
+    this.status = AssignmentSubmissionStatus.GRADED;
     this.gradedAt = new Date();
     this.version += 1; // Increment version for optimistic locking
     this.updatedAt = new Date();
@@ -260,7 +262,7 @@ export class Submission {
     }
 
     // Can only update grade if already graded
-    if (this.status !== SubmissionStatus.GRADED) {
+    if (this.status !== AssignmentSubmissionStatus.GRADED) {
       throw new Error('Cannot update grade for submission that has not been graded');
     }
 
@@ -286,7 +288,7 @@ export class Submission {
    * @param fileName - Original file name
    */
   public updateContent(content?: string, filePath?: string, fileName?: string): void {
-    if (this.status === SubmissionStatus.GRADED) {
+    if (this.status === AssignmentSubmissionStatus.GRADED) {
       throw new Error('Cannot update content after grading has started');
     }
 
@@ -302,7 +304,7 @@ export class Submission {
    * @returns true if submission has been graded
    */
   public isGraded(): boolean {
-    return this.status === SubmissionStatus.GRADED;
+    return this.status === AssignmentSubmissionStatus.GRADED;
   }
 
   /**
@@ -311,7 +313,7 @@ export class Submission {
    * @returns true if submission has been submitted
    */
   public isSubmitted(): boolean {
-    return this.status === SubmissionStatus.SUBMITTED || this.status === SubmissionStatus.GRADED;
+    return this.status === AssignmentSubmissionStatus.SUBMITTED || this.status === AssignmentSubmissionStatus.GRADED;
   }
 
   /**
@@ -363,7 +365,7 @@ export class Submission {
     return this.isLate;
   }
 
-  public getStatus(): SubmissionStatus {
+  public getStatus(): AssignmentSubmissionStatus {
     return this.status;
   }
 
@@ -392,7 +394,7 @@ export class Submission {
    * 
    * @returns Plain object representation
    */
-  public toObject(): SubmissionProps {
+  public toObject(): AssignmentSubmissionProps {
     return {
       id: this.id,
       assignmentId: this.assignmentId,

@@ -11,4 +11,4 @@ export { PrismaEnrollmentRepository } from './PrismaEnrollmentRepository';
 export { PrismaQuizRepository } from './PrismaQuizRepository';
 export { PrismaQuizSubmissionRepository } from './PrismaQuizSubmissionRepository';
 export { PrismaAssignmentRepository } from './PrismaAssignmentRepository';
-export { PrismaSubmissionRepository } from './PrismaSubmissionRepository';
+export { PrismaAssignmentSubmissionRepository } from './PrismaAssignmentSubmissionRepository';

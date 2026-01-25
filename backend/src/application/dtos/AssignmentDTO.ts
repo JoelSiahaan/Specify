@@ -9,7 +9,7 @@
  */
 
 import { SubmissionType } from '../../domain/entities/Assignment';
-import { SubmissionStatus } from '../../domain/entities/Submission';
+import { AssignmentSubmissionStatus } from '../../domain/entities/AssignmentSubmission';
 
 /**
  * Assignment DTO for API responses
@@ -63,7 +63,7 @@ export interface AssignmentListDTO {
   submissionType: SubmissionType;
   gradingStarted: boolean;
   isPastDue: boolean;
-  submissionStatus?: SubmissionStatus;  // For student view
+  submissionStatus?: AssignmentSubmissionStatus;  // For student view
   grade?: number;                        // For student view (if graded)
   isLate?: boolean;                      // For student view (if submitted)
   createdAt: Date;
@@ -71,10 +71,10 @@ export interface AssignmentListDTO {
 }
 
 /**
- * Submission DTO for API responses
+ * Assignment Submission DTO for API responses
  * Contains all submission information for display
  */
-export interface SubmissionDTO {
+export interface AssignmentSubmissionDTO {
   id: string;
   assignmentId: string;
   studentId: string;
@@ -84,7 +84,7 @@ export interface SubmissionDTO {
   grade?: number;
   feedback?: string;
   isLate: boolean;
-  status: SubmissionStatus;
+  status: AssignmentSubmissionStatus;
   version: number;
   submittedAt?: Date;
   gradedAt?: Date;
@@ -93,30 +93,30 @@ export interface SubmissionDTO {
 }
 
 /**
- * Create Submission DTO for submission creation
+ * Create Assignment Submission DTO for submission creation
  * Used when student submits an assignment
  */
-export interface CreateSubmissionDTO {
+export interface CreateAssignmentSubmissionDTO {
   content?: string;
   filePath?: string;
   fileName?: string;
 }
 
 /**
- * Grade Submission DTO for grading
+ * Grade Assignment Submission DTO for grading
  * Used when teacher grades a submission
  */
-export interface GradeSubmissionDTO {
+export interface GradeAssignmentSubmissionDTO {
   grade: number;
   feedback?: string;
   version?: number;  // For optimistic locking
 }
 
 /**
- * Submission List DTO for listing submissions
+ * Assignment Submission List DTO for listing submissions
  * Includes student information for teacher view
  */
-export interface SubmissionListDTO {
+export interface AssignmentSubmissionListDTO {
   id: string;
   assignmentId: string;
   studentId: string;
@@ -128,7 +128,7 @@ export interface SubmissionListDTO {
   grade?: number;
   feedback?: string;
   isLate: boolean;
-  status: SubmissionStatus;
+  status: AssignmentSubmissionStatus;
   submittedAt?: Date;
   gradedAt?: Date;
   createdAt: Date;

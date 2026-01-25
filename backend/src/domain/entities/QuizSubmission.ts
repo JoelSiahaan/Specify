@@ -34,6 +34,7 @@ export interface QuizSubmissionProps {
   studentId: string;
   answers: QuizAnswer[];
   startedAt?: Date | null;
+  completedAt?: Date | null;
   submittedAt?: Date | null;
   grade?: number | null;
   feedback?: string | null;
@@ -49,6 +50,7 @@ export class QuizSubmission {
   private readonly studentId: string;
   private answers: QuizAnswer[];
   private startedAt: Date | null;
+  private completedAt: Date | null;
   private submittedAt: Date | null;
   private grade: number | null;
   private feedback: string | null;
@@ -63,6 +65,7 @@ export class QuizSubmission {
     this.studentId = props.studentId;
     this.answers = props.answers;
     this.startedAt = props.startedAt || null;
+    this.completedAt = props.completedAt || null;
     this.submittedAt = props.submittedAt || null;
     this.grade = props.grade || null;
     this.feedback = props.feedback || null;
@@ -90,6 +93,7 @@ export class QuizSubmission {
       studentId,
       answers: [],
       startedAt: null,
+      completedAt: null,
       submittedAt: null,
       grade: null,
       feedback: null,
@@ -257,6 +261,7 @@ export class QuizSubmission {
 
     this.answers = answers;
     this.submittedAt = new Date();
+    this.completedAt = new Date();
     this.status = QuizSubmissionStatus.SUBMITTED;
     this.updatedAt = new Date();
   }
@@ -280,6 +285,7 @@ export class QuizSubmission {
 
     // Submit with current answers
     this.submittedAt = new Date();
+    this.completedAt = new Date();
     this.status = QuizSubmissionStatus.SUBMITTED;
     this.updatedAt = new Date();
   }
@@ -380,6 +386,10 @@ export class QuizSubmission {
     return this.submittedAt;
   }
 
+  public getCompletedAt(): Date | null {
+    return this.completedAt;
+  }
+
   public getGrade(): number | null {
     return this.grade;
   }
@@ -416,6 +426,7 @@ export class QuizSubmission {
       studentId: this.studentId,
       answers: this.answers,
       startedAt: this.startedAt,
+      completedAt: this.completedAt,
       submittedAt: this.submittedAt,
       grade: this.grade,
       feedback: this.feedback,

@@ -15,7 +15,7 @@ import {
   UpdateAssignmentDTO,
   AssignmentListDTO 
 } from '../dtos/AssignmentDTO';
-import { SubmissionStatus } from '../../domain/entities/Submission';
+import { AssignmentSubmissionStatus } from '../../domain/entities/AssignmentSubmission';
 import { randomUUID } from 'crypto';
 
 export class AssignmentMapper {
@@ -85,7 +85,7 @@ export class AssignmentMapper {
    */
   static toListDTO(
     assignment: Assignment,
-    submissionStatus?: SubmissionStatus,
+    submissionStatus?: AssignmentSubmissionStatus,
     grade?: number,
     isLate?: boolean
   ): AssignmentListDTO {
@@ -117,7 +117,7 @@ export class AssignmentMapper {
    */
   static toListDTOList(
     assignments: Assignment[],
-    submissionStatuses?: Map<string, SubmissionStatus>,
+    submissionStatuses?: Map<string, AssignmentSubmissionStatus>,
     grades?: Map<string, number>,
     lateFlags?: Map<string, boolean>
   ): AssignmentListDTO[] {

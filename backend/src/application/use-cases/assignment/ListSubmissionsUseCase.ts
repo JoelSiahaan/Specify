@@ -11,20 +11,20 @@
  */
 
 import { inject, injectable } from 'tsyringe';
-import { ISubmissionRepository } from '../../../domain/repositories/ISubmissionRepository';
-import { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository';
-import { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { SubmissionMapper } from '../../mappers/SubmissionMapper';
+import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository';
+import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
+import { AssignmentSubmissionMapper } from '../../mappers/AssignmentSubmissionMapper';
 import { ForbiddenError, NotFoundError } from '../../errors/ApplicationErrors';
-import type { SubmissionDTO } from '../../dtos';
+import type { AssignmentSubmissionDTO } from '../../dtos';
 
 /**
  * List Submissions Response
  */
 export interface ListSubmissionsResponse {
-  data: SubmissionDTO[];
+  data: AssignmentSubmissionDTO[];
 }
 
 /**
@@ -38,8 +38,8 @@ export interface ListSubmissionsResponse {
 @injectable()
 export class ListSubmissionsUseCase {
   constructor(
-    @inject('ISubmissionRepository')
-    private readonly submissionRepository: ISubmissionRepository,
+    @inject('IAssignmentSubmissionRepository')
+    private readonly submissionRepository: IAssignmentSubmissionRepository,
     @inject('IAssignmentRepository')
     private readonly assignmentRepository: IAssignmentRepository,
     @inject('ICourseRepository')
@@ -88,7 +88,7 @@ export class ListSubmissionsUseCase {
 
     // Map to DTOs
     const submissionDTOs = submissions.map(submission => 
-      SubmissionMapper.toDTO(submission)
+      AssignmentSubmissionMapper.toDTO(submission)
     );
 
     return {

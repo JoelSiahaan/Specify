@@ -1,7 +1,7 @@
 /**
- * ISubmissionRepository Interface (Port)
+ * IAssignmentSubmissionRepository Interface (Port)
  * 
- * Repository interface for Submission entity data access.
+ * Repository interface for AssignmentSubmission entity data access.
  * This is a Port in Clean Architecture - defines the contract for data access
  * without specifying implementation details.
  * 
@@ -16,41 +16,41 @@
  * - Domain layer depends only on this interface (Dependency Inversion)
  */
 
-import { Submission } from '../entities/Submission';
+import { AssignmentSubmission } from '../entities/AssignmentSubmission';
 
-export interface ISubmissionRepository {
+export interface IAssignmentSubmissionRepository {
   /**
-   * Save a submission entity (create or update)
+   * Save an assignment submission entity (create or update)
    * 
    * Requirements:
    * - 10.6: Record submission timestamp
    * - 21.5: Optimistic locking for concurrent grading prevention
    * 
-   * @param submission - Submission entity to save
-   * @returns Promise resolving to saved Submission entity
+   * @param submission - AssignmentSubmission entity to save
+   * @returns Promise resolving to saved AssignmentSubmission entity
    * @throws Error if save operation fails or version conflict (optimistic locking)
    */
-  save(submission: Submission): Promise<Submission>;
+  save(submission: AssignmentSubmission): Promise<AssignmentSubmission>;
 
   /**
-   * Find a submission by ID
+   * Find an assignment submission by ID
    * 
    * @param id - Submission ID (UUID)
-   * @returns Promise resolving to Submission entity or null if not found
+   * @returns Promise resolving to AssignmentSubmission entity or null if not found
    */
-  findById(id: string): Promise<Submission | null>;
+  findById(id: string): Promise<AssignmentSubmission | null>;
 
   /**
-   * Find a submission by assignment ID and student ID
+   * Find an assignment submission by assignment ID and student ID
    * 
    * Requirements:
    * - 10.12: Allow students to view their own submissions
    * 
    * @param assignmentId - Assignment ID (UUID)
    * @param studentId - Student ID (UUID)
-   * @returns Promise resolving to Submission entity or null if not found
+   * @returns Promise resolving to AssignmentSubmission entity or null if not found
    */
-  findByAssignmentAndStudent(assignmentId: string, studentId: string): Promise<Submission | null>;
+  findByAssignmentAndStudent(assignmentId: string, studentId: string): Promise<AssignmentSubmission | null>;
 
   /**
    * Find all submissions for an assignment
@@ -60,47 +60,47 @@ export interface ISubmissionRepository {
    * - 14.2: Show submission status (not submitted, submitted, graded, late)
    * 
    * @param assignmentId - Assignment ID (UUID)
-   * @returns Promise resolving to array of Submission entities
+   * @returns Promise resolving to array of AssignmentSubmission entities
    */
-  findByAssignmentId(assignmentId: string): Promise<Submission[]>;
+  findByAssignmentId(assignmentId: string): Promise<AssignmentSubmission[]>;
 
   /**
-   * Find all submissions by student ID
+   * Find all assignment submissions by student ID
    * 
    * Requirements:
-   * - 16.1: Display all assignments and quizzes with their status for a student
+   * - 16.1: Display all assignments with their status for a student
    * 
    * @param studentId - Student ID (UUID)
-   * @returns Promise resolving to array of Submission entities
+   * @returns Promise resolving to array of AssignmentSubmission entities
    */
-  findByStudentId(studentId: string): Promise<Submission[]>;
+  findByStudentId(studentId: string): Promise<AssignmentSubmission[]>;
 
   /**
-   * Find all submissions for a course (across all assignments)
+   * Find all assignment submissions for a course (across all assignments)
    * 
    * Requirements:
    * - 15.1: Generate CSV file with all student grades for a course
    * 
    * @param courseId - Course ID (UUID)
-   * @returns Promise resolving to array of Submission entities
+   * @returns Promise resolving to array of AssignmentSubmission entities
    */
-  findByCourseId(courseId: string): Promise<Submission[]>;
+  findByCourseId(courseId: string): Promise<AssignmentSubmission[]>;
 
   /**
-   * Update a submission entity with optimistic locking
+   * Update an assignment submission entity with optimistic locking
    * 
    * Requirements:
    * - 13.5: Allow teachers to edit grades after saving
    * - 21.5: Optimistic locking for concurrent grading prevention
    * 
-   * @param submission - Submission entity to update
-   * @returns Promise resolving to updated Submission entity
+   * @param submission - AssignmentSubmission entity to update
+   * @returns Promise resolving to updated AssignmentSubmission entity
    * @throws Error if submission not found, update operation fails, or version conflict
    */
-  update(submission: Submission): Promise<Submission>;
+  update(submission: AssignmentSubmission): Promise<AssignmentSubmission>;
 
   /**
-   * Delete a submission by ID
+   * Delete an assignment submission by ID
    * 
    * @param id - Submission ID (UUID)
    * @returns Promise resolving to void
@@ -109,7 +109,7 @@ export interface ISubmissionRepository {
   delete(id: string): Promise<void>;
 
   /**
-   * Count submissions for an assignment by status
+   * Count assignment submissions for an assignment by status
    * 
    * Requirements:
    * - 14.5: Separate ungraded and graded submissions
@@ -124,14 +124,14 @@ export interface ISubmissionRepository {
   }>;
 
   /**
-   * Find all graded submissions for a student in a course
+   * Find all graded assignment submissions for a student in a course
    * 
    * Requirements:
    * - 16.7: Calculate and display average grade for the course
    * 
    * @param studentId - Student ID (UUID)
    * @param courseId - Course ID (UUID)
-   * @returns Promise resolving to array of graded Submission entities
+   * @returns Promise resolving to array of graded AssignmentSubmission entities
    */
-  findGradedByStudentAndCourse(studentId: string, courseId: string): Promise<Submission[]>;
+  findGradedByStudentAndCourse(studentId: string, courseId: string): Promise<AssignmentSubmission[]>;
 }
