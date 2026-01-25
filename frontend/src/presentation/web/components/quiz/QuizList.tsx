@@ -371,6 +371,8 @@ export const QuizList: React.FC<QuizListProps> = ({ courseId, courseStatus = 'AC
                           variant="secondary"
                           size="sm"
                           onClick={() => handleEdit(quiz.id)}
+                          disabled={isOverdue}
+                          title={isOverdue ? 'Cannot edit quiz after due date' : 'Edit quiz'}
                         >
                           Edit
                         </Button>

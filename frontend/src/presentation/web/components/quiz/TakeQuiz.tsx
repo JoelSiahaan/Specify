@@ -170,10 +170,17 @@ export const TakeQuiz: React.FC<TakeQuizProps> = ({ quizId, courseId }) => {
       // Handle time expired error from backend
       if (apiError.code === 'QUIZ_TIME_EXPIRED') {
         setError('Quiz time has expired and has been automatically submitted.');
-        // Redirect to course page after 3 seconds
+        // Redirect to student course page after 3 seconds
         setTimeout(() => {
-          window.location.href = `/courses/${courseId}`;
+          navigate(`/student/courses/${courseId}`);
         }, 3000);
+      } else if (apiError.code === 'QUIZ_ALREADY_SUBMITTED') {
+        // Quiz already submitted, redirect to results
+        navigate(`/student/courses/${courseId}/quizzes/${quizId}/results`, {
+          state: { 
+            message: 'This quiz has already been submitted.',
+          }
+        });
       } else {
         setError(apiError.message || 'Failed to load quiz');
       }
@@ -237,7 +244,6 @@ export const TakeQuiz: React.FC<TakeQuizProps> = ({ quizId, courseId }) => {
       await quizService.autoSaveQuizAnswers(quizId, { answers });
       setLastSaved(new Date());
     } catch (err) {
-      const apiError = err as ApiError;
       setAutoSaveError('Auto-save failed. Retrying...');
 
       // Retry up to 3 times with exponential backoff
@@ -256,19 +262,25 @@ export const TakeQuiz: React.FC<TakeQuizProps> = ({ quizId, courseId }) => {
    * Handle answer change
    */
   const handleAnswerChange = (questionIndex: number, answer: string | number) => {
-    setAnswers((prev) => {
-      const existing = prev.find((a) => a.questionIndex === questionIndex);
+    const updatedAnswers = (() => {
+      const existing = answers.find((a) => a.questionIndex === questionIndex);
       if (existing) {
-        return prev.map((a) =>
+        return answers.map((a) =>
           a.questionIndex === questionIndex ? { ...a, answer } : a
         );
       } else {
-        return [...prev, { questionIndex, answer }];
+        return [...answers, { questionIndex, answer }];
       }
-    });
+    })();
+    
+    setAnswers(updatedAnswers);
 
-    // Save to localStorage immediately on change
-    saveToLocalStorage();
+    // Save to localStorage immediately with updated answers
+    try {
+      localStorage.setItem(localStorageKey, JSON.stringify(updatedAnswers));
+    } catch (err) {
+      console.error('Failed to save to localStorage:', err);
+    }
   };
 
   /**
@@ -314,16 +326,16 @@ export const TakeQuiz: React.FC<TakeQuizProps> = ({ quizId, courseId }) => {
       // Mark as submitted
       setSubmitted(true);
 
-      // Show success message for auto-submit
+      // Show success message and redirect
       if (isAutoSubmit) {
-        // For auto-submit, show notification and redirect to results
+        // For auto-submit, redirect to results page
         setTimeout(() => {
-          window.location.href = `/student/courses/${courseId}/quizzes/${quizId}/results`;
+          navigate(`/student/courses/${courseId}/quizzes/${quizId}/results`);
         }, 2000);
       } else {
-        // For manual submit, redirect to course page
+        // For manual submit, redirect to student course details page
         setTimeout(() => {
-          window.location.href = `/courses/${courseId}`;
+          navigate(`/student/courses/${courseId}`);
         }, 2000);
       }
     } catch (err) {
@@ -373,8 +385,11 @@ export const TakeQuiz: React.FC<TakeQuizProps> = ({ quizId, courseId }) => {
   // Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Spinner size="lg" />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-600">Loading quiz...</span>
+        </div>
       </div>
     );
   }
@@ -398,16 +413,20 @@ export const TakeQuiz: React.FC<TakeQuizProps> = ({ quizId, courseId }) => {
   // Submission success state
   if (submitted) {
     return (
-      <div className="text-center py-16">
-        <span className="text-6xl mb-4 block">✅</span>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Quiz Submitted!</h3>
-        <p className="text-gray-600 mb-6">
-          Your quiz has been submitted successfully. Your teacher will grade it and provide feedback soon.
-        </p>
-        <p className="text-sm text-gray-500 mb-6">
-          Redirecting...
-        </p>
-        <Spinner size="md" />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <span className="text-6xl mb-4 block">✅</span>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Quiz Submitted!</h3>
+          <p className="text-gray-600 mb-6">
+            Your quiz has been submitted successfully. Your teacher will grade it and provide feedback soon.
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            Redirecting...
+          </p>
+          <div className="flex items-center justify-center">
+            <Spinner size="md" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -453,9 +472,7 @@ export const TakeQuiz: React.FC<TakeQuizProps> = ({ quizId, courseId }) => {
               <span className="text-gray-600">
                 ✓ Last saved: {lastSaved.toLocaleTimeString()}
               </span>
-            ) : (
-              <span className="text-gray-600">Auto-save enabled</span>
-            )}
+            ) : null}
           </div>
           <div className="text-gray-600">
             {answers.length} of {quizAttempt.questions.length} questions answered

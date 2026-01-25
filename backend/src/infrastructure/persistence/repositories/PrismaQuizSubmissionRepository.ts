@@ -45,8 +45,15 @@ export class PrismaQuizSubmissionRepository implements IQuizSubmissionRepository
    */
   async save(submission: QuizSubmission): Promise<QuizSubmission> {
     try {
+      // Use composite unique key (quizId, studentId) for upsert
+      // This ensures we update existing submission instead of creating duplicate
       const dbSubmission = await this.prisma.quizSubmission.upsert({
-        where: { id: submission.getId() },
+        where: {
+          quizId_studentId: {
+            quizId: submission.getQuizId(),
+            studentId: submission.getStudentId()
+          }
+        },
         create: {
           id: submission.getId(),
           quizId: submission.getQuizId(),

@@ -8,6 +8,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Spinner, ErrorMessage } from '../shared';
 import { quizService } from '../../services';
 import type { QuizSubmission, Quiz, ApiError } from '../../types';
@@ -18,6 +19,9 @@ interface QuizResultsProps {
 }
 
 export const QuizResults: React.FC<QuizResultsProps> = ({ quizId, courseId }) => {
+  // Hooks
+  const navigate = useNavigate();
+  
   // State
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [submission, setSubmission] = useState<QuizSubmission | null>(null);
@@ -244,7 +248,7 @@ export const QuizResults: React.FC<QuizResultsProps> = ({ quizId, courseId }) =>
       <div className="mt-8 flex justify-center">
         <Button
           variant="secondary"
-          onClick={() => window.location.href = `/courses/${courseId}`}
+          onClick={() => navigate(`/student/courses/${courseId}`)}
         >
           Back to Course
         </Button>
