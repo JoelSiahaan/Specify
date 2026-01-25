@@ -10,3 +10,4 @@ export * from './MaterialDTO';
 export * from './EnrollmentDTO';
 export * from './QuizDTO';
 export * from './QuizSubmissionDTO';
+export * from './AssignmentDTO';

@@ -32,3 +32,7 @@ export {
   EnrollStudentUseCase,
 } from './enrollment';
 
+// Assignment use cases
+export {
+  CreateAssignmentUseCase,
+} from './assignment';

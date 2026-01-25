@@ -10,3 +10,5 @@ export type { IMaterialRepository } from './IMaterialRepository';
 export type { IEnrollmentRepository } from './IEnrollmentRepository';
 export type { IQuizRepository } from './IQuizRepository';
 export type { IQuizSubmissionRepository } from './IQuizSubmissionRepository';
+export type { IAssignmentRepository } from './IAssignmentRepository';
+export type { ISubmissionRepository } from './ISubmissionRepository';

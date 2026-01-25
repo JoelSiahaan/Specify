@@ -14,7 +14,9 @@ import {
   RegisterPage, 
   ForbiddenPage,
   StudentDashboard,
-  TeacherDashboard
+  TeacherDashboard,
+  AssignmentsPage,
+  SubmissionsPage
 } from '../pages';
 import { CreateCourse, UpdateCourse, CourseDetails, ManageCourse, CourseList } from '../components/course';
 import { TakeQuiz, QuizResults, QuizSubmissions, QuizSubmissionDetails } from '../components/quiz';
@@ -156,6 +158,14 @@ export function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path={ROUTES.STUDENT_ASSIGNMENTS}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+              <AssignmentsPage />
+            </ProtectedRoute>
+          }
+        />
         
         {/* Teacher protected routes */}
         <Route
@@ -206,11 +216,25 @@ export function AppRouter() {
             </ProtectedRoute>
           }
         />
+          path={ROUTES.TEACHER_ASSIGNMENTS}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
+              <AssignmentsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path={ROUTES.TEACHER_QUIZ_SUBMISSION_DETAILS}
           element={
             <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
               <QuizSubmissionDetailsWrapper />
+            </ProtectedRoute>
+          }
+        />
+          path="/courses/:courseId/assignments/:assignmentId/submissions"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
+              <SubmissionsPage />
             </ProtectedRoute>
           }
         />

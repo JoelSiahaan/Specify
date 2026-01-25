@@ -9,3 +9,4 @@ export { Input, type InputProps } from './Input';
 export { Spinner, type SpinnerProps } from './Spinner';
 export { ErrorMessage, type ErrorMessageProps } from './ErrorMessage';
 export { FileUpload, type FileUploadProps } from './FileUpload';
+export { RichTextEditor, type RichTextEditorProps } from './RichTextEditor';

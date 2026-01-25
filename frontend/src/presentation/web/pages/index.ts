@@ -11,3 +11,5 @@ export { RegisterPage } from './RegisterPage';
 export { ForbiddenPage } from './ForbiddenPage';
 export { StudentDashboard } from './StudentDashboard';
 export { TeacherDashboard } from './TeacherDashboard';
+export { AssignmentsPage } from './AssignmentsPage';
+export { SubmissionsPage } from './SubmissionsPage';

@@ -8,3 +8,5 @@ export { Material, MaterialType, type MaterialProps } from './Material';
 export { Enrollment, type EnrollmentProps } from './Enrollment';
 export { Quiz, QuestionType, type QuizProps, type Question, type MCQQuestion, type EssayQuestion } from './Quiz';
 export { QuizSubmission, QuizSubmissionStatus, type QuizSubmissionProps, type QuizAnswer } from './QuizSubmission';
+export { Assignment, SubmissionType, type AssignmentProps } from './Assignment';
+export { Submission, SubmissionStatus, type SubmissionProps } from './Submission';
