@@ -25,6 +25,9 @@ export type {
 // Re-export material constants
 export { MATERIAL_TYPE_ICONS, MATERIAL_TYPE_LABELS } from './material.types';
 
+// Re-export quiz types
+export * from './quiz.types';
+
 // Re-export assignment types (using export type for isolatedModules compliance)
 export type {
   Assignment,

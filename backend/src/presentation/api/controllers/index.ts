@@ -7,4 +7,5 @@
 export { AuthController } from './AuthController';
 export { CourseController } from './CourseController';
 export { MaterialController } from './MaterialController';
+export { QuizController } from './QuizController';
 export { AssignmentController } from './AssignmentController';

@@ -6,6 +6,27 @@ This document defines the testing standards that ALL features must follow. Consi
 
 ---
 
+## Testing Framework
+
+### Backend (Jest)
+- **Framework**: Jest
+- **Unit Testing**: Jest for domain, application, infrastructure layers
+- **Integration Testing**: Jest + Supertest for API endpoints
+- **Property-Based Testing**: fast-check (minimum 100 iterations)
+- **Database Testing**: Dedicated test database (port 5433)
+
+### Frontend (Vitest)
+- **Framework**: Vitest
+- **Component Testing**: Vitest + React Testing Library
+- **Unit Testing**: Vitest for services, utilities, hooks
+- **Mocking**: vi.fn() and vi.mock() (Vitest API)
+
+**Note**: Jest and Vitest have nearly identical APIs. The main difference is the mock function naming:
+- **Jest**: `jest.fn()`, `jest.mock()`, `jest.clearAllMocks()`
+- **Vitest**: `vi.fn()`, `vi.mock()`, `vi.clearAllMocks()`
+
+---
+
 ## Testing Philosophy
 
 **Key Principles:**
@@ -16,31 +37,18 @@ This document defines the testing standards that ALL features must follow. Consi
 
 ---
 
-## Testing Framework
+## Mock Standards
 
-- **Unit Testing**: Jest with React Testing Library
-- **Property-Based Testing**: fast-check (minimum 100 iterations)
-- **API Testing**: Supertest for HTTP endpoints
-- **Database Testing**: Dedicated test database (port 5433)
-
----
-
-## Mock Standards (CRITICAL)
-
-### Standard Mock Pattern
-
-**✅ CORRECT Pattern - Use This:**
+### Backend (Jest) - Mock Pattern
 
 ```typescript
 import { SomeUseCase } from '../SomeUseCase';
 import { ISomeRepository } from '../../../../domain/repositories/ISomeRepository';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
 import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
 
 describe('SomeUseCase', () => {
   let useCase: SomeUseCase;
   let mockSomeRepository: jest.Mocked<ISomeRepository>;
-  let mockUserRepository: jest.Mocked<IUserRepository>;
   let mockAuthPolicy: jest.Mocked<IAuthorizationPolicy>;
 
   beforeEach(() => {
@@ -55,151 +63,124 @@ describe('SomeUseCase', () => {
       delete: jest.fn()
     } as jest.Mocked<ISomeRepository>;
 
-    mockUserRepository = {
-      save: jest.fn(),
-      findById: jest.fn(),
-      findByEmail: jest.fn(),
-      delete: jest.fn()
-    } as jest.Mocked<IUserRepository>;
-
     mockAuthPolicy = {
       canCreateCourse: jest.fn(),
       canAccessCourse: jest.fn(),
-      canModifyCourse: jest.fn(),
-      canArchiveCourse: jest.fn(),
-      canDeleteCourse: jest.fn(),
-      canEnrollInCourse: jest.fn(),
-      canViewMaterials: jest.fn(),
-      canManageMaterials: jest.fn(),
-      canViewAssignments: jest.fn(),
-      canManageAssignments: jest.fn(),
-      canSubmitAssignment: jest.fn(),
-      canGradeSubmissions: jest.fn(),
-      canViewSubmission: jest.fn(),
-      canExportGrades: jest.fn(),
-      canViewProgress: jest.fn()
+      // ... ALL policy methods
     } as jest.Mocked<IAuthorizationPolicy>;
 
     // Mock return values
-    mockUserRepository.findById.mockResolvedValue(mockUser);
+    mockSomeRepository.findById.mockResolvedValue(entity);
+    mockAuthPolicy.canCreateCourse.mockReturnValue(true);
 
     // Direct dependency injection
-    useCase = new SomeUseCase(
-      mockSomeRepository,
-      mockUserRepository,
-      mockAuthPolicy
-    );
+    useCase = new SomeUseCase(mockSomeRepository, mockAuthPolicy);
   });
 });
 ```
 
-### Common Mistakes
-
-❌ **WRONG - Never Do This:**
+### Frontend (Vitest) - Mock Pattern
 
 ```typescript
-// ❌ DO NOT mock tsyringe container
-jest.mock('tsyringe', () => ({
-  container: { resolve: jest.fn() }
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { SomeComponent } from '../SomeComponent';
+import { someService } from '../../../services';
+
+// Mock service
+vi.mock('../../../services', () => ({
+  someService: {
+    getData: vi.fn(),
+    saveData: vi.fn(),
+  },
 }));
 
-// ❌ DO NOT use incomplete mocks
-mockAuthPolicy = {
-  canCreateCourse: jest.fn()
-  // Missing 14 other methods!
-};
+describe('SomeComponent', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    
+    // Mock return values
+    (someService.getData as any).mockResolvedValue({ data: [] });
+  });
 
-// ❌ DO NOT forget parameters
-useCase = new SomeUseCase(mockRepository, mockAuthPolicy);
-// Missing mockUserRepository!
+  it('should render component', async () => {
+    render(<SomeComponent />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Expected Text')).toBeInTheDocument();
+    });
+  });
+});
 ```
 
-### Mock Patterns by Type
+### Key Differences
 
-**Repository Mocks:**
-```typescript
-mockCourseRepository = {
-  save: jest.fn(),
-  findById: jest.fn(),
-  findByCode: jest.fn(),
-  findByTeacherId: jest.fn(),
-  findAll: jest.fn(),
-  update: jest.fn(),
-  delete: jest.fn()
-} as jest.Mocked<ICourseRepository>;
-```
+| Feature | Jest (Backend) | Vitest (Frontend) |
+|---------|----------------|-------------------|
+| Mock function | `jest.fn()` | `vi.fn()` |
+| Mock module | `jest.mock()` | `vi.mock()` |
+| Clear mocks | `jest.clearAllMocks()` | `vi.clearAllMocks()` |
+| Mock type | `jest.Mocked<T>` | `vi.Mocked<T>` or `any` |
+| Spy on | `jest.spyOn()` | `vi.spyOn()` |
 
-**Mock Return Values:**
-```typescript
-// Async methods (Promises)
-mockRepository.findById.mockResolvedValue(entity);
-mockRepository.save.mockResolvedValue(entity);
-mockRepository.findById.mockResolvedValue(null); // Not found
-
-// Sync methods (Direct values)
-mockAuthPolicy.canArchiveCourse.mockReturnValue(true);
-mockAuthPolicy.canDeleteCourse.mockReturnValue(false);
-```
-
----
-
-## Testing by Layer
-
-### Domain Layer
-- **Focus**: Business logic without external dependencies
-- **No mocks needed**: Pure domain logic
-- Test entity state transitions, value object validation, domain services
-
-### Application Layer (Use Cases)
-- **Focus**: Orchestration and authorization
-- **Mock**: Repositories, policies, file storage
-- **Pattern**: Use `jest.Mocked<Interface>` with direct injection
-- Test authorization before business logic, repository calls, error handling
-
-### Infrastructure Layer
-- **Focus**: Integration with external systems
-- **Use real**: Database (test DB), file system (temp directory)
-- Test repository CRUD, entity ↔ database mapping, transactions
-
-### Presentation Layer
-- **Focus**: API endpoints and validation
-- **Use**: Supertest for HTTP testing
-- Test request validation, authentication, authorization, status codes
+**Everything else is identical**: `describe`, `it`, `expect`, `beforeEach`, `afterEach`, etc.
 
 ---
 
 ## Test Execution
 
-### Task-Specific Testing (Development)
-
-**Run ONLY relevant tests during task implementation:**
+### Backend (Jest)
 
 ```bash
-# Specific test file
+# Run all tests
+cd backend
+npm test
+
+# Run specific test file
 npm test -- ComponentName.test.ts
 
-# Specific component
+# Run tests matching pattern
 npm test -- Course
 
-# Specific layer
-npm test -- src/application
+# Run with coverage
+npm test -- --coverage
 ```
+
+### Frontend (Vitest)
+
+```bash
+# Run all tests
+cd frontend
+npm test
+
+# Run specific test file
+npm test -- ComponentName.test.tsx
+
+# Run tests matching pattern
+npm test -- Course
+
+# Run with coverage
+npm test -- --coverage
+```
+
+### Task-Specific Testing (Development)
+
+Run ONLY relevant tests during task implementation:
+- Focus on the specific component/feature being developed
+- Faster feedback loop
+- Easier debugging
 
 ### Full Test Suite (Before Commit)
 
-**Run full suite ONLY:**
+Run full suite ONLY:
 - Before committing code
 - Before deployment
 - In CI/CD pipeline
 - After completing all tasks
 
-```bash
-npm test
-```
-
 ---
 
-## Database Migration for Tests
+## Database Migration for Tests (Backend Only)
 
 **CRITICAL**: Apply migrations to test database before running integration tests.
 
@@ -221,11 +202,13 @@ npm test -- RepositoryName.test.ts
 
 ---
 
-## Property-Based Testing
+## Property-Based Testing (Backend Only)
 
 ### Configuration
 
 ```typescript
+import fc from 'fast-check';
+
 fc.assert(
   fc.asyncProperty(
     fc.string(),
@@ -235,79 +218,28 @@ fc.assert(
     }
   ),
   { numRuns: 100, timeout: 5000 }
-)
+);
 ```
-
-### Common Patterns
-
-1. **Invariants**: Properties that remain constant
-2. **Round-Trip**: `decode(encode(x)) === x`
-3. **Idempotence**: `f(x) === f(f(x))`
-4. **Error Conditions**: Invalid inputs always rejected
 
 ---
 
 ## Test Organization
 
 ### File Naming
-- Unit tests: `ComponentName.test.ts`
-- Property tests: `ComponentName.properties.test.ts`
-- Integration tests: `ComponentName.integration.test.ts`
+- Unit tests: `ComponentName.test.ts` (backend) or `ComponentName.test.tsx` (frontend)
+- Property tests: `ComponentName.properties.test.ts` (backend only)
+- Integration tests: `ComponentName.integration.test.ts` (backend only)
 
 ### Directory Structure
 ```
-src/
+backend/src/
   domain/entities/__tests__/
   application/use-cases/course/__tests__/
   infrastructure/persistence/repositories/__tests__/
   presentation/api/controllers/__tests__/
+
+frontend/src/
+  presentation/web/components/course/__tests__/
+  presentation/web/services/__tests__/
+  presentation/web/utils/__tests__/
 ```
-
----
-
-## Refactoring Checklist
-
-When adding new dependencies to use cases:
-
-**Use Case:**
-- [ ] Add parameter to constructor
-- [ ] Add `@inject('InterfaceName')` decorator
-- [ ] Use injected dependency (not `container.resolve()`)
-
-**Test File:**
-- [ ] Remove `tsyringe` mocking code
-- [ ] Add mock with ALL interface methods
-- [ ] Mock return values in `beforeEach()`
-- [ ] Update constructor call with new parameter
-- [ ] Run tests to verify
-
----
-
-## Summary
-
-**Critical Rules:**
-
-1. ✅ Use `jest.Mocked<Interface>` for all mocks
-2. ✅ Mock ALL methods from interface
-3. ✅ Pass mocks directly to constructors
-4. ✅ Reset mocks with `jest.clearAllMocks()`
-5. ✅ Run task-specific tests during development
-6. ✅ Run full suite before commit
-
-7. ❌ Never mock `tsyringe` container
-8. ❌ Never use incomplete interface mocks
-9. ❌ Never skip `jest.clearAllMocks()`
-10. ❌ Never run full suite during task development
-
-**Standard Pattern:**
-```typescript
-mockRepository = {
-  save: jest.fn(),
-  findById: jest.fn(),
-  // ... ALL methods
-} as jest.Mocked<IRepository>;
-
-useCase = new UseCase(mockRepo, mockUserRepo, mockAuthPolicy);
-```
-
-**Remember**: Consistent mocking patterns prevent maintenance issues. Always use the standard pattern above.

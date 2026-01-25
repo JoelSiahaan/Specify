@@ -26,6 +26,10 @@ import { IFileStorage } from '../../domain/storage/IFileStorage';
 import { LocalFileStorage } from '../storage/LocalFileStorage';
 import { IEnrollmentRepository } from '../../domain/repositories/IEnrollmentRepository';
 import { PrismaEnrollmentRepository } from '../persistence/repositories/PrismaEnrollmentRepository';
+import { IQuizRepository } from '../../domain/repositories/IQuizRepository';
+import { PrismaQuizRepository } from '../persistence/repositories/PrismaQuizRepository';
+import { IQuizSubmissionRepository } from '../../domain/repositories/IQuizSubmissionRepository';
+import { PrismaQuizSubmissionRepository } from '../persistence/repositories/PrismaQuizSubmissionRepository';
 import { IAssignmentRepository } from '../../domain/repositories/IAssignmentRepository';
 import { PrismaAssignmentRepository } from '../persistence/repositories/PrismaAssignmentRepository';
 import { ISubmissionRepository } from '../../domain/repositories/ISubmissionRepository';
@@ -52,6 +56,13 @@ import { DownloadMaterialUseCase } from '../../application/use-cases/material/Do
 import { SearchCoursesUseCase } from '../../application/use-cases/course/SearchCoursesUseCase';
 import { EnrollStudentUseCase } from '../../application/use-cases/enrollment/EnrollStudentUseCase';
 import { BulkUnenrollUseCase } from '../../application/use-cases/enrollment/BulkUnenrollUseCase';
+import { CreateQuizUseCase } from '../../application/use-cases/quiz/CreateQuizUseCase';
+import { UpdateQuizUseCase } from '../../application/use-cases/quiz/UpdateQuizUseCase';
+import { DeleteQuizUseCase } from '../../application/use-cases/quiz/DeleteQuizUseCase';
+import { ListQuizzesUseCase } from '../../application/use-cases/quiz/ListQuizzesUseCase';
+import { StartQuizUseCase } from '../../application/use-cases/quiz/StartQuizUseCase';
+import { AutoSaveQuizAnswersUseCase } from '../../application/use-cases/quiz/AutoSaveQuizAnswersUseCase';
+import { SubmitQuizUseCase } from '../../application/use-cases/quiz/SubmitQuizUseCase';
 import { CreateAssignmentUseCase } from '../../application/use-cases/assignment/CreateAssignmentUseCase';
 import { UpdateAssignmentUseCase } from '../../application/use-cases/assignment/UpdateAssignmentUseCase';
 import { DeleteAssignmentUseCase } from '../../application/use-cases/assignment/DeleteAssignmentUseCase';
@@ -95,6 +106,11 @@ export function configureContainer(): void {
   // Register Enrollment Repository as singleton (TSyringe will auto-inject PrismaClient)
   container.registerSingleton<IEnrollmentRepository>('IEnrollmentRepository', PrismaEnrollmentRepository);
   
+  // Register Quiz Repository as singleton (TSyringe will auto-inject PrismaClient)
+  container.registerSingleton<IQuizRepository>('IQuizRepository', PrismaQuizRepository);
+  
+  // Register QuizSubmission Repository as singleton (TSyringe will auto-inject PrismaClient)
+  container.registerSingleton<IQuizSubmissionRepository>('IQuizSubmissionRepository', PrismaQuizSubmissionRepository);
   // Register Assignment Repository as singleton (TSyringe will auto-inject PrismaClient)
   container.registerSingleton<IAssignmentRepository>('IAssignmentRepository', PrismaAssignmentRepository);
   
@@ -244,6 +260,54 @@ export function configureContainer(): void {
   });
   console.log('[DI] BulkUnenrollUseCase registered');
   
+  // Register CreateQuizUseCase as transient
+  console.log('[DI] Registering CreateQuizUseCase');
+  container.register(CreateQuizUseCase, {
+    useClass: CreateQuizUseCase
+  });
+  console.log('[DI] CreateQuizUseCase registered');
+  
+  // Register UpdateQuizUseCase as transient
+  console.log('[DI] Registering UpdateQuizUseCase');
+  container.register(UpdateQuizUseCase, {
+    useClass: UpdateQuizUseCase
+  });
+  console.log('[DI] UpdateQuizUseCase registered');
+  
+  // Register DeleteQuizUseCase as transient
+  console.log('[DI] Registering DeleteQuizUseCase');
+  container.register(DeleteQuizUseCase, {
+    useClass: DeleteQuizUseCase
+  });
+  console.log('[DI] DeleteQuizUseCase registered');
+  
+  // Register ListQuizzesUseCase as transient
+  console.log('[DI] Registering ListQuizzesUseCase');
+  container.register(ListQuizzesUseCase, {
+    useClass: ListQuizzesUseCase
+  });
+  console.log('[DI] ListQuizzesUseCase registered');
+  
+  // Register StartQuizUseCase as transient
+  console.log('[DI] Registering StartQuizUseCase');
+  container.register(StartQuizUseCase, {
+    useClass: StartQuizUseCase
+  });
+  console.log('[DI] StartQuizUseCase registered');
+  
+  // Register AutoSaveQuizAnswersUseCase as transient
+  console.log('[DI] Registering AutoSaveQuizAnswersUseCase');
+  container.register(AutoSaveQuizAnswersUseCase, {
+    useClass: AutoSaveQuizAnswersUseCase
+  });
+  console.log('[DI] AutoSaveQuizAnswersUseCase registered');
+  
+  // Register SubmitQuizUseCase as transient
+  console.log('[DI] Registering SubmitQuizUseCase');
+  container.register(SubmitQuizUseCase, {
+    useClass: SubmitQuizUseCase
+  });
+  console.log('[DI] SubmitQuizUseCase registered');
   // Register CreateAssignmentUseCase as transient
   console.log('[DI] Registering CreateAssignmentUseCase');
   container.register(CreateAssignmentUseCase, {

@@ -17,6 +17,7 @@ import { Button, Spinner, ErrorMessage } from '../shared';
 import { CourseLayout, Breadcrumb } from '../layout';
 import { UpdateCourse } from './UpdateCourse';
 import { MaterialList, CreateMaterial } from '../material';
+import { QuizList, CreateQuiz } from '../quiz';
 import { courseService } from '../../services';
 import { ROUTES } from '../../constants';
 import { useAuth } from '../../hooks';
@@ -33,7 +34,9 @@ export const CourseDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showCreateMaterial, setShowCreateMaterial] = useState(false);
+  const [showCreateQuiz, setShowCreateQuiz] = useState(false);
   const [refreshMaterials, setRefreshMaterials] = useState(0);
+  const [refreshQuizzes, setRefreshQuizzes] = useState(0);
 
   // Determine dashboard route based on user role
   const dashboardRoute = user?.role === 'STUDENT' ? ROUTES.STUDENT_DASHBOARD : ROUTES.TEACHER_DASHBOARD;
@@ -80,6 +83,14 @@ export const CourseDetails: React.FC = () => {
   const handleCreateMaterialSuccess = () => {
     setShowCreateMaterial(false);
     setRefreshMaterials(prev => prev + 1); // Trigger MaterialList refresh
+  };
+
+  /**
+   * Handle create quiz success
+   */
+  const handleCreateQuizSuccess = () => {
+    setShowCreateQuiz(false);
+    setRefreshQuizzes(prev => prev + 1); // Trigger QuizList refresh
   };
 
   /**
@@ -192,7 +203,7 @@ export const CourseDetails: React.FC = () => {
         </div>
 
         {/* Materials Section */}
-        <div id="materials-section" className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+        <div id="materials-section" className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-semibold text-gray-900">Materials</h2>
             {isTeacher && !showCreateMaterial && course.status === 'ACTIVE' && (
@@ -232,6 +243,50 @@ export const CourseDetails: React.FC = () => {
             courseId={courseId!}
             courseStatus={course.status}
             key={refreshMaterials} // Force re-render when material created
+          />
+        </div>
+
+        {/* Quizzes Section */}
+        <div id="quizzes-section" className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900">Quizzes</h2>
+            {isTeacher && !showCreateQuiz && course.status === 'ACTIVE' && (
+              <Button
+                variant="primary"
+                onClick={() => setShowCreateQuiz(true)}
+              >
+                + Create Quiz
+              </Button>
+            )}
+          </div>
+
+          {/* Archived Course Notice */}
+          {course.status === 'ARCHIVED' && (
+            <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <p className="text-sm text-gray-600">
+                📦 This course is archived and read-only. Quizzes cannot be created, edited, or deleted.
+              </p>
+            </div>
+          )}
+
+          {/* Create Quiz Modal */}
+          {showCreateQuiz && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <CreateQuiz
+                  courseId={courseId!}
+                  onSuccess={handleCreateQuizSuccess}
+                  onCancel={() => setShowCreateQuiz(false)}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Quiz List */}
+          <QuizList 
+            courseId={courseId!} 
+            courseStatus={course.status}
+            key={refreshQuizzes} // Force re-render when quiz created
           />
         </div>
       </div>

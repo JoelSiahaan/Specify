@@ -6,3 +6,4 @@
 
 export { CourseCodeGenerator } from './CourseCodeGenerator';
 export type { ICourseCodeChecker } from './CourseCodeGenerator';
+export { QuizTimingService } from './QuizTimingService';

@@ -30,10 +30,11 @@ model User {
   // Relations
   courses     Course[]     @relation("TeacherCourses") // Courses created by this teacher
   enrollments Enrollment[] // Courses enrolled in (for students)
-  submissions Submission[] @relation("StudentSubmissions") // Submissions by this student
+  submissions Submission[] // UNIFIED: All submissions (assignment + quiz) by this student
 
   @@map("users")
 }
+
 
 // User role enum
 // Requirements: 1.5 (Each user has exactly one role: Student or Teacher)
@@ -56,8 +57,9 @@ model Course {
 
   // Relations
   teacher     User         @relation("TeacherCourses", fields: [teacherId], references: [id], onDelete: Cascade)
-  materials   Material[]   // Materials in this course
-  enrollments Enrollment[] // Enrollments in this course
+  materials   Material[] // Materials in this course
+  enrollments Enrollment[]
+  quizzes     Quiz[] // Quizzes in this course
   assignments Assignment[] // Assignments in this course
 
   @@map("courses")
@@ -118,8 +120,26 @@ model Enrollment {
   @@map("enrollments")
 }
 
-// Assignment model for course assignments
-// Requirements: 17.1, 17.4, 17.5, 9.1, 9.2, 9.4, 9.8, 10.9, 13.1, 21.5
+// Quiz model (tetap sama)
+model Quiz {
+  id          String   @id @default(uuid()) @db.Uuid
+  courseId    String   @db.Uuid
+  title       String
+  description String   @db.Text
+  dueDate     DateTime
+  timeLimit   Int // Time limit in minutes
+  questions   Json // Array of questions (MCQ and Essay) stored as JSON
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  submissions Submission[] // UNIFIED: gunakan Submission, bukan QuizSubmission
+
+  @@map("quizzes")
+}
+
+// Assignment model (tetap sama)
 model Assignment {
   id                   String         @id @default(uuid()) @db.Uuid
   courseId             String         @db.Uuid
@@ -127,58 +147,79 @@ model Assignment {
   description          String         @db.Text
   dueDate              DateTime
   submissionType       SubmissionType
-  acceptedFileFormats  String[]       @default([]) // Array of accepted file formats (e.g., ["pdf", "docx"])
-  gradingStarted       Boolean        @default(false) // Requirement 13.1: Grading lock flag
+  acceptedFileFormats  String[]       @default([])
+  gradingStarted       Boolean        @default(false)
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
   // Relations
   course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  submissions Submission[] // Submissions for this assignment
+  submissions Submission[] // UNIFIED: tetap gunakan Submission
 
   @@map("assignments")
 }
 
-// Submission type enum
-// Requirements: 9.4 (Specify submission types: file upload, text submission, or both)
+// UNIFIED Submission model (gabungan dari keduanya)
+model Submission {
+  id           String           @id @default(uuid()) @db.Uuid
+  studentId    String           @db.Uuid
+  
+  // Discriminator fields (salah satu harus diisi)
+  assignmentId String?          @db.Uuid  // Nullable: diisi jika assignment submission
+  quizId       String?          @db.Uuid  // Nullable: diisi jika quiz submission
+  
+  // Common fields (untuk assignment dan quiz)
+  submittedAt  DateTime?
+  grade        Float?           // Grade (0-100)
+  feedback     String?          @db.Text
+  status       SubmissionStatus @default(NOT_SUBMITTED)
+  version      Int              @default(1) // Optimistic locking
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  
+  // Assignment-specific fields (nullable)
+  content      String?          @db.Text  // Text submission content
+  filePath     String?          // File submission path
+  fileName     String?          // Original file name
+  isLate       Boolean          @default(false)
+  gradedAt     DateTime?        // Grading timestamp
+  
+  // Quiz-specific fields (nullable)
+  answers      Json?            // Array of answers stored as JSON
+  startedAt    DateTime?        // Quiz start time
+  completedAt  DateTime?        // Quiz completion time
+
+  // Relations
+  student    User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  assignment Assignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  quiz       Quiz?       @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  // Unique constraints
+  @@unique([assignmentId, studentId]) // One submission per assignment per student
+  @@unique([quizId, studentId])       // One submission per quiz per student
+  
+  // Indexes
+  @@index([studentId])
+  @@index([assignmentId])
+  @@index([quizId])
+  @@index([status])
+  @@index([studentId, status])
+  
+  @@map("submissions")
+}
+
+// UNIFIED enum (gabungan dari keduanya)
+enum SubmissionStatus {
+  NOT_SUBMITTED  // Assignment: belum submit, Quiz: belum mulai
+  IN_PROGRESS    // Quiz only: sedang mengerjakan
+  SUBMITTED      // Sudah submit, belum graded
+  GRADED         // Sudah di-grade
+}
+
+// Enums lainnya tetap sama
 enum SubmissionType {
   FILE
   TEXT
   BOTH
 }
 
-// Submission model for student assignment submissions
-// Requirements: 17.1, 17.4, 17.5, 10.6, 10.8, 13.3, 13.4, 21.5
-model Submission {
-  id           String           @id @default(uuid()) @db.Uuid
-  assignmentId String           @db.Uuid
-  studentId    String           @db.Uuid
-  content      String?          @db.Text // Text submission content
-  filePath     String? // File submission path
-  fileName     String? // Original file name
-  grade        Float? // Grade (0-100)
-  feedback     String?          @db.Text // Teacher feedback
-  isLate       Boolean          @default(false) // Requirement 10.8: Late submission flag
-  status       SubmissionStatus @default(NOT_SUBMITTED)
-  version      Int              @default(0) // Requirement 21.5: Optimistic locking version
-  submittedAt  DateTime? // Requirement 10.6: Submission timestamp
-  gradedAt     DateTime? // Grading timestamp
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-
-  // Relations
-  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  student    User       @relation("StudentSubmissions", fields: [studentId], references: [id], onDelete: Cascade)
-
-  // Unique constraint: A student can only have one submission per assignment
-  @@unique([assignmentId, studentId])
-  @@map("submissions")
-}
-
-// Submission status enum
-// Requirements: 10.6 (Submission tracking), 13.7 (Mark submission as graded)
-enum SubmissionStatus {
-  NOT_SUBMITTED
-  SUBMITTED
-  GRADED
-}
