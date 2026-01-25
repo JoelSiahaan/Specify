@@ -8,3 +8,4 @@ export * from './UserDTO';
 export * from './CourseDTO';
 export * from './MaterialDTO';
 export * from './EnrollmentDTO';
+export * from './AssignmentDTO';

@@ -1,14 +1,10 @@
 {
   "enabled": true,
   "name": "Type Check Core Layers",
-  "description": "Automatically runs TypeScript type checking when domain or application layer files are saved to catch type errors early in the development process",
+  "description": "Manually trigger TypeScript type checking for domain and application layers when needed",
   "version": "1",
   "when": {
-    "type": "fileEdited",
-    "patterns": [
-      "backend/src/domain/**/*.ts",
-      "backend/src/application/**/*.ts"
-    ]
+    "type": "userTriggered"
   },
   "then": {
     "type": "askAgent",

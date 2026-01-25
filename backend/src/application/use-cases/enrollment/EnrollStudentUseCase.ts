@@ -18,9 +18,9 @@
  */
 
 import { inject, injectable } from 'tsyringe';
-import { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
 import { CreateEnrollmentDTO, EnrollmentDTO } from '../../dtos/EnrollmentDTO';
 import { EnrollmentMapper } from '../../mappers/EnrollmentMapper';
 import { 

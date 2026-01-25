@@ -69,3 +69,29 @@ export {
   type EnrollCourseRequest,
   type BulkUnenrollRequest
 } from './enrollmentSchemas';
+
+export {
+  SubmissionTypeSchema,
+  AssignmentTitleSchema,
+  AssignmentDescriptionSchema,
+  DueDateSchema,
+  AcceptedFileFormatsSchema,
+  CreateAssignmentRequestSchema,
+  UpdateAssignmentRequestSchema,
+  SubmissionContentSchema,
+  SubmitTextAssignmentRequestSchema,
+  SubmitFileAssignmentRequestSchema,
+  SubmitBothAssignmentRequestSchema,
+  SubmitAssignmentRequestSchema,
+  GradeSubmissionRequestSchema,
+  AssignmentQuerySchema,
+  type SubmissionType,
+  type CreateAssignmentRequest,
+  type UpdateAssignmentRequest,
+  type SubmitTextAssignmentRequest,
+  type SubmitFileAssignmentRequest,
+  type SubmitBothAssignmentRequest,
+  type SubmitAssignmentRequest,
+  type GradeSubmissionRequest,
+  type AssignmentQuery
+} from './assignmentSchemas';

@@ -206,16 +206,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ type, courseId, courseName }) 
             <span className="text-sm">Materials</span>
           </button>
 
-          {/* Assignments (Coming Soon) */}
-          <button
-            disabled
-            className="w-full flex items-center gap-2 px-3 py-2 text-gray-400 cursor-not-allowed rounded text-left"
-            title="Coming Soon"
+          {/* Assignments */}
+          <Link
+            to={user?.role === 'TEACHER' 
+              ? ROUTES.TEACHER_ASSIGNMENTS.replace(':courseId', courseId || '')
+              : ROUTES.STUDENT_ASSIGNMENTS.replace(':courseId', courseId || '')
+            }
+            className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors text-left"
           >
             <span>▶</span>
             <span className="text-sm">Assignments</span>
-            <span className="ml-auto text-xs">Soon</span>
-          </button>
+          </Link>
 
           {/* Quizzes (Coming Soon) */}
           <button

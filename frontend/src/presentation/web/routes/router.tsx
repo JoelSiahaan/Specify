@@ -14,7 +14,9 @@ import {
   RegisterPage, 
   ForbiddenPage,
   StudentDashboard,
-  TeacherDashboard
+  TeacherDashboard,
+  AssignmentsPage,
+  SubmissionsPage
 } from '../pages';
 import { CreateCourse, UpdateCourse, CourseDetails, ManageCourse, CourseList } from '../components/course';
 import { ROUTES } from '../constants';
@@ -96,6 +98,14 @@ export function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path={ROUTES.STUDENT_ASSIGNMENTS}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+              <AssignmentsPage />
+            </ProtectedRoute>
+          }
+        />
         
         {/* Teacher protected routes */}
         <Route
@@ -135,6 +145,22 @@ export function AppRouter() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
               <ManageCourse />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.TEACHER_ASSIGNMENTS}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
+              <AssignmentsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/courses/:courseId/assignments/:assignmentId/submissions"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
+              <SubmissionsPage />
             </ProtectedRoute>
           }
         />

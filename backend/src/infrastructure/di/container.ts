@@ -26,6 +26,10 @@ import { IFileStorage } from '../../domain/storage/IFileStorage';
 import { LocalFileStorage } from '../storage/LocalFileStorage';
 import { IEnrollmentRepository } from '../../domain/repositories/IEnrollmentRepository';
 import { PrismaEnrollmentRepository } from '../persistence/repositories/PrismaEnrollmentRepository';
+import { IAssignmentRepository } from '../../domain/repositories/IAssignmentRepository';
+import { PrismaAssignmentRepository } from '../persistence/repositories/PrismaAssignmentRepository';
+import { ISubmissionRepository } from '../../domain/repositories/ISubmissionRepository';
+import { PrismaSubmissionRepository } from '../persistence/repositories/PrismaSubmissionRepository';
 import { JWTService } from '../auth/JWTService';
 import { PasswordService } from '../auth/PasswordService';
 import { RegisterUserUseCase } from '../../application/use-cases/auth/RegisterUserUseCase';
@@ -48,6 +52,14 @@ import { DownloadMaterialUseCase } from '../../application/use-cases/material/Do
 import { SearchCoursesUseCase } from '../../application/use-cases/course/SearchCoursesUseCase';
 import { EnrollStudentUseCase } from '../../application/use-cases/enrollment/EnrollStudentUseCase';
 import { BulkUnenrollUseCase } from '../../application/use-cases/enrollment/BulkUnenrollUseCase';
+import { CreateAssignmentUseCase } from '../../application/use-cases/assignment/CreateAssignmentUseCase';
+import { UpdateAssignmentUseCase } from '../../application/use-cases/assignment/UpdateAssignmentUseCase';
+import { DeleteAssignmentUseCase } from '../../application/use-cases/assignment/DeleteAssignmentUseCase';
+import { ListAssignmentsUseCase } from '../../application/use-cases/assignment/ListAssignmentsUseCase';
+import { SubmitAssignmentUseCase } from '../../application/use-cases/assignment/SubmitAssignmentUseCase';
+import { GetSubmissionUseCase } from '../../application/use-cases/assignment/GetSubmissionUseCase';
+import { GetMySubmissionUseCase } from '../../application/use-cases/assignment/GetMySubmissionUseCase';
+import { ListSubmissionsUseCase } from '../../application/use-cases/assignment/ListSubmissionsUseCase';
 
 /**
  * Initialize the DI container with all application dependencies
@@ -82,6 +94,12 @@ export function configureContainer(): void {
   container.registerSingleton<IMaterialRepository>('IMaterialRepository', PrismaMaterialRepository);
   // Register Enrollment Repository as singleton (TSyringe will auto-inject PrismaClient)
   container.registerSingleton<IEnrollmentRepository>('IEnrollmentRepository', PrismaEnrollmentRepository);
+  
+  // Register Assignment Repository as singleton (TSyringe will auto-inject PrismaClient)
+  container.registerSingleton<IAssignmentRepository>('IAssignmentRepository', PrismaAssignmentRepository);
+  
+  // Register Submission Repository as singleton (TSyringe will auto-inject PrismaClient)
+  container.registerSingleton<ISubmissionRepository>('ISubmissionRepository', PrismaSubmissionRepository);
   
   // Repository implementations will be registered here as they are created
   // Example pattern (to be implemented in future tasks):
@@ -225,6 +243,62 @@ export function configureContainer(): void {
     useClass: BulkUnenrollUseCase
   });
   console.log('[DI] BulkUnenrollUseCase registered');
+  
+  // Register CreateAssignmentUseCase as transient
+  console.log('[DI] Registering CreateAssignmentUseCase');
+  container.register(CreateAssignmentUseCase, {
+    useClass: CreateAssignmentUseCase
+  });
+  console.log('[DI] CreateAssignmentUseCase registered');
+  
+  // Register UpdateAssignmentUseCase as transient
+  console.log('[DI] Registering UpdateAssignmentUseCase');
+  container.register(UpdateAssignmentUseCase, {
+    useClass: UpdateAssignmentUseCase
+  });
+  console.log('[DI] UpdateAssignmentUseCase registered');
+  
+  // Register DeleteAssignmentUseCase as transient
+  console.log('[DI] Registering DeleteAssignmentUseCase');
+  container.register(DeleteAssignmentUseCase, {
+    useClass: DeleteAssignmentUseCase
+  });
+  console.log('[DI] DeleteAssignmentUseCase registered');
+  
+  // Register ListAssignmentsUseCase as transient
+  console.log('[DI] Registering ListAssignmentsUseCase');
+  container.register(ListAssignmentsUseCase, {
+    useClass: ListAssignmentsUseCase
+  });
+  console.log('[DI] ListAssignmentsUseCase registered');
+  
+  // Register SubmitAssignmentUseCase as transient
+  console.log('[DI] Registering SubmitAssignmentUseCase');
+  container.register(SubmitAssignmentUseCase, {
+    useClass: SubmitAssignmentUseCase
+  });
+  console.log('[DI] SubmitAssignmentUseCase registered');
+  
+  // Register GetSubmissionUseCase as transient
+  console.log('[DI] Registering GetSubmissionUseCase');
+  container.register(GetSubmissionUseCase, {
+    useClass: GetSubmissionUseCase
+  });
+  console.log('[DI] GetSubmissionUseCase registered');
+  
+  // Register GetMySubmissionUseCase as transient
+  console.log('[DI] Registering GetMySubmissionUseCase');
+  container.register(GetMySubmissionUseCase, {
+    useClass: GetMySubmissionUseCase
+  });
+  console.log('[DI] GetMySubmissionUseCase registered');
+  
+  // Register ListSubmissionsUseCase as transient
+  console.log('[DI] Registering ListSubmissionsUseCase');
+  container.register(ListSubmissionsUseCase, {
+    useClass: ListSubmissionsUseCase
+  });
+  console.log('[DI] ListSubmissionsUseCase registered');
   
   // Example pattern (to be implemented in future tasks):
   // container.register(CreateCourseUseCase, {
