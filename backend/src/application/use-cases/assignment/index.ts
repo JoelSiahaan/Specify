@@ -12,3 +12,5 @@ export { SubmitAssignmentUseCase } from './SubmitAssignmentUseCase';
 export { GetSubmissionUseCase } from './GetSubmissionUseCase';
 export { GetMySubmissionUseCase } from './GetMySubmissionUseCase';
 export { ListSubmissionsUseCase } from './ListSubmissionsUseCase';
+export { GradeSubmissionUseCase } from './GradeSubmissionUseCase';
+export { UpdateGradeUseCase } from './UpdateGradeUseCase';

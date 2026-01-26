@@ -2019,7 +2019,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement grading use cases with optimistic locking
   - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 21.5, 13.6, 13.7, 13.8, 13.9, 13.10_
 
-- [ ] 8.1.1 Implement GradeSubmissionUseCase (Assignment)
+- [x] 8.1.1 Implement GradeSubmissionUseCase (Assignment)
   - Priority: HIGH
   - Dependencies: 6.1.3 (Submission entity), 6.2.2 (repositories), 3.3.3 (authorization policy)
   - Can be parallelized: Yes (with 8.1.3, 8.1.4, 8.1.5)
@@ -2033,7 +2033,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 21.5_
 
-- [ ]* 8.1.2 Write property test for grading with optimistic locking
+- [x]* 8.1.2 Write property test for grading with optimistic locking
   - Priority: MEDIUM
   - Dependencies: 8.1.1, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -2041,7 +2041,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - **Validates: Requirements 21.5**
   - For any submission, concurrent grading attempts are detected and rejected
 
-- [ ] 8.1.3 Implement UpdateGradeUseCase
+- [x] 8.1.3 Implement UpdateGradeUseCase
   - Priority: MEDIUM-HIGH
   - Dependencies: 6.1.3, 6.2.2, 3.3.3
   - Can be parallelized: Yes (with 8.1.1, 8.1.4, 8.1.5)
@@ -2053,7 +2053,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 13.6_
 
-- [ ] 8.1.4 Implement GradeQuizSubmissionUseCase
+- [x] 8.1.4 Implement GradeQuizSubmissionUseCase
   - Priority: HIGH
   - Dependencies: 7.1.4 (QuizSubmission entity), 7.2.2 (repositories), 3.3.3 (authorization policy)
   - Can be parallelized: Yes (with 8.1.1, 8.1.3, 8.1.5)
@@ -2065,7 +2065,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 13.7, 13.8, 13.9_
 
-- [ ] 8.1.5 Implement ListSubmissionsUseCase
+- [x] 8.1.5 Implement ListSubmissionsUseCase
   - Priority: HIGH
   - Dependencies: 6.2.2 (repositories), 3.3.3 (authorization policy)
   - Can be parallelized: Yes (with 8.1.1, 8.1.3, 8.1.4)
@@ -2080,14 +2080,14 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement API controllers for grading operations
   - _Requirements: 18.4, 20.2, 13.1, 13.6, 13.7, 13.10, 18.1, 18.2, 18.3, 21.5_
 
-- [ ] 8.2.1 Create Zod validation schemas for grading
+- [x] 8.2.1 Create Zod validation schemas for grading
   - Priority: HIGH
   - Dependencies: None
   - Can be parallelized: Yes (with 8.2.2)
   - Create schemas for grade submission requests
   - _Requirements: 18.4, 20.2_
 
-- [ ] 8.2.2 Implement GradingController
+- [x] 8.2.2 Implement GradingController
   - Priority: HIGH
   - Dependencies: 8.1.1, 8.1.3, 8.1.4, 8.1.5, 8.2.1, 2.4.2 (auth middleware), 2.4.3 (error handler), 2.4.4 (validation middleware)
   - Can be parallelized: No
@@ -2099,7 +2099,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - POST /api/quiz-submissions/:id/grade - GradeQuizSubmissionUseCase (teacher)
   - _Requirements: 13.1, 13.6, 13.7, 13.10_
 
-- [ ]* 8.2.3 Write API integration tests for grading
+- [x] 8.2.3 Write API integration tests for grading
+
   - Priority: MEDIUM
   - Dependencies: 8.2.2, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
