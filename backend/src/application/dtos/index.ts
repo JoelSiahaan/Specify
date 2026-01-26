@@ -11,3 +11,5 @@ export * from './EnrollmentDTO';
 export * from './QuizDTO';
 export * from './QuizSubmissionDTO';
 export * from './AssignmentDTO';
+export * from './ProgressDTO';
+export * from './ExportDTO';

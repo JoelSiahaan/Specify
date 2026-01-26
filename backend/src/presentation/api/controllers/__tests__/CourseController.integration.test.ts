@@ -69,6 +69,19 @@ describe('CourseController Integration Tests', () => {
     container.registerSingleton(JWTService);
     container.registerSingleton(CourseCodeGenerator);
     
+    // Register additional repositories needed for progress and export
+    const { PrismaEnrollmentRepository } = await import('../../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository');
+    const { PrismaAssignmentRepository } = await import('../../../../infrastructure/persistence/repositories/PrismaAssignmentRepository');
+    const { PrismaAssignmentSubmissionRepository } = await import('../../../../infrastructure/persistence/repositories/PrismaAssignmentSubmissionRepository');
+    const { PrismaQuizRepository } = await import('../../../../infrastructure/persistence/repositories/PrismaQuizRepository');
+    const { PrismaQuizSubmissionRepository } = await import('../../../../infrastructure/persistence/repositories/PrismaQuizSubmissionRepository');
+    
+    container.registerSingleton('IEnrollmentRepository', PrismaEnrollmentRepository);
+    container.registerSingleton('IAssignmentRepository', PrismaAssignmentRepository);
+    container.registerSingleton('IAssignmentSubmissionRepository', PrismaAssignmentSubmissionRepository);
+    container.registerSingleton('IQuizRepository', PrismaQuizRepository);
+    container.registerSingleton('IQuizSubmissionRepository', PrismaQuizSubmissionRepository);
+    
     // Register authorization policy
     const { AuthorizationPolicy } = await import('../../../../application/policies/AuthorizationPolicy');
     container.registerSingleton('IAuthorizationPolicy', AuthorizationPolicy);
@@ -1047,6 +1060,540 @@ describe('CourseController Integration Tests', () => {
         // Act
         const response = await request(app)
           .delete(`/api/courses/${archivedCourseId}`);
+
+        // Assert
+        assertAuthenticationError(response);
+      });
+    });
+  });
+
+  describe('GET /api/courses/:id/progress', () => {
+    let courseId: string;
+    let assignmentId: string;
+    let quizId: string;
+    let otherTeacherId: string;
+    let otherTeacherToken: string;
+
+    beforeEach(async () => {
+      // Create test course
+      const course = await prisma.course.create({
+        data: {
+          name: 'Progress Test Course',
+          description: 'Course for testing progress',
+          courseCode: 'PROG123',
+          status: 'ACTIVE',
+          teacherId: teacherId
+        }
+      });
+      courseId = course.id;
+
+      // Enroll student in course
+      await prisma.enrollment.create({
+        data: {
+          studentId: studentId,
+          courseId: courseId
+        }
+      });
+
+      // Create assignment
+      const assignment = await prisma.assignment.create({
+        data: {
+          title: 'Test Assignment',
+          description: 'Test description',
+          courseId: courseId,
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+          submissionType: 'TEXT'
+        }
+      });
+      assignmentId = assignment.id;
+
+      // Create quiz
+      const quiz = await prisma.quiz.create({
+        data: {
+          title: 'Test Quiz',
+          description: 'Test quiz description',
+          courseId: courseId,
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+          timeLimit: 60,
+          questions: [
+            {
+              type: 'MCQ',
+              questionText: 'What is 2+2?',
+              options: ['3', '4', '5'],
+              correctAnswer: 1
+            }
+          ]
+        }
+      });
+      quizId = quiz.id;
+
+      // Create another teacher
+      const passwordService = container.resolve(PasswordService);
+      const hashedPassword = await passwordService.hash('password123');
+      const otherTeacher = await prisma.user.create({
+        data: {
+          email: 'other-teacher-progress@test.com',
+          name: 'Other Teacher Progress',
+          role: 'TEACHER',
+          passwordHash: hashedPassword
+        }
+      });
+      otherTeacherId = otherTeacher.id;
+      otherTeacherToken = generateTestToken({
+        userId: otherTeacherId,
+        email: 'other-teacher-progress@test.com',
+        role: 'TEACHER'
+      });
+    });
+
+    describe('Success Scenarios', () => {
+      it('should get student progress for enrolled course', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/progress`)
+          .set('Cookie', [`access_token=${studentToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        expect(response.body).toHaveProperty('courseId');
+        expect(response.body.courseId).toBe(courseId);
+        expect(response.body).toHaveProperty('courseName');
+        expect(response.body).toHaveProperty('assignments');
+        expect(response.body).toHaveProperty('quizzes');
+        expect(response.body).toHaveProperty('averageGrade');
+        expect(Array.isArray(response.body.assignments)).toBe(true);
+        expect(Array.isArray(response.body.quizzes)).toBe(true);
+      });
+
+      it('should include assignment details in progress', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/progress`)
+          .set('Cookie', [`access_token=${studentToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        expect(response.body.assignments.length).toBeGreaterThan(0);
+        const assignment = response.body.assignments[0];
+        expect(assignment).toHaveProperty('id');
+        expect(assignment).toHaveProperty('title');
+        expect(assignment).toHaveProperty('dueDate');
+        expect(assignment).toHaveProperty('status');
+      });
+
+      it('should include quiz details in progress', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/progress`)
+          .set('Cookie', [`access_token=${studentToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        expect(response.body.quizzes.length).toBeGreaterThan(0);
+        const quiz = response.body.quizzes[0];
+        expect(quiz).toHaveProperty('id');
+        expect(quiz).toHaveProperty('title');
+        expect(quiz).toHaveProperty('dueDate');
+        expect(quiz).toHaveProperty('status');
+      });
+
+      it('should show null average grade when no items are graded', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/progress`)
+          .set('Cookie', [`access_token=${studentToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        expect(response.body.averageGrade).toBeNull();
+      });
+
+      it('should calculate average grade when items are graded', async () => {
+        // Arrange - Create submission and grade it
+        const submission = await prisma.assignmentSubmission.create({
+          data: {
+            assignmentId: assignmentId,
+            studentId: studentId,
+            submittedAt: new Date(),
+            textContent: 'Test submission',
+            status: 'GRADED',
+            grade: 85
+          }
+        });
+
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/progress`)
+          .set('Cookie', [`access_token=${studentToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        expect(response.body.averageGrade).toBe(85);
+      });
+    });
+
+    describe('Authorization Errors', () => {
+      it('should return 403 when student is not enrolled', async () => {
+        // Arrange - Create another student not enrolled
+        const passwordService = container.resolve(PasswordService);
+        const hashedPassword = await passwordService.hash('password123');
+        const otherStudent = await prisma.user.create({
+          data: {
+            email: 'other-student@test.com',
+            name: 'Other Student',
+            role: 'STUDENT',
+            passwordHash: hashedPassword
+          }
+        });
+        const otherStudentToken = generateTestToken({
+          userId: otherStudent.id,
+          email: 'other-student@test.com',
+          role: 'STUDENT'
+        });
+
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/progress`)
+          .set('Cookie', [`access_token=${otherStudentToken}`]);
+
+        // Assert
+        assertAuthorizationError(response);
+        expect(response.body.code).toBe('NOT_ENROLLED');
+      });
+
+      it('should return 403 when teacher is not the course owner', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/progress`)
+          .set('Cookie', [`access_token=${otherTeacherToken}`]);
+
+        // Assert
+        assertAuthorizationError(response);
+        expect(response.body.code).toBe('NOT_OWNER');
+      });
+    });
+
+    describe('Not Found Errors', () => {
+      it('should return 404 when course does not exist', async () => {
+        // Arrange
+        const nonExistentId = '00000000-0000-0000-0000-000000000000';
+
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${nonExistentId}/progress`)
+          .set('Cookie', [`access_token=${studentToken}`]);
+
+        // Assert
+        assertNotFoundError(response);
+      });
+    });
+
+    describe('Authentication Errors', () => {
+      it('should return 401 when access token is missing', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/progress`);
+
+        // Assert
+        assertAuthenticationError(response);
+      });
+
+      it('should return 401 when access token is invalid', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/progress`)
+          .set('Cookie', ['access_token=invalid_token']);
+
+        // Assert
+        assertAuthenticationError(response);
+      });
+    });
+  });
+
+  describe('GET /api/courses/:id/grades/export', () => {
+    let courseId: string;
+    let assignmentId: string;
+    let quizId: string;
+    let otherTeacherId: string;
+    let otherTeacherToken: string;
+
+    beforeEach(async () => {
+      // Create test course
+      const course = await prisma.course.create({
+        data: {
+          name: 'Export Test Course',
+          description: 'Course for testing export',
+          courseCode: 'EXPORT123',
+          status: 'ACTIVE',
+          teacherId: teacherId
+        }
+      });
+      courseId = course.id;
+
+      // Enroll student in course
+      await prisma.enrollment.create({
+        data: {
+          studentId: studentId,
+          courseId: courseId
+        }
+      });
+
+      // Create assignment
+      const assignment = await prisma.assignment.create({
+        data: {
+          title: 'Export Test Assignment',
+          description: 'Test description',
+          courseId: courseId,
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+          submissionType: 'TEXT'
+        }
+      });
+      assignmentId = assignment.id;
+
+      // Create quiz
+      const quiz = await prisma.quiz.create({
+        data: {
+          title: 'Export Test Quiz',
+          description: 'Test quiz description',
+          courseId: courseId,
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+          timeLimit: 60,
+          questions: [
+            {
+              type: 'MCQ',
+              questionText: 'What is 2+2?',
+              options: ['3', '4', '5'],
+              correctAnswer: 1
+            }
+          ]
+        }
+      });
+      quizId = quiz.id;
+
+      // Create another teacher
+      const passwordService = container.resolve(PasswordService);
+      const hashedPassword = await passwordService.hash('password123');
+      const otherTeacher = await prisma.user.create({
+        data: {
+          email: 'other-teacher-export@test.com',
+          name: 'Other Teacher Export',
+          role: 'TEACHER',
+          passwordHash: hashedPassword
+        }
+      });
+      otherTeacherId = otherTeacher.id;
+      otherTeacherToken = generateTestToken({
+        userId: otherTeacherId,
+        email: 'other-teacher-export@test.com',
+        role: 'TEACHER'
+      });
+    });
+
+    describe('Success Scenarios', () => {
+      it('should export grades as CSV with correct headers', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/grades/export`)
+          .set('Cookie', [`access_token=${teacherToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        expect(response.headers['content-type']).toBe('text/csv; charset=utf-8');
+        expect(response.headers['content-disposition']).toContain('attachment');
+        expect(response.headers['content-disposition']).toContain('grades-');
+        expect(response.headers['content-disposition']).toContain('.csv');
+        expect(typeof response.text).toBe('string');
+        expect(response.text).toContain('Student Name');
+        expect(response.text).toContain('Student Email');
+        expect(response.text).toContain('Item Type');
+        expect(response.text).toContain('Item Name');
+        expect(response.text).toContain('Grade');
+      });
+
+      it('should include student information in CSV', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/grades/export`)
+          .set('Cookie', [`access_token=${teacherToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        expect(response.text).toContain('Test Student');
+        expect(response.text).toContain('student@test.com');
+      });
+
+      it('should include assignment information in CSV', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/grades/export`)
+          .set('Cookie', [`access_token=${teacherToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        expect(response.text).toContain('Export Test Assignment');
+        expect(response.text).toContain('Assignment');
+      });
+
+      it('should include quiz information in CSV', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/grades/export`)
+          .set('Cookie', [`access_token=${teacherToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        expect(response.text).toContain('Export Test Quiz');
+        expect(response.text).toContain('Quiz');
+      });
+
+      it('should show "Not Submitted" for unsubmitted items', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/grades/export`)
+          .set('Cookie', [`access_token=${teacherToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        expect(response.text).toContain('Not Submitted');
+      });
+
+      it('should show "Pending" for submitted but ungraded items', async () => {
+        // Arrange - Create ungraded submission
+        await prisma.assignmentSubmission.create({
+          data: {
+            assignmentId: assignmentId,
+            studentId: studentId,
+            submittedAt: new Date(),
+            textContent: 'Test submission',
+            status: 'SUBMITTED'
+          }
+        });
+
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/grades/export`)
+          .set('Cookie', [`access_token=${teacherToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        expect(response.text).toContain('Pending');
+      });
+
+      it('should show grade for graded items', async () => {
+        // Arrange - Create graded submission
+        await prisma.assignmentSubmission.create({
+          data: {
+            assignmentId: assignmentId,
+            studentId: studentId,
+            submittedAt: new Date(),
+            textContent: 'Test submission',
+            status: 'GRADED',
+            grade: 85
+          }
+        });
+
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/grades/export`)
+          .set('Cookie', [`access_token=${teacherToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        expect(response.text).toContain('85');
+      });
+
+      it('should include student summary with average grade', async () => {
+        // Arrange - Create graded submission
+        await prisma.assignmentSubmission.create({
+          data: {
+            assignmentId: assignmentId,
+            studentId: studentId,
+            submittedAt: new Date(),
+            textContent: 'Test submission',
+            status: 'GRADED',
+            grade: 90
+          }
+        });
+
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/grades/export`)
+          .set('Cookie', [`access_token=${teacherToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        expect(response.text).toContain('Average');
+        expect(response.text).toContain('90');
+      });
+
+      it('should generate filename with course name and date', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/grades/export`)
+          .set('Cookie', [`access_token=${teacherToken}`]);
+
+        // Assert
+        assertSuccessResponse(response, 200);
+        const disposition = response.headers['content-disposition'];
+        expect(disposition).toContain('grades-Export-Test-Course-');
+        expect(disposition).toMatch(/\d{4}-\d{2}-\d{2}/); // Date format YYYY-MM-DD
+      });
+    });
+
+    describe('Authorization Errors', () => {
+      it('should return 403 when user is not the course owner', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/grades/export`)
+          .set('Cookie', [`access_token=${otherTeacherToken}`]);
+
+        // Assert
+        assertAuthorizationError(response);
+        expect(response.body.code).toBe('NOT_OWNER');
+      });
+
+      it('should return 403 when user is a student', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/grades/export`)
+          .set('Cookie', [`access_token=${studentToken}`]);
+
+        // Assert
+        assertAuthorizationError(response);
+        expect(response.body.code).toBe('FORBIDDEN_ROLE');
+      });
+    });
+
+    describe('Not Found Errors', () => {
+      it('should return 404 when course does not exist', async () => {
+        // Arrange
+        const nonExistentId = '00000000-0000-0000-0000-000000000000';
+
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${nonExistentId}/grades/export`)
+          .set('Cookie', [`access_token=${teacherToken}`]);
+
+        // Assert
+        assertNotFoundError(response);
+      });
+    });
+
+    describe('Authentication Errors', () => {
+      it('should return 401 when access token is missing', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/grades/export`);
+
+        // Assert
+        assertAuthenticationError(response);
+      });
+
+      it('should return 401 when access token is invalid', async () => {
+        // Act
+        const response = await request(app)
+          .get(`/api/courses/${courseId}/grades/export`)
+          .set('Cookie', ['access_token=invalid_token']);
 
         // Assert
         assertAuthenticationError(response);

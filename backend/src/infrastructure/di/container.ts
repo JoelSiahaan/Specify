@@ -74,6 +74,8 @@ import { GetMySubmissionUseCase } from '../../application/use-cases/assignment/G
 import { ListSubmissionsUseCase } from '../../application/use-cases/assignment/ListSubmissionsUseCase';
 import { GradeSubmissionUseCase } from '../../application/use-cases/assignment/GradeSubmissionUseCase';
 import { UpdateGradeUseCase } from '../../application/use-cases/assignment/UpdateGradeUseCase';
+import { GetStudentProgressUseCase } from '../../application/use-cases/progress/GetStudentProgressUseCase';
+import { ExportGradesUseCase } from '../../application/use-cases/progress/ExportGradesUseCase';
 
 /**
  * Initialize the DI container with all application dependencies
@@ -387,6 +389,20 @@ export function configureContainer(): void {
     useClass: UpdateGradeUseCase
   });
   console.log('[DI] UpdateGradeUseCase registered');
+  
+  // Register GetStudentProgressUseCase as transient
+  console.log('[DI] Registering GetStudentProgressUseCase');
+  container.register(GetStudentProgressUseCase, {
+    useClass: GetStudentProgressUseCase
+  });
+  console.log('[DI] GetStudentProgressUseCase registered');
+  
+  // Register ExportGradesUseCase as transient
+  console.log('[DI] Registering ExportGradesUseCase');
+  container.register(ExportGradesUseCase, {
+    useClass: ExportGradesUseCase
+  });
+  console.log('[DI] ExportGradesUseCase registered');
   
   // Example pattern (to be implemented in future tasks):
   // container.register(CreateCourseUseCase, {
