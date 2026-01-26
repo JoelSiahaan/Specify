@@ -28,6 +28,13 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
   // Filter submissions based on selected status
   const filteredSubmissions = submissions.filter((submission) => {
     if (filterStatus === 'all') return true;
+    
+    // "Submitted" tab should include both SUBMITTED and GRADED
+    // because graded submissions are also submitted
+    if (filterStatus === SubmissionStatus.SUBMITTED) {
+      return submission.status === 'SUBMITTED' || submission.status === 'GRADED';
+    }
+    
     return submission.status === filterStatus;
   });
 
@@ -35,13 +42,15 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
   const statusCounts = {
     all: submissions.length,
     [SubmissionStatus.NOT_SUBMITTED]: submissions.filter(
-      (s) => s.status === SubmissionStatus.NOT_SUBMITTED
+      (s) => s.status === 'NOT_SUBMITTED'
     ).length,
+    // "Submitted" count includes both SUBMITTED and GRADED
+    // because graded submissions are also submitted
     [SubmissionStatus.SUBMITTED]: submissions.filter(
-      (s) => s.status === SubmissionStatus.SUBMITTED
+      (s) => s.status === 'SUBMITTED' || s.status === 'GRADED'
     ).length,
     [SubmissionStatus.GRADED]: submissions.filter(
-      (s) => s.status === SubmissionStatus.GRADED
+      (s) => s.status === 'GRADED'
     ).length,
   };
 
@@ -197,7 +206,7 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
                       onClick={() => onGradeClick?.(submission.id)}
                       className="py-2 px-4 bg-primary hover:bg-primary-dark text-white font-medium rounded transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     >
-                      {submission.status === SubmissionStatus.GRADED ? 'View Grade' : 'Grade'}
+                      {submission.status === SubmissionStatus.GRADED ? 'Edit Grade' : 'Grade'}
                     </button>
                   )}
                 </div>

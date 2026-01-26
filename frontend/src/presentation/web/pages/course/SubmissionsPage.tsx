@@ -106,13 +106,19 @@ export const SubmissionsPage: React.FC = () => {
 
   /**
    * Filter submissions by status
+   * "Submitted" filter includes both SUBMITTED and GRADED
+   * because graded submissions are also submitted
    */
   const filteredSubmissions = filterStatus === 'ALL' 
     ? submissions 
-    : submissions.filter(sub => sub.status === filterStatus);
+    : filterStatus === SubmissionStatus.SUBMITTED
+      ? submissions.filter(sub => sub.status === SubmissionStatus.SUBMITTED || sub.status === SubmissionStatus.GRADED)
+      : submissions.filter(sub => sub.status === filterStatus);
 
   /**
    * Get submission counts
+   * "Submitted" count includes both SUBMITTED and GRADED
+   * because graded submissions are also submitted
    */
   const submittedCount = submissions.filter(s => s.status === SubmissionStatus.SUBMITTED || s.status === SubmissionStatus.GRADED).length;
   const gradedCount = submissions.filter(s => s.status === SubmissionStatus.GRADED).length;
@@ -207,7 +213,7 @@ export const SubmissionsPage: React.FC = () => {
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              Submitted ({submissions.filter(s => s.status === SubmissionStatus.SUBMITTED).length})
+              Submitted ({submittedCount})
             </button>
             <button
               onClick={() => setFilterStatus(SubmissionStatus.GRADED)}

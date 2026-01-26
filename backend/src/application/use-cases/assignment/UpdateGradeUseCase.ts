@@ -64,6 +64,15 @@ export class UpdateGradeUseCase {
     // Validate teacher authorization (Requirement 13.5)
     this.validateTeacherAuthorization(user, course);
 
+    // Validate course is not archived (Requirement 5.11 - read-only access)
+    if (course.isArchived()) {
+      throw new ApplicationError(
+        'RESOURCE_ARCHIVED',
+        'Cannot edit grades in archived course. Archived courses are read-only.',
+        400
+      );
+    }
+
     // Validate submission is already graded (Requirement 13.5)
     if (!submission.isGraded()) {
       throw new ApplicationError(

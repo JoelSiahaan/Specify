@@ -96,13 +96,34 @@ export const GradingPage: React.FC = () => {
       const quizzesData = await quizService.listQuizzes(courseId);
       const quizzesList = Array.isArray(quizzesData) ? quizzesData : (quizzesData?.data || []);
       
-      // For now, set quiz stats to 0 (can be implemented later)
-      const quizzesWithStats = quizzesList.map(quiz => ({
-        ...quiz,
-        submittedCount: 0,
-        gradedCount: 0,
-        notSubmittedCount: 0
-      }));
+      // Fetch submission stats for each quiz
+      const quizzesWithStats = await Promise.all(
+        quizzesList.map(async (quiz) => {
+          try {
+            const submissions = await quizService.listQuizSubmissions(quiz.id);
+            const submissionsList = Array.isArray(submissions) ? submissions : (submissions?.data || []);
+            const submittedCount = submissionsList.filter(s => 
+              s.status === 'SUBMITTED' || s.status === 'GRADED'
+            ).length;
+            const gradedCount = submissionsList.filter(s => s.status === 'GRADED').length;
+            const notSubmittedCount = submissionsList.filter(s => s.status === 'NOT_STARTED').length;
+            
+            return {
+              ...quiz,
+              submittedCount,
+              gradedCount,
+              notSubmittedCount
+            };
+          } catch {
+            return {
+              ...quiz,
+              submittedCount: 0,
+              gradedCount: 0,
+              notSubmittedCount: 0
+            };
+          }
+        })
+      );
       
       setQuizzes(quizzesWithStats);
     } catch (err) {
@@ -261,44 +282,65 @@ export const GradingPage: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {quizzes.map((quiz) => (
-                  <div
-                    key={quiz.id}
-                    className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-start justify-between">
-                      {/* Left: Quiz info */}
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          {quiz.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-3">
-                          Due: {formatDueDate(quiz.dueDate)} • Time Limit: {quiz.timeLimit} minutes
-                        </p>
-                        
-                        {/* Statistics */}
-                        <div className="flex gap-6 text-sm">
-                          <div>
-                            <span className="text-gray-600">Questions: </span>
-                            <span className="font-semibold text-gray-900">
-                              {quiz.questions?.length || 0}
-                            </span>
+                {quizzes.map((quiz) => {
+                  const pendingCount = getPendingCount(quiz);
+                  
+                  return (
+                    <div
+                      key={quiz.id}
+                      className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between">
+                        {/* Left: Quiz info */}
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                            {quiz.title}
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-3">
+                            Due: {formatDueDate(quiz.dueDate)} • Time Limit: {quiz.timeLimit} minutes
+                          </p>
+                          
+                          {/* Statistics */}
+                          <div className="flex gap-6 text-sm">
+                            <div>
+                              <span className="text-gray-600">Submitted: </span>
+                              <span className="font-semibold text-gray-900">
+                                {quiz.submittedCount}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Graded: </span>
+                              <span className="font-semibold text-green-600">
+                                {quiz.gradedCount}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Pending: </span>
+                              <span className="font-semibold text-yellow-600">
+                                {pendingCount}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Right: Action button */}
-                      <div>
-                        <Button
-                          variant="primary"
-                          onClick={() => navigate(`/teacher/courses/${courseId}/quizzes/${quiz.id}/submissions`)}
-                        >
-                          View Submissions
-                        </Button>
+                        {/* Right: Action button */}
+                        <div>
+                          <Button
+                            variant="primary"
+                            onClick={() => navigate(`/teacher/courses/${courseId}/quizzes/${quiz.id}/submissions`)}
+                          >
+                            View Submissions
+                          </Button>
+                          {pendingCount > 0 && (
+                            <span className="inline-block mt-2 px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">
+                              {pendingCount} pending
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </>

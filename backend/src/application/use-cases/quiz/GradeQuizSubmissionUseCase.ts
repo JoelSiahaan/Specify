@@ -94,6 +94,15 @@ export class GradeQuizSubmissionUseCase {
     // Validate teacher authorization
     this.validateTeacherAuthorization(user, course);
 
+    // Validate course is not archived (Requirement 5.11 - read-only access)
+    if (course.isArchived()) {
+      throw new ApplicationError(
+        'RESOURCE_ARCHIVED',
+        'Cannot grade submissions in archived course. Archived courses are read-only.',
+        400
+      );
+    }
+
     // Validate question points array
     this.validateQuestionPoints(dto.questionPoints, quiz);
 
