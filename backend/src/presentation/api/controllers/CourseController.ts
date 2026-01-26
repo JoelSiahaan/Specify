@@ -24,6 +24,8 @@ import { SearchCoursesUseCase } from '../../../application/use-cases/course/Sear
 import { EnrollStudentUseCase } from '../../../application/use-cases/enrollment/EnrollStudentUseCase';
 import { BulkUnenrollUseCase } from '../../../application/use-cases/enrollment/BulkUnenrollUseCase';
 import { ListCourseEnrollmentsUseCase } from '../../../application/use-cases/enrollment/ListCourseEnrollmentsUseCase';
+import { GetStudentProgressUseCase } from '../../../application/use-cases/progress/GetStudentProgressUseCase';
+import { ExportGradesUseCase } from '../../../application/use-cases/progress/ExportGradesUseCase';
 import { CourseStatus } from '../../../domain/entities/Course';
 import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware';
 
@@ -643,6 +645,155 @@ export class CourseController {
 
       // Return enrollments wrapped in data object (200 OK)
       res.status(200).json({ data: enrollments });
+    } catch (error) {
+      // Pass error to error handler middleware
+      next(error);
+    }
+  }
+
+  /**
+   * Get student progress in a course
+   * 
+   * GET /api/courses/:id/progress
+   * 
+   * Requires authentication (AuthenticationMiddleware)
+   * Requires student enrollment (validated by use case)
+   * 
+   * Path parameters:
+   * - id: Course ID (UUID)
+   * 
+   * Response (200 OK):
+   * - StudentProgressDTO with assignments, quizzes, and average grade
+   * 
+   * Business Rules:
+   * - Display all assignments and quizzes with status
+   * - Show "Not Submitted" for items without submissions
+   * - Show "Submitted" for items awaiting grading
+   * - Show "Graded" with grade and feedback
+   * - Highlight overdue items not submitted
+   * - Indicate late submissions
+   * - Calculate and display average grade
+   * 
+   * Errors:
+   * - 401: Authentication required (handled by middleware)
+   * - 403: Student not enrolled in course
+   * - 404: Course not found
+   * - 500: Internal server error
+   * 
+   * Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 16.6, 16.7, 16.8
+   */
+  async getProgress(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // User is attached to request by AuthenticationMiddleware
+      const authenticatedReq = req as AuthenticatedRequest;
+      
+      if (!authenticatedReq.user) {
+        res.status(401).json({
+          code: 'AUTH_REQUIRED',
+          message: 'Authentication required'
+        });
+        return;
+      }
+
+      const courseId = req.params.id as string;
+      
+      if (!courseId) {
+        res.status(400).json({
+          code: 'VALIDATION_FAILED',
+          message: 'Course ID is required'
+        });
+        return;
+      }
+
+      // Execute use case
+      const getProgressUseCase = container.resolve(GetStudentProgressUseCase);
+      const progress = await getProgressUseCase.execute(
+        courseId,
+        authenticatedReq.user.userId
+      );
+
+      // Return progress (200 OK)
+      res.status(200).json(progress);
+    } catch (error) {
+      // Pass error to error handler middleware
+      next(error);
+    }
+  }
+
+  /**
+   * Export grades for a course to CSV
+   * 
+   * GET /api/courses/:id/grades/export
+   * 
+   * Requires authentication (AuthenticationMiddleware)
+   * Requires teacher ownership (validated by use case)
+   * 
+   * Path parameters:
+   * - id: Course ID (UUID)
+   * 
+   * Response (200 OK):
+   * - Content-Type: text/csv
+   * - Content-Disposition: attachment; filename="grades-{courseName}-{date}.csv"
+   * - CSV file with all student grades
+   * 
+   * CSV Format:
+   * - Student Name, Student Email, Item Type, Item Name, Grade, Submission Date, Status
+   * - Includes both graded and ungraded items
+   * - Shows "Not Submitted" or "Pending" for ungraded items
+   * - Includes student summaries with average grades
+   * 
+   * Errors:
+   * - 401: Authentication required (handled by middleware)
+   * - 403: Not the course owner
+   * - 404: Course not found
+   * - 500: Internal server error
+   * 
+   * Requirements: 15.1, 15.2, 15.3, 15.4, 15.5
+   */
+  async exportGrades(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // User is attached to request by AuthenticationMiddleware
+      const authenticatedReq = req as AuthenticatedRequest;
+      
+      if (!authenticatedReq.user) {
+        res.status(401).json({
+          code: 'AUTH_REQUIRED',
+          message: 'Authentication required'
+        });
+        return;
+      }
+
+      const courseId = req.params.id as string;
+      
+      if (!courseId) {
+        res.status(400).json({
+          code: 'VALIDATION_FAILED',
+          message: 'Course ID is required'
+        });
+        return;
+      }
+
+      // Execute use case
+      const exportGradesUseCase = container.resolve(ExportGradesUseCase);
+      const exportData = await exportGradesUseCase.execute(
+        courseId,
+        authenticatedReq.user.userId
+      );
+
+      // Convert to CSV
+      const csv = exportGradesUseCase.toCSV(exportData);
+
+      // Generate filename with course name and date
+      const courseName = exportData.courseName.replace(/[^a-zA-Z0-9]/g, '-');
+      const date = exportData.exportDate.toISOString().split('T')[0];
+      const filename = `grades-${courseName}-${date}.csv`;
+
+      // Set headers for CSV download
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+      // Return CSV (200 OK)
+      res.status(200).send(csv);
     } catch (error) {
       // Pass error to error handler middleware
       next(error);

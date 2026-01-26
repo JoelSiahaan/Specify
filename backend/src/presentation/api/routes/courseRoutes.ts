@@ -181,6 +181,49 @@ router.get(
 );
 
 /**
+ * GET /api/courses/:id/progress
+ * 
+ * Get student progress in a course
+ * 
+ * Protected endpoint (authentication required)
+ * Requires student enrollment (validated by use case)
+ * Returns all assignments and quizzes with status, grades, and average
+ * 
+ * Business Rules:
+ * - Display all assignments and quizzes with status
+ * - Show "Not Submitted" for items without submissions
+ * - Show "Submitted" for items awaiting grading
+ * - Show "Graded" with grade and feedback
+ * - Highlight overdue items not submitted
+ * - Indicate late submissions
+ * - Calculate and display average grade
+ */
+router.get(
+  '/:id/progress',
+  courseController.getProgress.bind(courseController)
+);
+
+/**
+ * GET /api/courses/:id/grades/export
+ * 
+ * Export grades for a course to CSV
+ * 
+ * Protected endpoint (authentication required)
+ * Requires teacher ownership (validated by use case)
+ * Returns CSV file with all student grades
+ * 
+ * Business Rules:
+ * - Include student name, email, assignment/quiz name, grade, submission date
+ * - Include both graded and ungraded items
+ * - Show "Not Submitted" or "Pending" for ungraded items
+ * - Include student summaries with average grades
+ */
+router.get(
+  '/:id/grades/export',
+  courseController.exportGrades.bind(courseController)
+);
+
+/**
  * DELETE /api/courses/:id
  * 
  * Delete course

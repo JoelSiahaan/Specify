@@ -2206,11 +2206,11 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 9.1 Application Layer - Progress & Export Use Cases
 
-- [ ] 9.1 Application Layer - Progress & Export Use Cases
+- [x] 9.1 Application Layer - Progress & Export Use Cases
   - Implement progress tracking and grade export functionality
   - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 15.1, 15.2, 15.3, 15.4, 15.5_
 
-- [ ] 9.1.1 Implement GetStudentProgressUseCase
+- [x] 9.1.1 Implement GetStudentProgressUseCase
   - Priority: HIGH
   - Dependencies: 6.2.2 (assignment repositories), 7.2.2 (quiz repositories), 3.3.3 (authorization policy)
   - Can be parallelized: Yes (with 9.1.2)
@@ -2220,7 +2220,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Register in DI container as transient
   - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5_
 
-- [ ] 9.1.2 Implement ExportGradesUseCase
+- [x] 9.1.2 Implement ExportGradesUseCase
   - Priority: HIGH
   - Dependencies: 6.2.2 (assignment repositories), 7.2.2 (quiz repositories), 3.3.3 (authorization policy)
   - Can be parallelized: Yes (with 9.1.1)
@@ -2234,11 +2234,11 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 9.2 Presentation Layer - Progress & Export API
 
-- [ ] 9.2 Presentation Layer - Progress & Export API
+- [x] 9.2 Presentation Layer - Progress & Export API
   - Implement API endpoints for progress and export
   - _Requirements: 14.1, 15.1, 18.1, 18.2, 18.3_
 
-- [ ] 9.2.1 Implement progress and export endpoints
+- [x] 9.2.1 Implement progress and export endpoints
   - Priority: HIGH
   - Dependencies: 9.1.1, 9.1.2, 2.4.2 (auth middleware), 2.4.3 (error handler)
   - Can be parallelized: No
@@ -2246,7 +2246,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - GET /api/courses/:id/grades/export - ExportGradesUseCase (teacher)
   - _Requirements: 14.1, 15.1_
 
-- [ ]* 9.2.2 Write API integration tests for progress and export
+- [ ] 9.2.2 Write API integration tests for progress and export
+
   - Priority: MEDIUM
   - Dependencies: 9.2.1, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)
@@ -2258,11 +2259,11 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 #### 9.3 Presentation Layer - Progress & Export Frontend
 
-- [ ] 9.3 Presentation Layer - Progress & Export Frontend
+- [x] 9.3 Presentation Layer - Progress & Export Frontend
   - Implement React components for progress tracking and export
   - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 15.1, 19.1, 19.2, 19.5_
 
-- [ ] 9.3.1 Implement StudentProgress component
+- [x] 9.3.1 Implement StudentProgress component
   - Priority: MEDIUM-HIGH
   - Dependencies: 9.2.1 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 9.3.2)
@@ -2272,7 +2273,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Display course average
   - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5_
 
-- [ ] 9.3.2 Implement ExportGrades button (teacher)
+- [x] 9.3.2 Implement ExportGrades button (teacher)
   - Priority: MEDIUM
   - Dependencies: 9.2.1 (API), 3.5.4 (CourseDetails component)
   - Can be parallelized: Yes (with 9.3.1)

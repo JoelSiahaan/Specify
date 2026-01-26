@@ -193,13 +193,39 @@ export const CourseDetails: React.FC = () => {
                 </span>
               </div>
             </div>
-            {isTeacher && course.status === 'ACTIVE' && (
-              <Button
-                variant="secondary"
-                onClick={() => setIsEditing(true)}
-              >
-                Edit Course
-              </Button>
+            {isTeacher && (
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={async () => {
+                    try {
+                      const { exportGrades } = await import('../../services/gradingService');
+                      const blob = await exportGrades(course.id);
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${course.courseCode}_grades_${new Date().toISOString().split('T')[0]}.csv`;
+                      document.body.appendChild(a);
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                      document.body.removeChild(a);
+                    } catch (err) {
+                      console.error('Failed to export grades:', err);
+                      alert('Failed to export grades. Please try again.');
+                    }
+                  }}
+                >
+                  📊 Export Grades
+                </Button>
+                {course.status === 'ACTIVE' && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    Edit Course
+                  </Button>
+                )}
+              </div>
             )}
           </div>
 
