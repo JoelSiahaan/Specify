@@ -77,6 +77,14 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
       
       // Load submission
       const submissionData = await getQuizSubmission(submissionId);
+      
+      // Validate submission data
+      if (!submissionData.answers || !Array.isArray(submissionData.answers)) {
+        console.warn('Submission has no answers array:', submissionData);
+        // Initialize empty answers array if missing
+        submissionData.answers = [];
+      }
+      
       setSubmission(submissionData);
       
       // Load quiz to get questions
@@ -161,13 +169,11 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
       setError(null);
       setSuccessMessage(null);
       
-      // Calculate total grade from question points
-      const grade = questionGrades.reduce((sum, qg) => {
-        return sum + parseFloat(qg.points);
-      }, 0);
+      // Convert question grades to array of points (backend expects questionPoints array)
+      const questionPoints = questionGrades.map(qg => parseFloat(qg.points));
       
       const gradeData = {
-        grade: Math.round(grade * 100) / 100, // Round to 2 decimal places
+        questionPoints,
         feedback: feedback.trim() || undefined,
       };
       
@@ -196,7 +202,11 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
   };
 
   const getStudentAnswer = (questionIndex: number): Answer | undefined => {
-    return submission?.answers.find(a => a.questionIndex === questionIndex);
+    // Defensive check: ensure submission and answers exist
+    if (!submission || !submission.answers || !Array.isArray(submission.answers)) {
+      return undefined;
+    }
+    return submission.answers.find(a => a.questionIndex === questionIndex);
   };
 
   if (loading) {

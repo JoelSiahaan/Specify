@@ -169,7 +169,7 @@ export interface AutoSaveQuizRequest {
  * Grade Quiz Submission Request interface
  */
 export interface GradeQuizSubmissionRequest {
-  grade: number;             // 0-100
+  questionPoints: number[];  // Array of points per question (0-100 each)
   feedback?: string;
 }
 

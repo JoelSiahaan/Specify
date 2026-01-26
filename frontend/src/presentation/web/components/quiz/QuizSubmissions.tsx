@@ -14,6 +14,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Spinner, ErrorMessage } from '../shared';
 import { CourseLayout, Breadcrumb } from '../layout';
+import { GradeQuizSubmission } from '../grading';
 import { quizService } from '../../services';
 import { ROUTES, buildRoute } from '../../constants';
 import { formatDueDate } from '../../utils/dateFormatter';
@@ -28,6 +29,8 @@ export const QuizSubmissions: React.FC = () => {
   const [submissions, setSubmissions] = useState<QuizSubmissionListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
+  const [showGradeModal, setShowGradeModal] = useState(false);
 
   // Determine dashboard route
   const dashboardRoute = ROUTES.TEACHER_DASHBOARD;
@@ -66,6 +69,31 @@ export const QuizSubmissions: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * Handle grade button click
+   */
+  const handleGradeClick = (submissionId: string) => {
+    setSelectedSubmissionId(submissionId);
+    setShowGradeModal(true);
+  };
+
+  /**
+   * Handle grade success
+   */
+  const handleGradeSuccess = () => {
+    setShowGradeModal(false);
+    setSelectedSubmissionId(null);
+    fetchQuizAndSubmissions(); // Refresh submissions
+  };
+
+  /**
+   * Handle grade cancel
+   */
+  const handleGradeCancel = () => {
+    setShowGradeModal(false);
+    setSelectedSubmissionId(null);
   };
 
   // Loading state
@@ -250,10 +278,7 @@ export const QuizSubmissions: React.FC = () => {
                             <Button
                               variant="primary"
                               size="sm"
-                              onClick={() => {
-                                // TODO: Navigate to grading page when implemented
-                                alert('Grading feature coming soon!');
-                              }}
+                              onClick={() => handleGradeClick(submission.id)}
                             >
                               {submission.status === 'GRADED' ? 'Edit Grade' : 'Grade'}
                             </Button>
@@ -275,6 +300,30 @@ export const QuizSubmissions: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Grade Quiz Submission Modal */}
+        {showGradeModal && selectedSubmissionId && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-semibold text-gray-900">Grade Quiz Submission</h2>
+                  <button
+                    onClick={handleGradeCancel}
+                    className="text-gray-400 hover:text-gray-600 text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+                <GradeQuizSubmission
+                  submissionId={selectedSubmissionId}
+                  onSuccess={handleGradeSuccess}
+                  onCancel={handleGradeCancel}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </CourseLayout>
   );
