@@ -237,16 +237,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ type, courseId, courseName }) 
             <span className="text-sm">Quizzes</span>
           </Link>
 
-          {/* Grades (Coming Soon) */}
-          <button
-            disabled
-            className="w-full flex items-center gap-2 px-3 py-2 text-gray-400 cursor-not-allowed rounded text-left"
-            title="Coming Soon"
+          {/* Grades */}
+          <Link
+            to={user?.role === 'TEACHER' 
+              ? ROUTES.TEACHER_GRADING.replace(':courseId', courseId || '')
+              : ROUTES.STUDENT_GRADES.replace(':courseId', courseId || '')
+            }
+            className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors text-left"
           >
             <span>▶</span>
             <span className="text-sm">Grades</span>
-            <span className="ml-auto text-xs">Soon</span>
-          </button>
+          </Link>
         </nav>
 
         {/* Back to Dashboard Button */}

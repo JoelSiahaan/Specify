@@ -216,6 +216,8 @@ export const SubmitAssignmentRequestSchema = z.discriminatedUnion('submissionTyp
  * 
  * Validates grading request body
  * Requirements: 13.3, 13.4, 13.6, 18.4, 20.2
+ * 
+ * Note: Grade can be decimal (e.g., 85.5) to allow precise grading
  */
 export const GradeSubmissionRequestSchema = z.object({
   grade: z
@@ -223,7 +225,6 @@ export const GradeSubmissionRequestSchema = z.object({
       required_error: 'Grade is required',
       invalid_type_error: 'Grade must be a number'
     })
-    .int('Grade must be an integer')
     .min(0, 'Grade must be between 0 and 100')
     .max(100, 'Grade must be between 0 and 100'),
   feedback: z
@@ -238,7 +239,7 @@ export const GradeSubmissionRequestSchema = z.object({
       invalid_type_error: 'Version must be a number'
     })
     .int('Version must be an integer')
-    .positive('Version must be positive')
+    .nonnegative('Version must be non-negative')
     .optional()
 });
 

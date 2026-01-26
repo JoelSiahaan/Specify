@@ -65,6 +65,7 @@ export interface AssignmentListDTO {
   isPastDue: boolean;
   submissionStatus?: AssignmentSubmissionStatus;  // For student view
   grade?: number;                        // For student view (if graded)
+  feedback?: string;                     // For student view (if graded)
   isLate?: boolean;                      // For student view (if submitted)
   createdAt: Date;
   updatedAt: Date;
@@ -78,7 +79,7 @@ export interface AssignmentSubmissionDTO {
   id: string;
   assignmentId: string;
   studentId: string;
-  content?: string;
+  textContent?: string;
   filePath?: string;
   fileName?: string;
   grade?: number;
@@ -122,7 +123,7 @@ export interface AssignmentSubmissionListDTO {
   studentId: string;
   studentName?: string;
   studentEmail?: string;
-  content?: string;
+  textContent?: string;
   filePath?: string;
   fileName?: string;
   grade?: number;

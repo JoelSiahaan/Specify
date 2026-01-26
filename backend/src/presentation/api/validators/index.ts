@@ -80,6 +80,7 @@ export {
   UpdateQuizRequestSchema,
   AutoSaveQuizRequestSchema,
   SubmitQuizRequestSchema,
+  GradeQuizSubmissionRequestSchema,
   type QuestionType,
   type MCQQuestion,
   type EssayQuestion,
@@ -88,7 +89,8 @@ export {
   type CreateQuizRequest,
   type UpdateQuizRequest,
   type AutoSaveQuizRequest,
-  type SubmitQuizRequest
+  type SubmitQuizRequest,
+  type GradeQuizSubmissionRequest
 } from './quizSchemas';
 
 export {

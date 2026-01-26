@@ -14,7 +14,9 @@ import {
   CreateQuizRequestSchema,
   UpdateQuizRequestSchema,
   AutoSaveQuizRequestSchema,
-  SubmitQuizRequestSchema
+  SubmitQuizRequestSchema,
+  QuestionGradeSchema,
+  GradeQuizSubmissionRequestSchema
 } from '../quizSchemas';
 
 describe('Quiz Validation Schemas', () => {
@@ -635,6 +637,286 @@ describe('Quiz Validation Schemas', () => {
       };
       const result = SubmitQuizRequestSchema.safeParse(request);
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('QuestionGradeSchema', () => {
+    const validQuestionGrade = {
+      questionIndex: 0,
+      points: 25,
+      feedback: 'Good answer!'
+    };
+
+    it('should accept valid question grade with feedback', () => {
+      const result = QuestionGradeSchema.safeParse(validQuestionGrade);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.questionIndex).toBe(0);
+        expect(result.data.points).toBe(25);
+        expect(result.data.feedback).toBe('Good answer!');
+      }
+    });
+
+    it('should accept valid question grade without feedback', () => {
+      const grade = { questionIndex: 0, points: 25 };
+      const result = QuestionGradeSchema.safeParse(grade);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.questionIndex).toBe(0);
+        expect(result.data.points).toBe(25);
+        expect(result.data.feedback).toBeUndefined();
+      }
+    });
+
+    it('should trim whitespace from feedback', () => {
+      const grade = { ...validQuestionGrade, feedback: '  Good answer!  ' };
+      const result = QuestionGradeSchema.safeParse(grade);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.feedback).toBe('Good answer!');
+      }
+    });
+
+    it('should accept points at minimum boundary (0)', () => {
+      const grade = { ...validQuestionGrade, points: 0 };
+      const result = QuestionGradeSchema.safeParse(grade);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.points).toBe(0);
+      }
+    });
+
+    it('should accept points at maximum boundary (100)', () => {
+      const grade = { ...validQuestionGrade, points: 100 };
+      const result = QuestionGradeSchema.safeParse(grade);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.points).toBe(100);
+      }
+    });
+
+    it('should reject negative points', () => {
+      const grade = { ...validQuestionGrade, points: -1 };
+      const result = QuestionGradeSchema.safeParse(grade);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('between 0 and 100');
+      }
+    });
+
+    it('should reject points exceeding 100', () => {
+      const grade = { ...validQuestionGrade, points: 101 };
+      const result = QuestionGradeSchema.safeParse(grade);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('between 0 and 100');
+      }
+    });
+
+    it('should reject negative questionIndex', () => {
+      const grade = { ...validQuestionGrade, questionIndex: -1 };
+      const result = QuestionGradeSchema.safeParse(grade);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('non-negative');
+      }
+    });
+
+    it('should reject non-integer questionIndex', () => {
+      const grade = { ...validQuestionGrade, questionIndex: 1.5 };
+      const result = QuestionGradeSchema.safeParse(grade);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('integer');
+      }
+    });
+
+    it('should reject feedback exceeding 2000 characters', () => {
+      const grade = { ...validQuestionGrade, feedback: 'a'.repeat(2001) };
+      const result = QuestionGradeSchema.safeParse(grade);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('not exceed 2000 characters');
+      }
+    });
+
+    it('should reject missing required fields', () => {
+      const grade = { questionIndex: 0 };
+      const result = QuestionGradeSchema.safeParse(grade);
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('GradeQuizSubmissionRequestSchema', () => {
+    const validRequest = {
+      questionGrades: [
+        { questionIndex: 0, points: 25, feedback: 'Good answer!' },
+        { questionIndex: 1, points: 30 },
+        { questionIndex: 2, points: 45, feedback: 'Excellent work!' }
+      ],
+      generalFeedback: 'Overall good performance.',
+      version: 1
+    };
+
+    it('should accept valid grade quiz submission request', () => {
+      const result = GradeQuizSubmissionRequestSchema.safeParse(validRequest);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.questionGrades).toHaveLength(3);
+        expect(result.data.generalFeedback).toBe('Overall good performance.');
+        expect(result.data.version).toBe(1);
+      }
+    });
+
+    it('should accept request without general feedback', () => {
+      const request = {
+        questionGrades: [
+          { questionIndex: 0, points: 50 },
+          { questionIndex: 1, points: 50 }
+        ]
+      };
+      const result = GradeQuizSubmissionRequestSchema.safeParse(request);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.generalFeedback).toBeUndefined();
+      }
+    });
+
+    it('should accept request without version', () => {
+      const request = {
+        questionGrades: [
+          { questionIndex: 0, points: 100 }
+        ]
+      };
+      const result = GradeQuizSubmissionRequestSchema.safeParse(request);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.version).toBeUndefined();
+      }
+    });
+
+    it('should trim whitespace from general feedback', () => {
+      const request = {
+        ...validRequest,
+        generalFeedback: '  Overall good performance.  '
+      };
+      const result = GradeQuizSubmissionRequestSchema.safeParse(request);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.generalFeedback).toBe('Overall good performance.');
+      }
+    });
+
+    it('should accept single question grade', () => {
+      const request = {
+        questionGrades: [
+          { questionIndex: 0, points: 100 }
+        ]
+      };
+      const result = GradeQuizSubmissionRequestSchema.safeParse(request);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.questionGrades).toHaveLength(1);
+      }
+    });
+
+    it('should accept multiple question grades', () => {
+      const request = {
+        questionGrades: [
+          { questionIndex: 0, points: 20 },
+          { questionIndex: 1, points: 20 },
+          { questionIndex: 2, points: 20 },
+          { questionIndex: 3, points: 20 },
+          { questionIndex: 4, points: 20 }
+        ]
+      };
+      const result = GradeQuizSubmissionRequestSchema.safeParse(request);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.questionGrades).toHaveLength(5);
+      }
+    });
+
+    it('should reject empty question grades array', () => {
+      const request = {
+        questionGrades: []
+      };
+      const result = GradeQuizSubmissionRequestSchema.safeParse(request);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('At least one question grade is required');
+      }
+    });
+
+    it('should reject missing question grades field', () => {
+      const request = {
+        generalFeedback: 'Good work'
+      };
+      const result = GradeQuizSubmissionRequestSchema.safeParse(request);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject invalid question grade', () => {
+      const request = {
+        questionGrades: [
+          { questionIndex: 0, points: -10 }
+        ]
+      };
+      const result = GradeQuizSubmissionRequestSchema.safeParse(request);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject general feedback exceeding 5000 characters', () => {
+      const request = {
+        ...validRequest,
+        generalFeedback: 'a'.repeat(5001)
+      };
+      const result = GradeQuizSubmissionRequestSchema.safeParse(request);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('not exceed 5000 characters');
+      }
+    });
+
+    it('should reject non-positive version', () => {
+      const request = {
+        ...validRequest,
+        version: 0
+      };
+      const result = GradeQuizSubmissionRequestSchema.safeParse(request);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('positive');
+      }
+    });
+
+    it('should reject non-integer version', () => {
+      const request = {
+        ...validRequest,
+        version: 1.5
+      };
+      const result = GradeQuizSubmissionRequestSchema.safeParse(request);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('integer');
+      }
+    });
+
+    it('should accept points that do not sum to 100', () => {
+      // Note: The system will warn about this in business logic (Requirement 13.9),
+      // but validation should not reject it
+      const request = {
+        questionGrades: [
+          { questionIndex: 0, points: 30 },
+          { questionIndex: 1, points: 30 }
+        ]
+      };
+      const result = GradeQuizSubmissionRequestSchema.safeParse(request);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const totalPoints = result.data.questionGrades.reduce((sum, grade) => sum + grade.points, 0);
+        expect(totalPoints).toBe(60); // Not 100, but validation passes
+      }
     });
   });
 });

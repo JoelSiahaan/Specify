@@ -152,19 +152,11 @@ router.post(
 /**
  * GET /api/submissions/:id
  * 
- * Get submission by ID
+ * REMOVED: This route is now handled by gradingRoutes.ts to avoid route conflicts.
+ * The grading routes are mounted at /api, so /api/submissions/:id is handled there.
  * 
- * Protected endpoint (authentication required)
- * Path parameters: id - Submission ID (UUID)
- * 
- * Business Rules:
- * - Students: Can view their own submissions
- * - Teachers: Can view all submissions in their courses
+ * See: backend/src/presentation/api/routes/gradingRoutes.ts
  */
-router.get(
-  '/submissions/:id',
-  assignmentController.getSubmission.bind(assignmentController)
-);
 
 /**
  * GET /api/assignments/:id/my-submission

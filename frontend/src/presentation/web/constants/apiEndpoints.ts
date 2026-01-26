@@ -66,9 +66,11 @@ export const API_ENDPOINTS = {
   
   // Grading
   GRADING: {
-    SUBMISSION_DETAILS: (id: string) => `/api/submissions/${id}`,
-    GRADE: (id: string) => `/api/submissions/${id}/grade`,
-    UPDATE_GRADE: (id: string) => `/api/submissions/${id}/grade`,
+    SUBMISSION_DETAILS: (id: string) => `/api/assignment-submissions/${id}`,
+    GRADE: (id: string) => `/api/assignment-submissions/${id}/grade`,
+    UPDATE_GRADE: (id: string) => `/api/assignment-submissions/${id}/grade`,
+    QUIZ_SUBMISSION_DETAILS: (id: string) => `/api/quiz-submissions/${id}`,
+    GRADE_QUIZ: (id: string) => `/api/quiz-submissions/${id}/grade`,
     EXPORT_GRADES: (courseId: string) => `/api/courses/${courseId}/grades/export`,
     STUDENT_PROGRESS: (courseId: string) => `/api/courses/${courseId}/progress`,
   },

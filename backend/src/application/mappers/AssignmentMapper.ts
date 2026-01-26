@@ -80,6 +80,7 @@ export class AssignmentMapper {
    * @param assignment - Assignment domain entity
    * @param submissionStatus - Optional submission status for student view
    * @param grade - Optional grade for student view
+   * @param feedback - Optional feedback for student view
    * @param isLate - Optional late flag for student view
    * @returns AssignmentListDTO for API response
    */
@@ -87,6 +88,7 @@ export class AssignmentMapper {
     assignment: Assignment,
     submissionStatus?: AssignmentSubmissionStatus,
     grade?: number,
+    feedback?: string,
     isLate?: boolean
   ): AssignmentListDTO {
     return {
@@ -100,6 +102,7 @@ export class AssignmentMapper {
       isPastDue: assignment.isPastDueDate(),
       submissionStatus: submissionStatus,
       grade: grade,
+      feedback: feedback,
       isLate: isLate,
       createdAt: assignment.getCreatedAt(),
       updatedAt: assignment.getUpdatedAt()
@@ -112,6 +115,7 @@ export class AssignmentMapper {
    * @param assignments - Array of Assignment domain entities
    * @param submissionStatuses - Optional map of assignment IDs to submission statuses
    * @param grades - Optional map of assignment IDs to grades
+   * @param feedbacks - Optional map of assignment IDs to feedbacks
    * @param lateFlags - Optional map of assignment IDs to late flags
    * @returns Array of AssignmentListDTOs
    */
@@ -119,6 +123,7 @@ export class AssignmentMapper {
     assignments: Assignment[],
     submissionStatuses?: Map<string, AssignmentSubmissionStatus>,
     grades?: Map<string, number>,
+    feedbacks?: Map<string, string>,
     lateFlags?: Map<string, boolean>
   ): AssignmentListDTO[] {
     return assignments.map(assignment => 
@@ -126,6 +131,7 @@ export class AssignmentMapper {
         assignment,
         submissionStatuses?.get(assignment.getId()),
         grades?.get(assignment.getId()),
+        feedbacks?.get(assignment.getId()),
         lateFlags?.get(assignment.getId())
       )
     );

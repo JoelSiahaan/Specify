@@ -125,10 +125,10 @@ router.get(
 
 /**
  * Get quiz submission details by ID
- * GET /api/submissions/:id
+ * GET /api/quiz-submissions/:id
  */
 router.get(
-  '/submissions/:id',
+  '/quiz-submissions/:id',
   authenticationMiddleware,
   quizController.getSubmissionDetails.bind(quizController)
 );

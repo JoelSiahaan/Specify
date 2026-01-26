@@ -300,6 +300,40 @@ export const SubmitQuizRequestSchema = z.object({
 });
 
 /**
+ * Grade quiz submission request schema (simple array format)
+ * 
+ * Validates quiz grading request body with simple array of points
+ * Requirements: 13.3, 13.4, 13.6, 13.8, 13.9, 13.10, 18.4, 20.2
+ * 
+ * Note: The system will warn if the sum of points does not equal 100,
+ * but this is a business logic check (Requirement 13.9), not a validation error.
+ * The validation only ensures each question's points are between 0 and 100.
+ */
+export const GradeQuizSubmissionRequestSchema = z.object({
+  questionPoints: z
+    .array(
+      z.number({
+        required_error: 'Points are required',
+        invalid_type_error: 'Points must be a number'
+      })
+      .min(0, 'Points must be between 0 and 100')
+      .max(100, 'Points must be between 0 and 100'),
+      {
+        required_error: 'Question points are required',
+        invalid_type_error: 'Question points must be an array'
+      }
+    )
+    .min(1, 'At least one question point is required'),
+  feedback: z
+    .string({
+      invalid_type_error: 'Feedback must be a string'
+    })
+    .trim()
+    .max(5000, 'Feedback must not exceed 5000 characters')
+    .optional()
+});
+
+/**
  * Type exports for TypeScript
  * 
  * These types can be used throughout the application for type safety
@@ -313,3 +347,4 @@ export type UpdateQuizRequest = z.infer<typeof UpdateQuizRequestSchema>;
 export type Answer = z.infer<typeof AnswerSchema>;
 export type AutoSaveQuizRequest = z.infer<typeof AutoSaveQuizRequestSchema>;
 export type SubmitQuizRequest = z.infer<typeof SubmitQuizRequestSchema>;
+export type GradeQuizSubmissionRequest = z.infer<typeof GradeQuizSubmissionRequestSchema>;

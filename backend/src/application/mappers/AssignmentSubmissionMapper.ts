@@ -23,7 +23,7 @@ export class AssignmentSubmissionMapper {
       id: submission.getId(),
       assignmentId: submission.getAssignmentId(),
       studentId: submission.getStudentId(),
-      content: submission.getContent(),
+      textContent: submission.getContent(),
       filePath: submission.getFilePath(),
       fileName: submission.getFileName(),
       grade: submission.getGrade(),

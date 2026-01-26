@@ -692,7 +692,7 @@ export class QuizController {
   /**
    * Get quiz submission details by ID
    * 
-   * GET /api/submissions/:id
+   * GET /api/quiz-submissions/:id
    * 
    * Requires authentication (AuthenticationMiddleware)
    * Requires teacher ownership or student ownership

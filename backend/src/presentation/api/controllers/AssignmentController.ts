@@ -465,6 +465,10 @@ export class AssignmentController {
   /**
    * Get submission by ID
    * 
+   * @deprecated This method is no longer used. The route GET /api/submissions/:id
+   * has been moved to GradingController to avoid route conflicts.
+   * See: backend/src/presentation/api/controllers/GradingController.ts
+   * 
    * GET /api/submissions/:id
    * 
    * Requires authentication (AuthenticationMiddleware)

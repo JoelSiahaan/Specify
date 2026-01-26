@@ -53,6 +53,12 @@ export interface QuizWithSubmissionDTO extends QuizListDTO {
   grade?: number;
   
   /**
+   * Feedback if submission has been graded
+   * Only populated for students with graded submissions
+   */
+  feedback?: string;
+  
+  /**
    * Whether the student has started but not submitted
    * Only populated for students with in-progress submissions
    */
@@ -170,7 +176,8 @@ export class ListQuizzesUseCase {
           hasStarted: false,
           submissionId: submission.getId(),
           isGraded: submission.isGraded(),
-          grade: submission.getGrade() ?? undefined
+          grade: submission.getGrade() ?? undefined,
+          feedback: submission.getFeedback() ?? undefined
         };
       })
     );

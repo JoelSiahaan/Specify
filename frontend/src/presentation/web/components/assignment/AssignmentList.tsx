@@ -18,6 +18,7 @@ interface AssignmentWithStatus extends Assignment {
   status?: SubmissionStatus;
   isLate?: boolean;
   grade?: number;
+  feedback?: string;
 }
 
 interface AssignmentListProps {
@@ -143,12 +144,20 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
               {/* Right: Grade or action */}
               {assignment.status === SubmissionStatus.GRADED && assignment.grade !== undefined && (
-                <div className="text-right">
+                <div className="text-right ml-6">
                   <span className="text-2xl font-bold text-green-600">{assignment.grade}</span>
                   <p className="text-xs text-gray-500">/ 100</p>
                 </div>
               )}
             </div>
+
+            {/* Feedback Section (shown when graded and feedback exists) */}
+            {assignment.status === SubmissionStatus.GRADED && assignment.feedback && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm font-medium text-gray-700 mb-1">Feedback:</p>
+                <p className="text-sm text-gray-600 whitespace-pre-wrap">{assignment.feedback}</p>
+              </div>
+            )}
           </div>
         );
       })}

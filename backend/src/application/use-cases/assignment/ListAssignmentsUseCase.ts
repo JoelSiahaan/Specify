@@ -110,6 +110,7 @@ export class ListAssignmentsUseCase {
       // Create maps for quick lookup
       const submissionStatusMap = new Map<string, AssignmentSubmissionStatus>();
       const gradeMap = new Map<string, number>();
+      const feedbackMap = new Map<string, string>();
       const lateMap = new Map<string, boolean>();
       
       submissions.forEach(submission => {
@@ -121,6 +122,11 @@ export class ListAssignmentsUseCase {
           gradeMap.set(assignmentId, grade);
         }
         
+        const feedback = submission.getFeedback();
+        if (feedback !== null && feedback !== undefined) {
+          feedbackMap.set(assignmentId, feedback);
+        }
+        
         lateMap.set(assignmentId, submission.getIsLate());
       });
 
@@ -129,6 +135,7 @@ export class ListAssignmentsUseCase {
         assignments,
         submissionStatusMap,
         gradeMap,
+        feedbackMap,
         lateMap
       );
     } catch (error) {

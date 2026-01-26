@@ -67,6 +67,8 @@ export interface Submission {
   textContent?: string;
   grade?: number;
   feedback?: string;
+  version: number;  // For optimistic locking
+  gradedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -85,6 +87,29 @@ export interface SubmitAssignmentRequest {
  */
 export interface ListSubmissionsResponse {
   data: Submission[];
+}
+
+/**
+ * Assignment Submission List DTO (Teacher View)
+ * Includes student information for teacher view
+ */
+export interface AssignmentSubmissionListDTO {
+  id: string;
+  assignmentId: string;
+  studentId: string;
+  studentName?: string;
+  studentEmail?: string;
+  textContent?: string;
+  filePath?: string;
+  fileName?: string;
+  grade?: number;
+  feedback?: string;
+  isLate: boolean;
+  status: SubmissionStatus;
+  submittedAt?: string;
+  gradedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**

@@ -11,3 +11,4 @@ export { ListQuizzesUseCase } from './ListQuizzesUseCase';
 export { StartQuizUseCase } from './StartQuizUseCase';
 export { AutoSaveQuizAnswersUseCase } from './AutoSaveQuizAnswersUseCase';
 export { SubmitQuizUseCase } from './SubmitQuizUseCase';
+export { GradeQuizSubmissionUseCase } from './GradeQuizSubmissionUseCase';

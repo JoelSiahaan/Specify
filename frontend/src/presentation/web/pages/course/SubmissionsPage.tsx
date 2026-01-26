@@ -15,8 +15,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CourseLayout } from '../../components/layout';
 import { Button, Spinner, ErrorMessage } from '../../components/shared';
+import { GradeSubmission } from '../../components/grading';
 import * as assignmentService from '../../services/assignmentService';
 import { formatDueDate } from '../../utils/dateFormatter';
+import { buildRoute, ROUTES } from '../../constants/routes';
 import type { Assignment, Submission, ApiError } from '../../types';
 import { SubmissionStatus } from '../../types/common.types';
 
@@ -30,6 +32,8 @@ export const SubmissionsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<'ALL' | SubmissionStatus>('ALL');
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
+  const [showGradeModal, setShowGradeModal] = useState(false);
 
   // Fetch assignment and submissions
   useEffect(() => {
@@ -114,6 +118,31 @@ export const SubmissionsPage: React.FC = () => {
   const gradedCount = submissions.filter(s => s.status === SubmissionStatus.GRADED).length;
   const notSubmittedCount = submissions.filter(s => s.status === SubmissionStatus.NOT_SUBMITTED).length;
 
+  /**
+   * Handle grade button click
+   */
+  const handleGradeClick = (submissionId: string) => {
+    setSelectedSubmissionId(submissionId);
+    setShowGradeModal(true);
+  };
+
+  /**
+   * Handle grade success
+   */
+  const handleGradeSuccess = () => {
+    setShowGradeModal(false);
+    setSelectedSubmissionId(null);
+    fetchData(); // Refresh submissions
+  };
+
+  /**
+   * Handle grade cancel
+   */
+  const handleGradeCancel = () => {
+    setShowGradeModal(false);
+    setSelectedSubmissionId(null);
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -136,15 +165,7 @@ export const SubmissionsPage: React.FC = () => {
     <CourseLayout courseId={courseId!} courseName="">
       <div className="p-6">
         {/* Page Header */}
-        <div className="mb-6">
-          <Button
-            variant="secondary"
-            onClick={() => navigate(`/courses/${courseId}/assignments`)}
-            className="mb-4"
-          >
-            ← Back to Assignments
-          </Button>
-          
+        <div className="mb-6">         
           <h1 className="text-3xl font-semibold text-gray-900">{assignment.title}</h1>
           <p className="text-gray-600 mt-1">Due: {formatDueDate(assignment.dueDate)}</p>
         </div>
@@ -268,10 +289,7 @@ export const SubmissionsPage: React.FC = () => {
                       <Button
                         variant="primary"
                         size="sm"
-                        onClick={() => {
-                          // TODO: Open grade submission modal
-                          console.log('Grade submission:', submission.id);
-                        }}
+                        onClick={() => handleGradeClick(submission.id)}
                       >
                         Grade
                       </Button>
@@ -280,6 +298,30 @@ export const SubmissionsPage: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Grade Submission Modal */}
+        {showGradeModal && selectedSubmissionId && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-semibold text-gray-900">Grade Submission</h2>
+                  <button
+                    onClick={handleGradeCancel}
+                    className="text-gray-400 hover:text-gray-600 text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+                <GradeSubmission
+                  submissionId={selectedSubmissionId}
+                  onSuccess={handleGradeSuccess}
+                  onCancel={handleGradeCancel}
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>

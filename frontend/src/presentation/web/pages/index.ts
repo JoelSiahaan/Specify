@@ -11,7 +11,7 @@ export { LoginPage, RegisterPage } from './auth';
 export { HomePage, StudentDashboard, TeacherDashboard } from './dashboard';
 
 // Course pages
-export { AssignmentsPage, QuizzesPage, MaterialsPage, SubmissionsPage } from './course';
+export { AssignmentsPage, QuizzesPage, MaterialsPage, SubmissionsPage, GradingPage, StudentGradesPage } from './course';
 
 // Error pages
 export { NotFoundPage, ForbiddenPage } from './error';

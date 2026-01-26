@@ -60,6 +60,7 @@ export interface QuizListItem {
   submissionId?: string;     // Submission ID if submitted
   isGraded?: boolean;        // Whether submission is graded
   grade?: number;            // Grade if graded (0-100)
+  feedback?: string;         // Feedback if graded
   hasStarted?: boolean;      // Whether student has started but not submitted (for Resume button)
 }
 

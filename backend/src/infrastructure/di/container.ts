@@ -63,6 +63,7 @@ import { ListQuizzesUseCase } from '../../application/use-cases/quiz/ListQuizzes
 import { StartQuizUseCase } from '../../application/use-cases/quiz/StartQuizUseCase';
 import { AutoSaveQuizAnswersUseCase } from '../../application/use-cases/quiz/AutoSaveQuizAnswersUseCase';
 import { SubmitQuizUseCase } from '../../application/use-cases/quiz/SubmitQuizUseCase';
+import { GradeQuizSubmissionUseCase } from '../../application/use-cases/quiz/GradeQuizSubmissionUseCase';
 import { CreateAssignmentUseCase } from '../../application/use-cases/assignment/CreateAssignmentUseCase';
 import { UpdateAssignmentUseCase } from '../../application/use-cases/assignment/UpdateAssignmentUseCase';
 import { DeleteAssignmentUseCase } from '../../application/use-cases/assignment/DeleteAssignmentUseCase';
@@ -71,6 +72,8 @@ import { SubmitAssignmentUseCase } from '../../application/use-cases/assignment/
 import { GetSubmissionUseCase } from '../../application/use-cases/assignment/GetSubmissionUseCase';
 import { GetMySubmissionUseCase } from '../../application/use-cases/assignment/GetMySubmissionUseCase';
 import { ListSubmissionsUseCase } from '../../application/use-cases/assignment/ListSubmissionsUseCase';
+import { GradeSubmissionUseCase } from '../../application/use-cases/assignment/GradeSubmissionUseCase';
+import { UpdateGradeUseCase } from '../../application/use-cases/assignment/UpdateGradeUseCase';
 
 /**
  * Initialize the DI container with all application dependencies
@@ -308,6 +311,13 @@ export function configureContainer(): void {
     useClass: SubmitQuizUseCase
   });
   console.log('[DI] SubmitQuizUseCase registered');
+  
+  // Register GradeQuizSubmissionUseCase as transient
+  console.log('[DI] Registering GradeQuizSubmissionUseCase');
+  container.register(GradeQuizSubmissionUseCase, {
+    useClass: GradeQuizSubmissionUseCase
+  });
+  console.log('[DI] GradeQuizSubmissionUseCase registered');
   // Register CreateAssignmentUseCase as transient
   console.log('[DI] Registering CreateAssignmentUseCase');
   container.register(CreateAssignmentUseCase, {
@@ -363,6 +373,20 @@ export function configureContainer(): void {
     useClass: ListSubmissionsUseCase
   });
   console.log('[DI] ListSubmissionsUseCase registered');
+  
+  // Register GradeSubmissionUseCase as transient
+  console.log('[DI] Registering GradeSubmissionUseCase');
+  container.register(GradeSubmissionUseCase, {
+    useClass: GradeSubmissionUseCase
+  });
+  console.log('[DI] GradeSubmissionUseCase registered');
+  
+  // Register UpdateGradeUseCase as transient
+  console.log('[DI] Registering UpdateGradeUseCase');
+  container.register(UpdateGradeUseCase, {
+    useClass: UpdateGradeUseCase
+  });
+  console.log('[DI] UpdateGradeUseCase registered');
   
   // Example pattern (to be implemented in future tasks):
   // container.register(CreateCourseUseCase, {
