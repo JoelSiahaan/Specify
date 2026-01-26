@@ -15,58 +15,107 @@
  * - View grades and feedback
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CourseLayout } from '../components/layout';
-import { AssignmentList, CreateAssignment, SubmitAssignment } from '../components/assignment';
-import { Button, Spinner, ErrorMessage } from '../components/shared';
-import { useAuth } from '../hooks';
-import { courseService } from '../services';
-import type { Course, ApiError } from '../types';
+import { CourseLayout } from '../../components/layout';
+import { AssignmentList, CreateAssignment, SubmitAssignment } from '../../components/assignment';
+import { Button, Spinner, ErrorMessage } from '../../components/shared';
+import { useAuth, useCourse, useAssignments } from '../../hooks';
+import { assignmentService } from '../../services';
+import type { Assignment } from '../../types';
+import { SubmissionStatus } from '../../types/common.types';
+
+interface AssignmentWithStatus extends Assignment {
+  status?: SubmissionStatus;
+  isLate?: boolean;
+  grade?: number;
+}
 
 export const AssignmentsPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
   
+  // Use custom hooks for data
+  const { course, loading: courseLoading, error: courseError } = useCourse(courseId);
+  const { assignments, loading: assignmentsLoading, error: assignmentsError, refetch: refetchAssignments } = useAssignments(courseId);
+  
   // State
-  const [course, setCourse] = useState<Course | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showCreateAssignment, setShowCreateAssignment] = useState(false);
   const [showSubmitAssignment, setShowSubmitAssignment] = useState(false);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
-  const [refreshList, setRefreshList] = useState(0);
+  const [assignmentsWithStatus, setAssignmentsWithStatus] = useState<AssignmentWithStatus[]>([]);
+  const [statusLoading, setStatusLoading] = useState(false);
+  
+  // Combined loading and error states
+  const loading = courseLoading || assignmentsLoading || statusLoading;
+  const error = courseError || assignmentsError;
 
-  // Fetch course details
-  React.useEffect(() => {
-    if (courseId) {
-      fetchCourse();
-    }
-  }, [courseId]);
+  const isTeacher = user?.role === 'TEACHER';
 
-  const fetchCourse = async () => {
-    if (!courseId) return;
+  // Fetch submission status for students
+  useEffect(() => {
+    const fetchSubmissionStatus = async () => {
+      if (!user || isTeacher || assignments.length === 0) {
+        // Teachers don't need submission status, just pass assignments as-is
+        setAssignmentsWithStatus(assignments);
+        return;
+      }
 
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await courseService.getCourseById(courseId);
-      setCourse(data);
-    } catch (err) {
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to load course');
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        setStatusLoading(true);
+        
+        // Fetch submission status for each assignment (students only)
+        const withStatus = await Promise.all(
+          assignments.map(async (assignment) => {
+            try {
+              const submission = await assignmentService.getMySubmission(assignment.id);
+              
+              if (!submission) {
+                return {
+                  ...assignment,
+                  status: SubmissionStatus.NOT_SUBMITTED,
+                  isLate: false,
+                  grade: undefined,
+                };
+              }
+              
+              return {
+                ...assignment,
+                status: submission.status,
+                isLate: submission.isLate,
+                grade: submission.grade,
+              };
+            } catch (err) {
+              // If error fetching submission, assume not submitted
+              return {
+                ...assignment,
+                status: SubmissionStatus.NOT_SUBMITTED,
+                isLate: false,
+                grade: undefined,
+              };
+            }
+          })
+        );
+        setAssignmentsWithStatus(withStatus);
+      } catch (err) {
+        console.error('Failed to fetch submission status:', err);
+        // On error, just show assignments without status
+        setAssignmentsWithStatus(assignments);
+      } finally {
+        setStatusLoading(false);
+      }
+    };
+
+    fetchSubmissionStatus();
+  }, [assignments, user, isTeacher]);
 
   /**
    * Handle create assignment success
    */
   const handleCreateSuccess = () => {
     setShowCreateAssignment(false);
-    setRefreshList(prev => prev + 1); // Trigger list refresh
+    refetchAssignments(); // Refetch assignments after creation
   };
 
   /**
@@ -89,7 +138,7 @@ export const AssignmentsPage: React.FC = () => {
   const handleSubmitSuccess = () => {
     setShowSubmitAssignment(false);
     setSelectedAssignmentId(null);
-    setRefreshList(prev => prev + 1); // Trigger list refresh
+    refetchAssignments(); // Refetch assignments after submission
   };
 
   /**
@@ -99,8 +148,6 @@ export const AssignmentsPage: React.FC = () => {
     setShowSubmitAssignment(false);
     setSelectedAssignmentId(null);
   };
-
-  const isTeacher = user?.role === 'TEACHER';
 
   // Loading state
   if (loading) {
@@ -180,10 +227,8 @@ export const AssignmentsPage: React.FC = () => {
 
         {/* Assignment List */}
         <AssignmentList
-          courseId={courseId!}
-          courseStatus={course.status}
+          assignments={assignmentsWithStatus}
           onAssignmentClick={handleAssignmentClick}
-          key={refreshList} // Force re-render when assignment created
         />
       </div>
     </CourseLayout>

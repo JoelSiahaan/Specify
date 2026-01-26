@@ -61,7 +61,7 @@ export const UpdateAssignment: React.FC<UpdateAssignmentProps> = ({
         setDescription(assignment.description);
         setDueDate(formatDateForInput(assignment.dueDate));
         setSubmissionType(assignment.submissionType);
-        setAllowedFileTypes(assignment.allowedFileTypes || ['pdf', 'docx']);
+        setAllowedFileTypes(assignment.acceptedFileFormats || ['pdf', 'docx']);
         
         // Check if past due date (Requirement 9.8)
         const dueDateObj = new Date(assignment.dueDate);
@@ -201,7 +201,7 @@ export const UpdateAssignment: React.FC<UpdateAssignmentProps> = ({
         description,
         dueDate: dueDateISO,
         submissionType,
-        allowedFileTypes: 
+        acceptedFileFormats: 
           submissionType === SubmissionType.TEXT 
             ? undefined 
             : allowedFileTypes,

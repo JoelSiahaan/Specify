@@ -10,9 +10,9 @@
  * - 8.4: Download button for files
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import DOMPurify from 'dompurify';
-import { Button, Spinner, ErrorMessage } from '../shared';
+import { Button, ErrorMessage } from '../shared';
 import { UpdateMaterial } from './UpdateMaterial';
 import { materialService } from '../../services';
 import { useAuth } from '../../hooks';
@@ -21,8 +21,9 @@ import type { Material, ApiError } from '../../types';
 import { UserRole } from '../../types';
 
 interface MaterialListProps {
-  courseId: string;
+  materials: Material[];
   courseStatus?: 'ACTIVE' | 'ARCHIVED';
+  onRefetch: () => void;
 }
 
 /**
@@ -87,45 +88,19 @@ const getEmbedUrl = (url: string): string => {
   }
 };
 
-export const MaterialList: React.FC<MaterialListProps> = ({ courseId, courseStatus = 'ACTIVE' }) => {
+export const MaterialList: React.FC<MaterialListProps> = ({ materials, courseStatus = 'ACTIVE', onRefetch }) => {
   const { user } = useAuth();
 
   // State
-  const [materials, setMaterials] = useState<Material[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingMaterialId, setEditingMaterialId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Check if user is teacher
   const isTeacher = user?.role === UserRole.TEACHER;
   
   // Check if course is archived (read-only)
   const isArchived = courseStatus === 'ARCHIVED';
-
-  /**
-   * Fetch materials on mount
-   */
-  useEffect(() => {
-    fetchMaterials();
-  }, [courseId]);
-
-  /**
-   * Fetch materials from API
-   */
-  const fetchMaterials = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await materialService.listMaterials(courseId);
-      setMaterials(response.data);
-    } catch (err) {
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to load materials');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   /**
    * Handle material download
@@ -185,8 +160,8 @@ export const MaterialList: React.FC<MaterialListProps> = ({ courseId, courseStat
       setError(null);
       await materialService.deleteMaterial(materialId);
       
-      // Remove from list
-      setMaterials(materials.filter(m => m.id !== materialId));
+      // Refetch materials list from parent
+      onRefetch();
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message || 'Failed to delete material');
@@ -205,11 +180,9 @@ export const MaterialList: React.FC<MaterialListProps> = ({ courseId, courseStat
   /**
    * Handle update success
    */
-  const handleUpdateSuccess = (updatedMaterial: Material) => {
-    // Update material in list
-    setMaterials(materials.map(m => 
-      m.id === updatedMaterial.id ? updatedMaterial : m
-    ));
+  const handleUpdateSuccess = () => {
+    // Refetch materials list from parent
+    onRefetch();
     
     // Close edit modal
     setEditingMaterialId(null);
@@ -272,31 +245,6 @@ export const MaterialList: React.FC<MaterialListProps> = ({ courseId, courseStat
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
-  // Error state
-  if (error && materials.length === 0) {
-    return (
-      <div className="py-6">
-        <ErrorMessage message={error} />
-        <Button
-          variant="secondary"
-          onClick={fetchMaterials}
-          className="mt-4"
-        >
-          Retry
-        </Button>
-      </div>
-    );
-  }
 
   // Empty state
   if (materials.length === 0) {

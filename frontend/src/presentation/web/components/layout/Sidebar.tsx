@@ -64,17 +64,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ type, courseId, courseName }) 
 
   /**
    * Handle scroll to section (for course sidebar)
+   * Currently unused but kept for future enhancement
    */
-  const scrollToSection = (sectionId: string) => {
-    if (sectionId === 'top') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-  };
+  // const scrollToSection = (sectionId: string) => {
+  //   if (sectionId === 'top') {
+  //     window.scrollTo({ top: 0, behavior: 'smooth' });
+  //   } else {
+  //     const element = document.getElementById(sectionId);
+  //     if (element) {
+  //       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  //     }
+  //   }
+  // };
 
   /**
    * Render Dashboard Sidebar

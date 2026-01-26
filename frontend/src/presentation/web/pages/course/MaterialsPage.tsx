@@ -1,69 +1,43 @@
 /**
- * QuizzesPage Component
+ * MaterialsPage Component
  * 
- * Page for displaying and managing course quizzes.
+ * Page for displaying and managing course materials.
  * Separated from course overview for better navigation structure.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Spinner, ErrorMessage } from '../components/shared';
-import { CourseLayout, Breadcrumb } from '../components/layout';
-import { QuizList, CreateQuiz } from '../components/quiz';
-import { courseService } from '../services';
-import { ROUTES, buildRoute } from '../constants';
-import { useAuth } from '../hooks';
-import type { Course, ApiError } from '../types';
+import { Button, Spinner, ErrorMessage } from '../../components/shared';
+import { CourseLayout, Breadcrumb } from '../../components/layout';
+import { MaterialList, CreateMaterial } from '../../components/material';
+import { ROUTES, buildRoute } from '../../constants';
+import { useAuth, useCourse, useMaterials } from '../../hooks';
 
-export const QuizzesPage: React.FC = () => {
+export const MaterialsPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Use custom hooks for data
+  const { course, loading: courseLoading, error: courseError } = useCourse(courseId);
+  const { materials, loading: materialsLoading, error: materialsError, refetch: refetchMaterials } = useMaterials(courseId);
+
   // State
-  const [course, setCourse] = useState<Course | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showCreateQuiz, setShowCreateQuiz] = useState(false);
-  const [refreshQuizzes, setRefreshQuizzes] = useState(0);
+  const [showCreateMaterial, setShowCreateMaterial] = useState(false);
+  
+  // Combined loading and error states
+  const loading = courseLoading || materialsLoading;
+  const error = courseError || materialsError;
 
   // Determine dashboard route based on user role
   const dashboardRoute = user?.role === 'STUDENT' ? ROUTES.STUDENT_DASHBOARD : ROUTES.TEACHER_DASHBOARD;
 
   /**
-   * Fetch course details on mount
+   * Handle create material success
    */
-  useEffect(() => {
-    if (courseId) {
-      fetchCourse();
-    }
-  }, [courseId]);
-
-  /**
-   * Fetch course from API
-   */
-  const fetchCourse = async () => {
-    if (!courseId) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await courseService.getCourseById(courseId);
-      setCourse(data);
-    } catch (err) {
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to load course');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * Handle create quiz success
-   */
-  const handleCreateQuizSuccess = () => {
-    setShowCreateQuiz(false);
-    setRefreshQuizzes(prev => prev + 1);
+  const handleCreateMaterialSuccess = () => {
+    setShowCreateMaterial(false);
+    refetchMaterials(); // Refetch materials after creation
   };
 
   /**
@@ -128,23 +102,23 @@ export const QuizzesPage: React.FC = () => {
                 ? buildRoute(ROUTES.TEACHER_COURSE_DETAILS, { courseId: courseId! })
                 : buildRoute(ROUTES.STUDENT_COURSE_DETAILS, { courseId: courseId! })
             },
-            { label: 'Quizzes' }
+            { label: 'Materials' }
           ]}
         />
 
         {/* Error Message */}
         {error && <ErrorMessage message={error} />}
 
-        {/* Quizzes Section */}
+        {/* Materials Section */}
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-semibold text-gray-900">Quizzes</h1>
-            {isTeacher && !showCreateQuiz && course.status === 'ACTIVE' && (
+            <h1 className="text-3xl font-semibold text-gray-900">Materials</h1>
+            {isTeacher && !showCreateMaterial && course.status === 'ACTIVE' && (
               <Button
                 variant="primary"
-                onClick={() => setShowCreateQuiz(true)}
+                onClick={() => setShowCreateMaterial(true)}
               >
-                + Create Quiz
+                + Add Material
               </Button>
             )}
           </div>
@@ -153,29 +127,29 @@ export const QuizzesPage: React.FC = () => {
           {course.status === 'ARCHIVED' && (
             <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
               <p className="text-sm text-gray-600">
-                📦 This course is archived and read-only. Quizzes cannot be created, edited, or deleted.
+                📦 This course is archived and read-only. Materials cannot be added, edited, or deleted.
               </p>
             </div>
           )}
 
-          {/* Create Quiz Modal */}
-          {showCreateQuiz && (
+          {/* Create Material Modal */}
+          {showCreateMaterial && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                <CreateQuiz
+              <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <CreateMaterial
                   courseId={courseId!}
-                  onSuccess={handleCreateQuizSuccess}
-                  onCancel={() => setShowCreateQuiz(false)}
+                  onSuccess={handleCreateMaterialSuccess}
+                  onCancel={() => setShowCreateMaterial(false)}
                 />
               </div>
             </div>
           )}
 
-          {/* Quiz List */}
-          <QuizList 
-            courseId={courseId!} 
+          {/* Material List */}
+          <MaterialList
+            materials={materials}
             courseStatus={course.status}
-            key={refreshQuizzes}
+            onRefetch={refetchMaterials}
           />
         </div>
       </div>
@@ -183,4 +157,4 @@ export const QuizzesPage: React.FC = () => {
   );
 };
 
-export default QuizzesPage;
+export default MaterialsPage;
