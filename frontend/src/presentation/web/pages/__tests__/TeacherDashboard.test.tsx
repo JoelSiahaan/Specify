@@ -97,7 +97,7 @@ describe('TeacherDashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     
-    // Default mock implementation
+    // Default mock implementatio
     vi.mocked(authHooks.useAuth).mockReturnValue({
       user: mockUser,
       loading: false,

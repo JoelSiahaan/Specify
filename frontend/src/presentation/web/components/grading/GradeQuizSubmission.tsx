@@ -53,22 +53,45 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
   const [questionGrades, setQuestionGrades] = useState<QuestionGrade[]>([]);
   const [feedback, setFeedback] = useState<string>('');
   const [totalPoints, setTotalPoints] = useState<number>(0);
-  const [showWarning, setShowWarning] = useState<boolean>(false);
+  const [totalPointsError, setTotalPointsError] = useState<string | null>(null);
 
   // Load submission and quiz details
   useEffect(() => {
     loadSubmissionAndQuiz();
   }, [submissionId]);
 
-  // Calculate total points whenever question grades change
+  // Calculate total points and determine warning whenever question grades change
   useEffect(() => {
+    if (!quiz) return;
+
     const total = questionGrades.reduce((sum, qg) => {
       const points = parseFloat(qg.points);
       return sum + (isNaN(points) ? 0 : points);
     }, 0);
     setTotalPoints(total);
-    setShowWarning(Math.abs(total - 100) > 0.01); // Show warning if not equal to 100 (with small tolerance for floating point)
-  }, [questionGrades]);
+
+    // Determine quiz type
+    const hasEssay = quiz.questions.some(q => q.type === 'ESSAY');
+    const hasMCQ = quiz.questions.some(q => q.type === 'MCQ');
+    const questionCount = quiz.questions.length;
+
+    // Calculate validation error based on question type
+    let errorMessage: string | null = null;
+
+    if (hasEssay) {
+      // Essay or Mixed: block if > 100
+      if (total > 100) {
+        errorMessage = `Total points (${total.toFixed(2)}) exceed 100. Please adjust the points.`;
+      }
+    } else if (hasMCQ) {
+      // All MCQ: block if multiple questions AND ≠ 100
+      if (questionCount > 1 && Math.abs(total - 100) > 0.01) {
+        errorMessage = `Total points must equal 100 for multiple choice quizzes. Current total: ${total.toFixed(2)}`;
+      }
+    }
+
+    setTotalPointsError(errorMessage);
+  }, [questionGrades, quiz]);
 
   const loadSubmissionAndQuiz = async () => {
     try {
@@ -129,6 +152,8 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
 
   const validateForm = (): boolean => {
     let isValid = true;
+    
+    // Validate individual question points
     const updatedGrades = questionGrades.map(qg => {
       let error: string | undefined;
       
@@ -150,6 +175,12 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
     });
     
     setQuestionGrades(updatedGrades);
+    
+    // Check total points validation
+    if (totalPointsError) {
+      isValid = false;
+    }
+    
     return isValid;
   };
 
@@ -212,7 +243,7 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Spinner size="large" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -358,11 +389,11 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
                           <div
                             key={optionIndex}
                             className={`p-2 rounded ${
-                              isStudentAnswer
-                                ? isCorrectAnswer
-                                  ? 'bg-green-50 border border-green-300'
-                                  : 'bg-red-50 border border-red-300'
-                                : isCorrectAnswer
+                              isStudentAnswer && isCorrectAnswer
+                                ? 'bg-green-50 border border-green-300'
+                                : isStudentAnswer && !isCorrectAnswer
+                                ? 'bg-red-50 border border-red-300'
+                                : !isStudentAnswer && isCorrectAnswer
                                 ? 'bg-blue-50 border border-blue-300'
                                 : 'bg-white border border-gray-200'
                             }`}
@@ -372,20 +403,17 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
                                 {String.fromCharCode(65 + optionIndex)}.
                               </span>
                               <span className="text-gray-800">{option}</span>
-                              {isStudentAnswer && (
-                                <span className="ml-auto text-sm font-semibold">
-                                  {isCorrectAnswer ? (
-                                    <span className="text-green-600">✓ Student Answer</span>
-                                  ) : (
-                                    <span className="text-red-600">✗ Student Answer</span>
-                                  )}
-                                </span>
-                              )}
-                              {!isStudentAnswer && isCorrectAnswer && (
-                                <span className="ml-auto text-sm font-semibold text-blue-600">
-                                  ✓ Correct Answer
-                                </span>
-                              )}
+                              <span className="ml-auto text-sm font-semibold flex gap-2">
+                                {isStudentAnswer && isCorrectAnswer && (
+                                  <span className="text-green-600">✓ Correct Answer (Student's Answer)</span>
+                                )}
+                                {isStudentAnswer && !isCorrectAnswer && (
+                                  <span className="text-red-600">✗ Student's Answer</span>
+                                )}
+                                {!isStudentAnswer && isCorrectAnswer && (
+                                  <span className="text-blue-600">✓ Correct Answer</span>
+                                )}
+                              </span>
                             </div>
                           </div>
                         );
@@ -417,7 +445,6 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
                     onChange={(e) => handlePointsChange(index, e.target.value)}
                     placeholder="Enter points"
                     min="0"
-                    step="0.01"
                     error={questionGrade?.error}
                     required
                     disabled={saving}
@@ -438,7 +465,7 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
           <div className="flex items-center justify-between">
             <span className="text-lg font-medium text-gray-700">Total Score:</span>
             <span className={`text-3xl font-bold ${
-              showWarning ? 'text-yellow-600' : 'text-green-600'
+              totalPointsError ? 'text-red-600' : 'text-green-600'
             }`}>
               {totalPoints.toFixed(2)}
             </span>
@@ -446,17 +473,14 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
           <div className="text-sm text-gray-500 mt-1 text-right">out of 100</div>
         </div>
 
-        {/* Warning if total ≠ 100 */}
-        {showWarning && (
-          <div className="mb-6 border-l-4 border-yellow-500 bg-yellow-50 p-4">
+        {/* Error if validation fails (BLOCKER) */}
+        {totalPointsError && (
+          <div className="mb-6 border-l-4 border-red-500 bg-red-50 p-4">
             <div className="flex items-start gap-3">
-              <span className="text-yellow-600 text-xl">⚠️</span>
-              <div className="text-sm text-yellow-800">
-                <p className="font-medium mb-1">Warning: Total points do not equal 100</p>
-                <p>
-                  The sum of points assigned to all questions is {totalPoints.toFixed(2)}, not 100.
-                  Please verify that the points are distributed correctly.
-                </p>
+              <span className="text-red-600 text-xl">⚠️</span>
+              <div className="text-sm text-red-800">
+                <p className="font-medium mb-1">Cannot Save Grade</p>
+                <p>{totalPointsError}</p>
               </div>
             </div>
           </div>
@@ -491,11 +515,11 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
           <Button
             type="submit"
             variant="primary"
-            disabled={saving}
+            disabled={saving || !!totalPointsError}
           >
             {saving ? (
               <>
-                <Spinner size="small" className="mr-2" />
+                <Spinner size="sm" className="mr-2" />
                 Saving...
               </>
             ) : submission.status === QuizSubmissionStatus.GRADED ? (
@@ -511,12 +535,30 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
           <div className="flex items-start gap-3">
             <span className="text-blue-600 text-xl">ℹ️</span>
             <div className="text-sm text-blue-800">
-              <p className="font-medium mb-1">Manual Grading:</p>
+              <p className="font-medium mb-1">Grading Rules:</p>
               <p>
                 All questions require manual point assignment. The total score is calculated
-                by summing the points assigned to each question. You can assign any points
-                per question, but the system will warn if the total does not equal 100.
+                by summing the points assigned to each question.
               </p>
+              {quiz && (
+                <p className="mt-2">
+                  {quiz.questions.some(q => q.type === 'ESSAY') ? (
+                    <>
+                      <strong>Essay/Mixed Quiz:</strong> Total points must not exceed 100. 
+                      Points below 100 are allowed (students may have incorrect answers).
+                    </>
+                  ) : quiz.questions.length === 1 ? (
+                    <>
+                      <strong>Single MCQ:</strong> You can assign any points (0-100).
+                    </>
+                  ) : (
+                    <>
+                      <strong>Multiple MCQ:</strong> Total points must equal exactly 100 
+                      to ensure consistent point distribution across all questions.
+                    </>
+                  )}
+                </p>
+              )}
             </div>
           </div>
         </div>
