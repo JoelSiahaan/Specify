@@ -170,7 +170,7 @@ export const CreateAssignment: React.FC<CreateAssignmentProps> = ({
         submissionType,
         acceptedFileFormats: 
           submissionType === SubmissionType.TEXT 
-            ? undefined 
+            ? [] 
             : allowedFileTypes,
       });
       

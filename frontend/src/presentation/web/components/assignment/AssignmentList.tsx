@@ -4,102 +4,34 @@
  * Displays a list of assignments with status, due dates, and time remaining.
  * Highlights overdue items and indicates late submissions.
  * 
+ * Presentational component - receives data via props.
+ * 
  * Requirements: 9.11, 9.12, 16.1-16.6
  */
 
-import React, { useEffect, useState } from 'react';
-import { listAssignments, getMySubmission } from '../../services/assignmentService';
+import React from 'react';
 import { formatDueDate, isPastDate } from '../../utils/dateFormatter';
-import { Spinner, ErrorMessage } from '../shared';
 import type { Assignment } from '../../types';
 import { SubmissionStatus } from '../../types/common.types';
-import { useAuth } from '../../hooks/useAuth';
-
-interface AssignmentListProps {
-  courseId: string;
-  courseStatus?: string;
-  onAssignmentClick?: (assignmentId: string) => void;
-}
 
 interface AssignmentWithStatus extends Assignment {
-  status: SubmissionStatus;
-  isLate: boolean;
+  status?: SubmissionStatus;
+  isLate?: boolean;
   grade?: number;
 }
 
+interface AssignmentListProps {
+  assignments: AssignmentWithStatus[];
+  onAssignmentClick?: (assignmentId: string) => void;
+}
+
 export const AssignmentList: React.FC<AssignmentListProps> = ({
-  courseId,
-  courseStatus,
+  assignments,
   onAssignmentClick,
 }) => {
-  const [assignments, setAssignments] = useState<AssignmentWithStatus[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
 
-  useEffect(() => {
-    const fetchAssignments = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await listAssignments(courseId);
-        
-        // Fetch submission status for each assignment (students only)
-        if (user?.role === 'STUDENT') {
-          const assignmentsWithStatus = await Promise.all(
-            response.data.map(async (assignment) => {
-              try {
-                const submission = await getMySubmission(assignment.id);
-                
-                if (!submission) {
-                  return {
-                    ...assignment,
-                    status: SubmissionStatus.NOT_SUBMITTED,
-                    isLate: false,
-                    grade: undefined,
-                  };
-                }
-                
-                return {
-                  ...assignment,
-                  status: submission.status,
-                  isLate: submission.isLate,
-                  grade: submission.grade,
-                };
-              } catch (err) {
-                // If error fetching submission, assume not submitted
-                return {
-                  ...assignment,
-                  status: SubmissionStatus.NOT_SUBMITTED,
-                  isLate: false,
-                  grade: undefined,
-                };
-              }
-            })
-          );
-          setAssignments(assignmentsWithStatus);
-        } else {
-          // Teachers don't need submission status in list view
-          const assignmentsWithStatus = response.data.map((assignment) => ({
-            ...assignment,
-            status: SubmissionStatus.NOT_SUBMITTED,
-            isLate: false,
-            grade: undefined,
-          }));
-          setAssignments(assignmentsWithStatus);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load assignments');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAssignments();
-  }, [courseId, user]);
-
-  const getStatusBadge = (status: SubmissionStatus, isLate: boolean) => {
-    if (status === SubmissionStatus.NOT_SUBMITTED) {
+  const getStatusBadge = (status?: SubmissionStatus, isLate?: boolean) => {
+    if (!status || status === SubmissionStatus.NOT_SUBMITTED) {
       return (
         <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
           Not Submitted
@@ -156,21 +88,9 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   const isOverdue = (assignment: AssignmentWithStatus) => {
     return (
       isPastDate(assignment.dueDate) &&
-      assignment.status === SubmissionStatus.NOT_SUBMITTED
+      (!assignment.status || assignment.status === SubmissionStatus.NOT_SUBMITTED)
     );
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return <ErrorMessage message={error} />;
-  }
 
   if (assignments.length === 0) {
     return (

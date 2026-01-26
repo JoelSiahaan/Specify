@@ -14,12 +14,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Button, Spinner, ErrorMessage } from '../components/shared';
-import { DashboardLayout } from '../components/layout';
-import { useAuth } from '../hooks';
-import { courseService } from '../services';
-import { ROUTES } from '../constants';
-import type { Course, CourseWithTeacher } from '../types';
+import { Button, Spinner, ErrorMessage } from '../../components/shared';
+import { DashboardLayout } from '../../components/layout';
+import { useAuth } from '../../hooks';
+import { courseService } from '../../services';
+import { ROUTES } from '../../constants';
+import type { Course } from '../../types';
 
 export const TeacherDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -27,7 +27,7 @@ export const TeacherDashboard: React.FC = () => {
   const location = useLocation();
 
   // State
-  const [courses, setCourses] = useState<CourseWithTeacher[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'active' | 'archived' | 'all'>('active');
@@ -121,7 +121,7 @@ export const TeacherDashboard: React.FC = () => {
   /**
    * Render course list item
    */
-  const renderCourseItem = (course: CourseWithTeacher) => (
+  const renderCourseItem = (course: Course) => (
     <div
       key={course.id}
       className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow p-6"

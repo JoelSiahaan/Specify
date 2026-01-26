@@ -6,15 +6,17 @@
  */
 
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from './presentation/web/contexts';
+import { AuthProvider, CourseProvider } from './presentation/web/contexts';
 import { AppRouter } from './presentation/web/routes';
 
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <AppRouter />
-      </BrowserRouter>
+      <CourseProvider>
+        <BrowserRouter>
+          <AppRouter />
+        </BrowserRouter>
+      </CourseProvider>
     </AuthProvider>
   );
 }

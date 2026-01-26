@@ -11,9 +11,9 @@
  * - Highlight overdue items
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Spinner, ErrorMessage } from '../shared';
+import { Button, ErrorMessage } from '../shared';
 import { UpdateQuiz } from './UpdateQuiz';
 import { quizService } from '../../services';
 import { useAuth } from '../../hooks';
@@ -23,8 +23,10 @@ import type { QuizListItem, ApiError } from '../../types';
 import { UserRole } from '../../types';
 
 interface QuizListProps {
+  quizzes: QuizListItem[];
   courseId: string;
   courseStatus?: 'ACTIVE' | 'ARCHIVED';
+  onRefetch: () => void;
 }
 
 /**
@@ -55,13 +57,11 @@ const getTimeRemaining = (dueDate: string): string => {
   }
 };
 
-export const QuizList: React.FC<QuizListProps> = ({ courseId, courseStatus = 'ACTIVE' }) => {
+export const QuizList: React.FC<QuizListProps> = ({ quizzes, courseId, courseStatus = 'ACTIVE', onRefetch }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   // State
-  const [quizzes, setQuizzes] = useState<QuizListItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingQuizId, setEditingQuizId] = useState<string | null>(null);
@@ -71,31 +71,7 @@ export const QuizList: React.FC<QuizListProps> = ({ courseId, courseStatus = 'AC
   
   // Check if course is archived (read-only)
   const isArchived = courseStatus === 'ARCHIVED';
-
-  /**
-   * Fetch quizzes on mount
-   */
-  useEffect(() => {
-    fetchQuizzes();
-  }, [courseId]);
-
-  /**
-   * Fetch quizzes from API
-   */
-  const fetchQuizzes = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await quizService.listQuizzes(courseId);
-      setQuizzes(response);
-    } catch (err) {
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to load quizzes');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   /**
    * Handle quiz delete
    */
@@ -109,8 +85,8 @@ export const QuizList: React.FC<QuizListProps> = ({ courseId, courseStatus = 'AC
       setError(null);
       await quizService.deleteQuiz(quizId);
       
-      // Remove from list
-      setQuizzes(quizzes.filter(q => q.id !== quizId));
+      // Refetch quizzes from parent
+      onRefetch();
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message || 'Failed to delete quiz');
@@ -129,24 +105,9 @@ export const QuizList: React.FC<QuizListProps> = ({ courseId, courseStatus = 'AC
   /**
    * Handle update success
    */
-  const handleUpdateSuccess = (updatedQuiz: any) => {
-    // Convert Quiz to QuizListItem format
-    const quizListItem: QuizListItem = {
-      id: updatedQuiz.id,
-      courseId: updatedQuiz.courseId,
-      title: updatedQuiz.title,
-      description: updatedQuiz.description,
-      dueDate: updatedQuiz.dueDate,
-      timeLimit: updatedQuiz.timeLimit,
-      questionCount: updatedQuiz.questions?.length || 0,
-      createdAt: updatedQuiz.createdAt,
-      updatedAt: updatedQuiz.updatedAt,
-    };
-    
-    // Update quiz in list
-    setQuizzes(quizzes.map(q => 
-      q.id === quizListItem.id ? quizListItem : q
-    ));
+  const handleUpdateSuccess = () => {
+    // Refetch quizzes from parent
+    onRefetch();
     
     // Close edit modal
     setEditingQuizId(null);
@@ -178,31 +139,6 @@ export const QuizList: React.FC<QuizListProps> = ({ courseId, courseStatus = 'AC
     const route = buildRoute(ROUTES.TEACHER_QUIZ_SUBMISSIONS, { courseId, quizId });
     navigate(route);
   };
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
-  // Error state
-  if (error && quizzes.length === 0) {
-    return (
-      <div className="py-6">
-        <ErrorMessage message={error} />
-        <Button
-          variant="secondary"
-          onClick={fetchQuizzes}
-          className="mt-4"
-        >
-          Retry
-        </Button>
-      </div>
-    );
-  }
 
   // Empty state
   if (quizzes.length === 0) {
@@ -372,9 +308,8 @@ export const QuizList: React.FC<QuizListProps> = ({ courseId, courseStatus = 'AC
                           size="sm"
                           onClick={() => handleEdit(quiz.id)}
                           disabled={isOverdue}
-                          title={isOverdue ? 'Cannot edit quiz after due date' : 'Edit quiz'}
                         >
-                          Edit
+                          {isOverdue ? 'Cannot Edit (Overdue)' : 'Edit'}
                         </Button>
                         <Button
                           variant="danger"

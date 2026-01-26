@@ -18,7 +18,7 @@ export interface Assignment {
   courseId: string;
   dueDate: string;
   submissionType: SubmissionType;
-  allowedFileTypes?: string[];
+  acceptedFileFormats?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -31,7 +31,7 @@ export interface CreateAssignmentRequest {
   description: string;
   dueDate: string;
   submissionType: SubmissionType;
-  allowedFileTypes?: string[];
+  acceptedFileFormats?: string[];
 }
 
 /**
@@ -42,7 +42,7 @@ export interface UpdateAssignmentRequest {
   description: string;
   dueDate: string;
   submissionType: SubmissionType;
-  allowedFileTypes?: string[];
+  acceptedFileFormats?: string[];
 }
 
 /**
