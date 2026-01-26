@@ -12,7 +12,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithRouter } from '../../../../test/test-utils';
-import { StudentDashboard } from '../StudentDashboard';
+import { StudentDashboard } from '../dashboard/StudentDashboard';
 import * as authHooks from '../../hooks/useAuth';
 import * as courseService from '../../services/courseService';
 

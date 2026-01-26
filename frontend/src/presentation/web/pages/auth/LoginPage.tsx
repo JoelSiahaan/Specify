@@ -12,13 +12,13 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Input, ErrorMessage, Spinner } from '../components/shared';
-import { useAuth } from '../hooks';
-import { ROUTES } from '../constants';
-import type { LoginRequest } from '../types';
+import { Button, Input, ErrorMessage, Spinner } from '../../components/shared';
+import { useAuth } from '../../hooks';
+import { ROUTES } from '../../constants';
+import type { LoginRequest } from '../../types';
 
 export const LoginPage: React.FC = () => {
-  const { user, login, loading, error: authError, clearError } = useAuth();
+  const { login, loading, error: authError, clearError } = useAuth();
   
   // Form state
   const [formData, setFormData] = useState<LoginRequest>({

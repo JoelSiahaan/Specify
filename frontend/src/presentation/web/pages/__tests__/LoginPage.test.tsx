@@ -13,7 +13,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithRouter } from '../../../../test/test-utils';
-import { LoginPage } from '../LoginPage';
+import { LoginPage } from '../auth/LoginPage';
 import * as authHooks from '../../hooks/useAuth';
 
 // Mock useAuth hook

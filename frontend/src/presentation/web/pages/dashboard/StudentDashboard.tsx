@@ -13,13 +13,13 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../hooks';
-import { listCourses } from '../services';
-import { CourseCard } from '../components/course';
-import { buildRoute, ROUTES } from '../constants';
+import { useAuth } from '../../hooks';
+import { listCourses } from '../../services';
+import { CourseCard } from '../../components/course';
+import { buildRoute, ROUTES } from '../../constants';
 import { useNavigate } from 'react-router-dom';
-import { CourseStatus } from '../types';
-import type { Course } from '../types';
+import { CourseStatus } from '../../types';
+import type { Course } from '../../types';
 
 export const StudentDashboard: React.FC = () => {
   const { user } = useAuth();

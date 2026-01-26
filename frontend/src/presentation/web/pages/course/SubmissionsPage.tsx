@@ -13,12 +13,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CourseLayout } from '../components/layout';
-import { Button, Spinner, ErrorMessage } from '../components/shared';
-import * as assignmentService from '../services/assignmentService';
-import { formatDueDate } from '../utils/dateFormatter';
-import type { Assignment, Submission, ApiError } from '../types';
-import { SubmissionStatus } from '../types/common.types';
+import { CourseLayout } from '../../components/layout';
+import { Button, Spinner, ErrorMessage } from '../../components/shared';
+import * as assignmentService from '../../services/assignmentService';
+import { formatDueDate } from '../../utils/dateFormatter';
+import type { Assignment, Submission, ApiError } from '../../types';
+import { SubmissionStatus } from '../../types/common.types';
 
 export const SubmissionsPage: React.FC = () => {
   const { courseId, assignmentId } = useParams<{ courseId: string; assignmentId: string }>();

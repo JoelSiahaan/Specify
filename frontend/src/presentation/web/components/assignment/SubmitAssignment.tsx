@@ -318,10 +318,10 @@ export const SubmitAssignment: React.FC<SubmitAssignmentProps> = ({
             {assignment.submissionType === SubmissionType.TEXT && 'Text Submission'}
             {assignment.submissionType === SubmissionType.BOTH && 'File Upload and/or Text Submission'}
           </p>
-          {assignment.allowedFileTypes && assignment.allowedFileTypes.length > 0 && (
+          {assignment.acceptedFileFormats && assignment.acceptedFileFormats.length > 0 && (
             <p className="text-sm text-gray-600 mt-1">
               <span className="font-medium">Allowed File Types:</span>{' '}
-              {assignment.allowedFileTypes.join(', ')}
+              {assignment.acceptedFileFormats.join(', ')}
             </p>
           )}
         </div>
@@ -345,10 +345,10 @@ export const SubmitAssignment: React.FC<SubmitAssignmentProps> = ({
               </label>
               <FileUpload
                 onFileSelect={handleFileSelect}
-                accept={assignment.allowedFileTypes?.join(',') || '.pdf,.docx,.jpg,.jpeg,.png'}
+                accept={assignment.acceptedFileFormats?.join(',') || '.pdf,.docx,.jpg,.jpeg,.png'}
                 helperText={
-                  assignment.allowedFileTypes && assignment.allowedFileTypes.length > 0
-                    ? `${assignment.allowedFileTypes.join(', ')} (max 10MB)`
+                  assignment.acceptedFileFormats && assignment.acceptedFileFormats.length > 0
+                    ? `${assignment.acceptedFileFormats.join(', ')} (max 10MB)`
                     : 'PDF, DOCX, or images (max 10MB)'
                 }
                 disabled={submitting}

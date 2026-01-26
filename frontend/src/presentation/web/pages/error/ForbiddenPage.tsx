@@ -10,9 +10,9 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ROUTES } from '../constants';
-import { useAuth } from '../hooks';
-import { UserRole } from '../types';
+import { ROUTES } from '../../constants';
+import { useAuth } from '../../hooks';
+import { UserRole } from '../../types';
 
 export const ForbiddenPage: React.FC = () => {
   const { user } = useAuth();

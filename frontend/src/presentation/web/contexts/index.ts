@@ -5,3 +5,4 @@
  */
 
 export { AuthContext, AuthProvider } from './AuthContext';
+export { CourseProvider, useCourseContext } from './CourseContext';

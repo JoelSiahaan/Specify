@@ -4,14 +4,14 @@
  * Re-export all page components for easy importing.
  */
 
-export { HomePage } from './HomePage';
-export { NotFoundPage } from './NotFoundPage';
-export { LoginPage } from './LoginPage';
-export { RegisterPage } from './RegisterPage';
-export { ForbiddenPage } from './ForbiddenPage';
-export { StudentDashboard } from './StudentDashboard';
-export { TeacherDashboard } from './TeacherDashboard';
-export { AssignmentsPage } from './AssignmentsPage';
-export { SubmissionsPage } from './SubmissionsPage';
-export { MaterialsPage } from './MaterialsPage';
-export { QuizzesPage } from './QuizzesPage';
+// Auth pages
+export { LoginPage, RegisterPage } from './auth';
+
+// Dashboard pages
+export { HomePage, StudentDashboard, TeacherDashboard } from './dashboard';
+
+// Course pages
+export { AssignmentsPage, QuizzesPage, MaterialsPage, SubmissionsPage } from './course';
+
+// Error pages
+export { NotFoundPage, ForbiddenPage } from './error';

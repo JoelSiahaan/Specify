@@ -13,7 +13,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithRouter } from '../../../../test/test-utils';
-import { RegisterPage } from '../RegisterPage';
+import { RegisterPage } from '../auth/RegisterPage';
 import * as authHooks from '../../hooks/useAuth';
 import { UserRole } from '../../types';
 

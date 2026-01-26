@@ -6,8 +6,8 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '../components/shared';
-import { ROUTES } from '../constants';
+import { Button } from '../../components/shared';
+import { ROUTES } from '../../constants';
 
 export const NotFoundPage: React.FC = () => {
   return (

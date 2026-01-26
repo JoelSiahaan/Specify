@@ -16,14 +16,12 @@ import { Button, Spinner, ErrorMessage } from '../shared';
 import { CourseLayout, Breadcrumb } from '../layout';
 import { quizService } from '../../services';
 import { ROUTES, buildRoute } from '../../constants';
-import { useAuth } from '../../hooks';
 import { formatDueDate } from '../../utils/dateFormatter';
 import type { Quiz, QuizSubmissionListItem, QuizSubmissionStatus, ApiError } from '../../types';
 
 export const QuizSubmissions: React.FC = () => {
   const { courseId, quizId } = useParams<{ courseId: string; quizId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   // State
   const [quiz, setQuiz] = useState<Quiz | null>(null);

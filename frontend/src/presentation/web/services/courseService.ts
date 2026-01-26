@@ -13,7 +13,6 @@ import type {
   UpdateCourseRequest,
   ListCoursesResponse,
   CourseQueryFilters,
-  EnrollmentWithStudent,
   ListEnrollmentsResponse,
 } from '../types';
 

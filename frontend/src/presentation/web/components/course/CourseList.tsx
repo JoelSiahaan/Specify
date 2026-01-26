@@ -26,12 +26,12 @@ import { searchCourses, enrollInCourse } from '../../services/courseService';
 interface CourseSearchResult {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   courseCode: string;
   status: string;
   teacherId: string;
   teacherName?: string;
-  isEnrolled: boolean;
+  isEnrolled?: boolean;
   createdAt: string;
   updatedAt: string;
 }

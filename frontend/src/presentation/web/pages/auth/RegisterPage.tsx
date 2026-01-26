@@ -11,11 +11,11 @@
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Button, Input, ErrorMessage, Spinner } from '../components/shared';
-import { useAuth } from '../hooks';
-import { ROUTES } from '../constants';
-import { UserRole } from '../types';
-import type { RegisterRequest } from '../types';
+import { Button, Input, ErrorMessage, Spinner } from '../../components/shared';
+import { useAuth } from '../../hooks';
+import { ROUTES } from '../../constants';
+import { UserRole } from '../../types';
+import type { RegisterRequest } from '../../types';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
