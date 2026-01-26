@@ -130,7 +130,7 @@ export const listQuizSubmissions = async (
 export const getQuizSubmission = async (
   submissionId: string
 ): Promise<QuizSubmission> => {
-  return await api.get<QuizSubmission>(API_ENDPOINTS.GRADING.SUBMISSION_DETAILS(submissionId));
+  return await api.get<QuizSubmission>(API_ENDPOINTS.GRADING.QUIZ_SUBMISSION_DETAILS(submissionId));
 };
 
 /**
@@ -148,20 +148,29 @@ export const gradeQuizSubmission = async (
   data: GradeQuizSubmissionRequest
 ): Promise<QuizSubmission> => {
   return await api.post<QuizSubmission>(
-    API_ENDPOINTS.GRADING.GRADE(submissionId),
+    API_ENDPOINTS.GRADING.GRADE_QUIZ(submissionId),
     data
   );
 };
 
 /**
  * Update quiz grade (teacher)
+ * 
+ * NOTE: This function is currently not implemented in the backend.
+ * Quiz grades can only be set once using gradeQuizSubmission().
+ * If grade updates are needed, use gradeQuizSubmission() again.
+ * 
+ * TODO: Implement PUT /api/quiz-submissions/:id/grade endpoint in backend
+ * if quiz grade updates are required.
  */
 export const updateQuizGrade = async (
   submissionId: string,
   data: GradeQuizSubmissionRequest
 ): Promise<QuizSubmission> => {
-  return await api.put<QuizSubmission>(
-    API_ENDPOINTS.GRADING.UPDATE_GRADE(submissionId),
+  // For now, use the same POST endpoint as gradeQuizSubmission
+  // This will overwrite the existing grade
+  return await api.post<QuizSubmission>(
+    API_ENDPOINTS.GRADING.GRADE_QUIZ(submissionId),
     data
   );
 };
