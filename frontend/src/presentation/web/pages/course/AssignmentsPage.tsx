@@ -29,6 +29,7 @@ interface AssignmentWithStatus extends Assignment {
   status?: SubmissionStatus;
   isLate?: boolean;
   grade?: number;
+  feedback?: string;
 }
 
 export const AssignmentsPage: React.FC = () => {
@@ -85,6 +86,7 @@ export const AssignmentsPage: React.FC = () => {
                 status: submission.status,
                 isLate: submission.isLate,
                 grade: submission.grade,
+                feedback: submission.feedback,
               };
             } catch (err) {
               // If error fetching submission, assume not submitted

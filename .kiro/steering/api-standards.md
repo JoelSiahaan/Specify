@@ -27,6 +27,18 @@ This document defines the REST API standards that ALL features must follow. Cons
 - ✅ `/api/courses/:courseId/materials`
 - ✅ `/api/assignments/:assignmentId/submissions`
 
+**Separate Resources for Different Types:**
+- When resources have different schemas or behaviors, use separate endpoints
+- ✅ `/api/assignment-submissions/:id` (for assignment submissions)
+- ✅ `/api/quiz-submissions/:id` (for quiz submissions)
+- ❌ `/api/submissions/:id` (ambiguous - which type?)
+
+**Why Separate Submission Endpoints?**
+- **Different Schemas**: Assignment submissions have `textContent` and `filePath`, quiz submissions have `answers` array
+- **Different Grading Logic**: Assignments graded manually, quizzes can have auto-grading
+- **Avoid Route Conflicts**: Prevents ambiguity when both routes exist
+- **Clear Intent**: Endpoint name clearly indicates the resource type
+
 ### HTTP Methods
 
 **Standard CRUD Operations:**
@@ -101,7 +113,8 @@ POST   /api/courses/enroll
 POST   /api/assignments/:id/submit
 POST   /api/quizzes/:id/start
 POST   /api/quizzes/:id/autosave
-POST   /api/submissions/:id/grade
+POST   /api/assignment-submissions/:id/grade
+POST   /api/quiz-submissions/:id/grade
 ```
 
 **Pattern 5: Special Endpoints**
@@ -623,11 +636,14 @@ GET    /api/quizzes/:id/submissions         # List quiz submissions (teacher onl
 ### Grading Endpoints
 
 ```
-GET    /api/submissions/:id                 # Get submission details
-POST   /api/submissions/:id/grade           # Grade submission (teacher only)
-PUT    /api/submissions/:id/grade           # Update grade (teacher only)
-GET    /api/courses/:id/grades/export       # Export grades CSV (teacher only)
-GET    /api/courses/:id/progress            # Get student progress (student only)
+GET    /api/assignment-submissions/:id        # Get assignment submission details
+POST   /api/assignment-submissions/:id/grade  # Grade assignment submission (teacher only)
+PUT    /api/assignment-submissions/:id/grade  # Update assignment grade (teacher only)
+GET    /api/quiz-submissions/:id              # Get quiz submission details
+POST   /api/quiz-submissions/:id/grade        # Grade quiz submission (teacher only)
+PUT    /api/quiz-submissions/:id/grade        # Update quiz grade (teacher only)
+GET    /api/courses/:id/grades/export         # Export grades CSV (teacher only)
+GET    /api/courses/:id/progress              # Get student progress (student only)
 ```
 
 ---

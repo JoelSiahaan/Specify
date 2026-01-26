@@ -94,7 +94,7 @@ export class GradingController {
   /**
    * Get submission by ID
    * 
-   * GET /api/submissions/:id
+   * GET /api/assignment-submissions/:id
    * 
    * Requires authentication (AuthenticationMiddleware)
    * 
@@ -157,7 +157,7 @@ export class GradingController {
   /**
    * Grade assignment submission
    * 
-   * POST /api/submissions/:id/grade
+   * POST /api/assignment-submissions/:id/grade
    * 
    * Requires authentication (AuthenticationMiddleware)
    * Requires teacher role and course ownership (validated by use case)
@@ -232,7 +232,7 @@ export class GradingController {
   /**
    * Update assignment submission grade
    * 
-   * PUT /api/submissions/:id/grade
+   * PUT /api/assignment-submissions/:id/grade
    * 
    * Requires authentication (AuthenticationMiddleware)
    * Requires teacher role and course ownership (validated by use case)

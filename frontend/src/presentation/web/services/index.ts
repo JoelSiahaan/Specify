@@ -10,6 +10,7 @@ export * as courseService from './courseService';
 export * as materialService from './materialService';
 export * as quizService from './quizService';
 export * as assignmentService from './assignmentService';
+export * as gradingService from './gradingService';
 
 // Re-export individual course service functions for convenience
 export {

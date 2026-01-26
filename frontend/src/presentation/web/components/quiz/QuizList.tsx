@@ -244,6 +244,14 @@ export const QuizList: React.FC<QuizListProps> = ({ quizzes, courseId, courseSta
                       )}
                     </div>
                   </div>
+
+                  {/* Feedback Section (shown when graded and feedback exists) */}
+                  {!isTeacher && isGraded && quiz.feedback && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="text-sm font-medium text-gray-700 mb-1">Feedback:</p>
+                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{quiz.feedback}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 

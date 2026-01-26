@@ -49,9 +49,9 @@ router.get(
 );
 
 /**
- * GET /api/submissions/:id
+ * GET /api/assignment-submissions/:id
  * 
- * Get submission by ID
+ * Get assignment submission by ID
  * 
  * Protected endpoint (authentication required)
  * Path parameters: id - Submission ID (UUID)
@@ -63,12 +63,12 @@ router.get(
  * - Teachers: Can view all submissions in their courses
  */
 router.get(
-  '/submissions/:id',
+  '/assignment-submissions/:id',
   gradingController.getSubmission.bind(gradingController)
 );
 
 /**
- * POST /api/submissions/:id/grade
+ * POST /api/assignment-submissions/:id/grade
  * 
  * Grade assignment submission
  * 
@@ -90,13 +90,13 @@ router.get(
  * - Supports optimistic locking for concurrent grading prevention
  */
 router.post(
-  '/submissions/:id/grade',
+  '/assignment-submissions/:id/grade',
   validateBody(GradeSubmissionRequestSchema),
   gradingController.gradeAssignmentSubmission.bind(gradingController)
 );
 
 /**
- * PUT /api/submissions/:id/grade
+ * PUT /api/assignment-submissions/:id/grade
  * 
  * Update assignment submission grade
  * 
@@ -118,7 +118,7 @@ router.post(
  * - Supports optimistic locking for concurrent grading prevention
  */
 router.put(
-  '/submissions/:id/grade',
+  '/assignment-submissions/:id/grade',
   validateBody(GradeSubmissionRequestSchema),
   gradingController.updateAssignmentGrade.bind(gradingController)
 );

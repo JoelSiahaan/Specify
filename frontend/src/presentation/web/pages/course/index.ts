@@ -8,3 +8,5 @@ export { AssignmentsPage } from './AssignmentsPage';
 export { QuizzesPage } from './QuizzesPage';
 export { MaterialsPage } from './MaterialsPage';
 export { SubmissionsPage } from './SubmissionsPage';
+export { GradingPage } from './GradingPage';
+export { StudentGradesPage } from './StudentGradesPage';

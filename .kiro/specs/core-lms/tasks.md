@@ -2116,7 +2116,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement React components for grading UI
   - _Requirements: 13.10, 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 21.5, 13.7, 13.8, 13.9, 14.1, 14.2, 19.1, 19.2, 19.5_
 
-- [ ] 8.3.1 Implement SubmissionList component (teacher)
+- [x] 8.3.1 Implement SubmissionList component (teacher)
   - Priority: MEDIUM-HIGH
   - Dependencies: 8.2.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 8.3.2, 8.3.3, 8.3.4)
@@ -2126,7 +2126,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Provide links to grade each submission
   - _Requirements: 13.10_
 
-- [ ] 8.3.2 Implement GradeSubmission component (teacher)
+- [x] 8.3.2 Implement GradeSubmission component (teacher)
   - Priority: HIGH
   - Dependencies: 8.2.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 8.3.1, 8.3.3, 8.3.4)
@@ -2137,7 +2137,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Show warning if another teacher is grading concurrently
   - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 21.5_
 
-- [ ] 8.3.3 Implement GradeQuizSubmission component (teacher)
+- [x] 8.3.3 Implement GradeQuizSubmission component (teacher)
   - Priority: HIGH
   - Dependencies: 8.2.2 (API), 2.5.1 (shared components)
   - Can be parallelized: Yes (with 8.3.1, 8.3.2, 8.3.4)
@@ -2147,7 +2147,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Rich text editor for feedback
   - _Requirements: 13.7, 13.8, 13.9_
 
-- [ ] 8.3.4 Update student views to show grades
+- [x] 8.3.4 Update student views to show grades
   - Priority: MEDIUM-HIGH
   - Dependencies: 8.2.2 (API), 6.5.3 (AssignmentList), 7.5.5 (QuizResults)
   - Can be parallelized: Yes (with 8.3.1, 8.3.2, 8.3.3)
