@@ -28,7 +28,6 @@ import { MaterialType } from '../../../domain/entities/Material';
 import { CreateMaterialDTO, MaterialDTO } from '../../dtos/MaterialDTO';
 import { MaterialMapper } from '../../mappers/MaterialMapper';
 import { ApplicationError } from '../../errors/ApplicationErrors';
-import { FileValidator } from '../../../infrastructure/validation/FileValidator';
 
 @injectable()
 export class CreateMaterialUseCase {

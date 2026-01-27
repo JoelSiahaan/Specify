@@ -25,7 +25,8 @@ function isMaintenanceMode(): boolean {
 export function maintenanceMode(req: Request, res: Response, next: NextFunction): void {
   // Allow health check endpoint even in maintenance mode
   if (req.path === '/health') {
-    return next();
+    next();
+    return;
   }
 
   // Check if maintenance mode is enabled
@@ -36,11 +37,12 @@ export function maintenanceMode(req: Request, res: Response, next: NextFunction)
       ip: req.ip
     });
 
-    return res.status(503).json({
+    res.status(503).json({
       code: 'SERVICE_UNAVAILABLE',
       message: 'The system is currently undergoing maintenance. Please try again later.',
       maintenanceMode: true
     });
+    return;
   }
 
   next();

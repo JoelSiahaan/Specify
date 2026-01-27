@@ -69,7 +69,7 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   disallowedTagsMode: 'discard',
   // Enforce target="_blank" and rel="noopener noreferrer" for external links
   transformTags: {
-    'a': (tagName, attribs) => {
+    'a': (_tagName, attribs) => {
       return {
         tagName: 'a',
         attribs: {

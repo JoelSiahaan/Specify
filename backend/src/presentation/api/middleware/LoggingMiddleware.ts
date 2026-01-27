@@ -16,7 +16,7 @@ import type { AuthenticatedRequest } from './AuthenticationMiddleware';
  */
 function getUserId(req: Request): string | undefined {
   const authReq = req as AuthenticatedRequest;
-  return authReq.user?.id;
+  return authReq.user?.userId;
 }
 
 /**
@@ -107,7 +107,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction): 
 export function errorLogger(
   error: Error,
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void {
   const userId = getUserId(req);

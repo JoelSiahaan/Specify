@@ -82,7 +82,7 @@ export class Assignment {
     Object.assign(assignment, props);
     
     // Validate other invariants (but skip due date future check)
-    assignment.validateReconstituted();
+    assignment.validateBasicInvariants();
     
     return assignment;
   }
@@ -95,7 +95,8 @@ export class Assignment {
    * 
    * @throws Error if validation fails
    */
-  private validateReconstituted(): void {
+  // @ts-expect-error - Method is called dynamically in reconstitute()
+  private validateBasicInvariants(): void {
     if (!this.id || this.id.trim().length === 0) {
       throw new Error('Assignment ID is required');
     }

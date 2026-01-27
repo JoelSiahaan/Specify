@@ -9,10 +9,10 @@
  */
 
 import { inject, injectable } from 'tsyringe';
-import { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
-import { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
 import { EnrollmentWithStudentDTO } from '../../dtos/EnrollmentDTO';
 import { EnrollmentMapper } from '../../mappers/EnrollmentMapper';
 import { UnauthorizedError, ForbiddenError, NotFoundError } from '../../errors/ApplicationErrors';
