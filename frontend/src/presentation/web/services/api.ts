@@ -6,7 +6,7 @@
  */
 
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { CONFIG } from '../constants';
+import { CONFIG, ROUTES } from '../constants';
 import type { ApiError } from '../types';
 
 /**
@@ -48,6 +48,18 @@ apiClient.interceptors.response.use(
     // Handle specific error scenarios
     if (error.response) {
       const { status, data } = error.response;
+
+      // Handle 503 Service Unavailable (Maintenance Mode)
+      if (status === 503) {
+        console.warn('System in maintenance mode');
+        // Redirect to maintenance page
+        window.location.href = ROUTES.MAINTENANCE;
+        return Promise.reject({
+          code: 'SERVICE_UNAVAILABLE',
+          message: data?.message || 'The system is currently undergoing maintenance.',
+          status,
+        });
+      }
 
       // Handle 401 Unauthorized
       // DON'T redirect automatically - let components handle it

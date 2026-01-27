@@ -4,7 +4,9 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { configureContainer } from './infrastructure/di/index.js';
 import { authRoutes, courseRoutes, materialRoutes, quizRoutes, assignmentRoutes, gradingRoutes } from './presentation/api/routes/index.js';
-import { errorHandler } from './presentation/api/middleware/index.js';
+import { errorHandler, requestLogger, errorLogger, maintenanceMode } from './presentation/api/middleware/index.js';
+import { getPrismaClient } from './infrastructure/persistence/prisma/client.js';
+import { logger } from './infrastructure/logging/logger.js';
 
 // Initialize dependency injection container
 configureContainer();
@@ -57,6 +59,14 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 // Cookie parser middleware (for JWT tokens in HTTP-only cookies with SameSite=Strict)
 app.use(cookieParser());
 
+// Maintenance mode middleware (check before processing requests)
+// Requirements: 21.4 - Maintenance mode support
+app.use(maintenanceMode);
+
+// Request logging middleware (log all incoming requests)
+// Requirements: 21.2, 21.3 - Request/response logging with context
+app.use(requestLogger);
+
 // Health check endpoint
 app.get('/health', (_req, res) => {
   res.status(200).json({
@@ -74,15 +84,46 @@ app.use('/api', quizRoutes);
 app.use('/api', assignmentRoutes);
 app.use('/api', gradingRoutes);
 
+// Error logging middleware (log errors before handling)
+// Requirements: 21.2 - Error tracking with context
+app.use(errorLogger);
+
 // Error handler middleware (must be last)
 app.use(errorHandler);
 
-// Start server
-// Listen on 0.0.0.0 to accept connections from outside the container
-// This is required for Docker containerized applications
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
-});
+/**
+ * Initialize database connection and start server
+ * Requirements: 21.1 - Database connection retry logic
+ */
+async function startServer(): Promise<void> {
+  try {
+    // Initialize database connection with retry logic
+    logger.info('Initializing database connection...');
+    await getPrismaClient();
+    logger.info('Database connection established successfully');
+
+    // Start server
+    // Listen on 0.0.0.0 to accept connections from outside the container
+    // This is required for Docker containerized applications
+    app.listen(PORT, '0.0.0.0', () => {
+      logger.info('Server started successfully', {
+        port: PORT,
+        environment: process.env.NODE_ENV || 'development'
+      });
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`Health check: http://localhost:${PORT}/health`);
+    });
+  } catch (error) {
+    logger.error('Failed to start server', {
+      error: (error as Error).message,
+      stack: (error as Error).stack
+    });
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
 
 export default app;

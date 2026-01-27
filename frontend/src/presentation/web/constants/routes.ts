@@ -39,6 +39,7 @@ export const ROUTES = {
   NOT_FOUND: '/404',
   UNAUTHORIZED: '/401',
   FORBIDDEN: '/403',
+  MAINTENANCE: '/maintenance',
 } as const;
 
 /**

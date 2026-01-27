@@ -20,7 +20,8 @@ import {
   MaterialsPage,
   QuizzesPage,
   GradingPage,
-  StudentGradesPage
+  StudentGradesPage,
+  MaintenancePage
 } from '../pages';
 import { CreateCourse, UpdateCourse, CourseDetails, ManageCourse, CourseList } from '../components/course';
 import { TakeQuiz, QuizResults, QuizSubmissions, QuizSubmissionDetails } from '../components/quiz';
@@ -294,6 +295,7 @@ export function AppRouter() {
         />
         
         {/* Error routes */}
+        <Route path={ROUTES.MAINTENANCE} element={<MaintenancePage />} />
         <Route path={ROUTES.FORBIDDEN} element={<ForbiddenPage />} />
         <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage />} />
         <Route path="*" element={<Navigate to={ROUTES.NOT_FOUND} replace />} />

@@ -9,3 +9,5 @@ export type { AuthenticatedRequest } from './AuthenticationMiddleware';
 export { errorHandler } from './ErrorHandlerMiddleware';
 export { validate, validateBody, validateQuery, validateParams } from './ValidationMiddleware';
 export type { ValidationTarget } from './ValidationMiddleware';
+export { requestLogger, errorLogger } from './LoggingMiddleware';
+export { maintenanceMode, getMaintenanceStatus } from './MaintenanceMiddleware';

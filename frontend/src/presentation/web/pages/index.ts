@@ -15,3 +15,4 @@ export { AssignmentsPage, QuizzesPage, MaterialsPage, SubmissionsPage, GradingPa
 
 // Error pages
 export { NotFoundPage, ForbiddenPage } from './error';
+export { MaintenancePage } from './error/MaintenancePage';
