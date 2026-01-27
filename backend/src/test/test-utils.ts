@@ -60,7 +60,64 @@ export function generateTestToken(payload: {
 }
 
 /**
- * Mock user data for testing
+ * Generate unique test email to avoid conflicts
+ */
+export function generateUniqueEmail(prefix: string = 'test'): string {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(7);
+  return `${prefix}-${timestamp}-${random}@example.com`;
+}
+
+/**
+ * Generate unique test ID
+ */
+export function generateUniqueId(prefix: string = 'test'): string {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(7);
+  return `${prefix}-${timestamp}-${random}`;
+}
+
+/**
+ * Create mock user data with unique email
+ * 
+ * @param overrides - Optional overrides for user properties
+ * @returns Mock user object with unique email
+ */
+export function createMockUser(overrides?: Partial<typeof mockUser>) {
+  return {
+    id: generateUniqueId('user'),
+    email: generateUniqueEmail('test'),
+    name: 'Test User',
+    role: 'STUDENT' as const,
+    passwordHash: '$2b$10$test.hash.for.testing.only',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  };
+}
+
+/**
+ * Create mock teacher data with unique email
+ * 
+ * @param overrides - Optional overrides for teacher properties
+ * @returns Mock teacher object with unique email
+ */
+export function createMockTeacher(overrides?: Partial<typeof mockTeacher>) {
+  return {
+    id: generateUniqueId('teacher'),
+    email: generateUniqueEmail('teacher'),
+    name: 'Test Teacher',
+    role: 'TEACHER' as const,
+    passwordHash: '$2b$10$test.hash.for.testing.only',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  };
+}
+
+/**
+ * Mock user data for testing (deprecated - use createMockUser instead)
+ * @deprecated Use createMockUser() to generate unique test data
  */
 export const mockUser = {
   id: 'test-user-id',
@@ -73,7 +130,8 @@ export const mockUser = {
 };
 
 /**
- * Mock teacher data for testing
+ * Mock teacher data for testing (deprecated - use createMockTeacher instead)
+ * @deprecated Use createMockTeacher() to generate unique test data
  */
 export const mockTeacher = {
   id: 'test-teacher-id',

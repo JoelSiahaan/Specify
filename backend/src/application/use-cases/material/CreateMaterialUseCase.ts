@@ -127,7 +127,7 @@ export class CreateMaterialUseCase {
    * - 20.5: Enforce file size limits on all uploads
    * 
    * Note: File validation is now handled by FileValidator in LocalFileStorage.
-   * This method validates that file metadata is provided.
+   * This method validates that file metadata is provided and enforces size limits.
    * 
    * @param dto - CreateMaterialDTO with file data
    * @returns Processed CreateMaterialDTO with file path
@@ -144,12 +144,22 @@ export class CreateMaterialUseCase {
       );
     }
 
-    // File validation (type, size, content) is handled by FileValidator
+    // Requirement 7.5, 7.9, 20.5: Enforce file size limit (10MB max)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+    if (dto.fileSize > MAX_FILE_SIZE) {
+      throw new ApplicationError(
+        'INVALID_FILE_SIZE',
+        `File size exceeds maximum allowed size of 10MB (${dto.fileSize} bytes)`,
+        400
+      );
+    }
+
+    // File validation (type, content) is also handled by FileValidator
     // in LocalFileStorage.upload() method.
     // The controller uploads the file first, which triggers validation.
     // If we reach here, the file has already been validated and uploaded.
 
-    // Just return the DTO with validated metadata
+    // Return the DTO with validated metadata
     return dto;
   }
 
