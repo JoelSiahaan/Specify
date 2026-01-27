@@ -43,12 +43,7 @@ export class ListCoursesUseCase {
     @inject('ICourseRepository') private courseRepository: ICourseRepository,
     @inject('IUserRepository') private userRepository: IUserRepository,
     @inject('IEnrollmentRepository') private enrollmentRepository: IEnrollmentRepository
-  ) {
-    console.log('[ListCoursesUseCase] Constructor called');
-    console.log('[ListCoursesUseCase] courseRepository:', courseRepository ? 'OK' : 'UNDEFINED');
-    console.log('[ListCoursesUseCase] userRepository:', userRepository ? 'OK' : 'UNDEFINED');
-    console.log('[ListCoursesUseCase] enrollmentRepository:', enrollmentRepository ? 'OK' : 'UNDEFINED');
-  }
+  ) {}
 
   /**
    * Execute course listing
@@ -91,14 +86,10 @@ export class ListCoursesUseCase {
       
       if (filter?.enrolledOnly) {
         // Requirement 3.1: Students see only enrolled courses (for dashboard)
-        console.log('[ListCoursesUseCase] Filtering by enrolledOnly for student:', userId);
         const enrollments = await this.enrollmentRepository.findByStudentId(userId);
-        console.log('[ListCoursesUseCase] Found enrollments:', enrollments.length);
         const enrolledCourseIds = enrollments.map(e => e.getCourseId());
-        console.log('[ListCoursesUseCase] Enrolled course IDs:', enrolledCourseIds);
         
         if (enrolledCourseIds.length === 0) {
-          console.log('[ListCoursesUseCase] No enrollments found, returning empty array');
           return [];
         }
         
@@ -111,7 +102,6 @@ export class ListCoursesUseCase {
         courses = allCourses
           .filter(course => course !== null)
           .filter(course => course!.getStatus() === statusFilter);
-        console.log('[ListCoursesUseCase] Filtered courses count:', courses.length);
       } else {
         // Requirement 6.1: Students see all active courses (for browsing/enrollment)
         courses = await this.courseRepository.findAll(statusFilter);

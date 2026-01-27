@@ -72,7 +72,7 @@ export interface StudentProgressDTO {
   studentName: string;
   assignments: AssignmentProgressItemDTO[];
   quizzes: QuizProgressItemDTO[];
-  averageGrade?: number;  // undefined if no graded items
+  averageGrade: number | null;  // null if no graded items
   totalGradedItems: number;
   totalItems: number;
 }

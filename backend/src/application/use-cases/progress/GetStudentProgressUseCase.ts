@@ -83,6 +83,11 @@ export class GetStudentProgressUseCase {
 
     // Validate authorization using policy (Requirement 14.1)
     if (!this.authPolicy.canViewProgress(user, course, { isEnrolled })) {
+      // If user is a teacher but not the owner, return NOT_OWNER
+      if (user.isTeacher()) {
+        throw new ForbiddenError('NOT_OWNER');
+      }
+      // If user is a student but not enrolled, return NOT_ENROLLED
       throw new ForbiddenError('NOT_ENROLLED');
     }
 
@@ -201,7 +206,7 @@ export class GetStudentProgressUseCase {
     const averageGrade =
       allGrades.length > 0
         ? allGrades.reduce((sum, grade) => sum + grade, 0) / allGrades.length
-        : undefined;
+        : null;
 
     const totalGradedItems = allGrades.length;  // Fixed: use allGrades.length instead of counting separately
     const totalItems = assignments.length + quizzes.length;

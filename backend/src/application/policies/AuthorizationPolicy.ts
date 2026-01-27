@@ -112,7 +112,9 @@ export class AuthorizationPolicy implements IAuthorizationPolicy {
    * Rules:
    * - Only teachers can delete courses
    * - Teacher must be the course owner
-   * - Course must be archived (not active)
+   * 
+   * Note: Business logic (course must be archived) is checked in the use case,
+   * not in the authorization policy.
    * 
    * Requirements: 2.1 (role-based), 2.2 (ownership)
    */
@@ -124,11 +126,6 @@ export class AuthorizationPolicy implements IAuthorizationPolicy {
 
     // Requirement 2.2: Teacher must be the course owner
     if (course.getTeacherId() !== user.getId()) {
-      return false;
-    }
-
-    // Course must be archived (not active)
-    if (!course.isArchived()) {
       return false;
     }
 

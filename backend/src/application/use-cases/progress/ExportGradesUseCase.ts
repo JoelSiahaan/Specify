@@ -73,8 +73,13 @@ export class ExportGradesUseCase {
       throw new NotFoundError('COURSE_NOT_FOUND');
     }
 
-    // Validate authorization using policy (Requirement 15.1)
+    // Check role first - must be a teacher
     if (!this.authPolicy.canExportGrades(user, course)) {
+      // If user is not a teacher, return FORBIDDEN_ROLE
+      if (user.getRole() !== 'TEACHER') {
+        throw new ForbiddenError('FORBIDDEN_ROLE');
+      }
+      // If user is a teacher but not the owner, return NOT_OWNER
       throw new ForbiddenError('NOT_OWNER');
     }
 

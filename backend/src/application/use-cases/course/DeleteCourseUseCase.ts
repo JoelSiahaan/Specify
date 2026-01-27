@@ -48,24 +48,27 @@ export class DeleteCourseUseCase {
       );
     }
 
-    // Validate teacher ownership FIRST (Authorization before business logic)
-    if (!this.authPolicy.canDeleteCourse(user, course)) {
+    // Check if user is the owner
+    const isOwner = this.authPolicy.canDeleteCourse(user, course);
+    
+    if (isOwner) {
+      // Owner: Check business logic first (Requirement 5.6)
+      // Return 400 if course is not archived
+      try {
+        course.validateCanDelete();
+      } catch (error) {
+        throw new ApplicationError(
+          'RESOURCE_ACTIVE',
+          'Cannot delete active course. Archive the course first',
+          400
+        );
+      }
+    } else {
+      // Non-owner: Return 403 immediately (security first)
       throw new ApplicationError(
         'NOT_OWNER',
         'You do not have permission to delete this course',
         403
-      );
-    }
-
-    // Validate course is archived (Requirement 5.6)
-    // Business logic check happens after authorization
-    try {
-      course.validateCanDelete();
-    } catch (error) {
-      throw new ApplicationError(
-        'RESOURCE_ACTIVE',
-        'Cannot delete active course. Archive the course first',
-        400
       );
     }
 

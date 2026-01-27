@@ -1215,7 +1215,7 @@ describe('CourseController Integration Tests', () => {
             assignmentId: assignmentId,
             studentId: studentId,
             submittedAt: new Date(),
-            textContent: 'Test submission',
+            content: 'Test submission',
             status: 'GRADED',
             grade: 85
           }
@@ -1464,7 +1464,7 @@ describe('CourseController Integration Tests', () => {
             assignmentId: assignmentId,
             studentId: studentId,
             submittedAt: new Date(),
-            textContent: 'Test submission',
+            content: 'Test submission',
             status: 'SUBMITTED'
           }
         });
@@ -1486,7 +1486,7 @@ describe('CourseController Integration Tests', () => {
             assignmentId: assignmentId,
             studentId: studentId,
             submittedAt: new Date(),
-            textContent: 'Test submission',
+            content: 'Test submission',
             status: 'GRADED',
             grade: 85
           }
@@ -1509,7 +1509,7 @@ describe('CourseController Integration Tests', () => {
             assignmentId: assignmentId,
             studentId: studentId,
             submittedAt: new Date(),
-            textContent: 'Test submission',
+            content: 'Test submission',
             status: 'GRADED',
             grade: 90
           }

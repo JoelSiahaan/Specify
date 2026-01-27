@@ -12,6 +12,7 @@
 import { ListCoursesUseCase, ListCoursesFilter } from '../ListCoursesUseCase';
 import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
 import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
+import { IEnrollmentRepository } from '../../../../domain/repositories/IEnrollmentRepository';
 import { Course, CourseStatus } from '../../../../domain/entities/Course';
 import { User, Role } from '../../../../domain/entities/User';
 import { ApplicationError } from '../../../errors/ApplicationErrors';
@@ -34,6 +35,16 @@ const mockUserRepository: jest.Mocked<IUserRepository> = {
   delete: jest.fn()
 };
 
+const mockEnrollmentRepository: jest.Mocked<IEnrollmentRepository> = {
+  save: jest.fn(),
+  findById: jest.fn(),
+  findByStudentAndCourse: jest.fn(),
+  findByStudent: jest.fn(),
+  findByCourse: jest.fn(),
+  delete: jest.fn(),
+  bulkDelete: jest.fn()
+};
+
 describe('ListCoursesUseCase', () => {
   let useCase: ListCoursesUseCase;
   let mockTeacher: User;
@@ -47,7 +58,10 @@ describe('ListCoursesUseCase', () => {
     jest.clearAllMocks();
 
     // Create use case instance
-    useCase = new ListCoursesUseCase(mockCourseRepository, mockUserRepository);
+    useCase = new ListCoursesUseCase(mockCourseRepository, mockUserRepository, mockEnrollmentRepository);
+
+    // Mock enrollment repository to return empty array by default
+    mockEnrollmentRepository.findByCourse.mockResolvedValue([]);
 
     // Create mock users
     mockTeacher = User.create({
