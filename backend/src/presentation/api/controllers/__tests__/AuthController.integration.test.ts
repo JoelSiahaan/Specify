@@ -317,7 +317,9 @@ describe('AuthController Integration Tests', () => {
         // Check cookie security attributes
         const accessTokenCookie = cookieArray.find(c => c.startsWith('access_token='));
         expect(accessTokenCookie).toContain('HttpOnly');
-        expect(accessTokenCookie).toContain('SameSite=Strict');
+        // SameSite is 'lax' in development, 'strict' in production
+        const expectedSameSite = process.env.NODE_ENV === 'production' ? 'SameSite=Strict' : 'SameSite=Lax';
+        expect(accessTokenCookie).toContain(expectedSameSite);
         expect(accessTokenCookie).toContain('Path=/api');
       });
 
@@ -538,7 +540,7 @@ describe('AuthController Integration Tests', () => {
 
     beforeEach(async () => {
       // Register and login to get access token
-      const registerResponse = await request(app)
+      await request(app)
         .post('/api/auth/register')
         .send({
           email: 'me@test.com',
@@ -547,14 +549,15 @@ describe('AuthController Integration Tests', () => {
           role: 'STUDENT'
         });
 
-      userId = registerResponse.body.id;
-
       const loginResponse = await request(app)
         .post('/api/auth/login')
         .send({
           email: 'me@test.com',
           password: 'password123'
         });
+
+      // Get userId from login response
+      userId = loginResponse.body.user.id;
 
       // Extract access token from cookie
       const cookies = loginResponse.headers['set-cookie'];
