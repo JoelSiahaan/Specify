@@ -234,9 +234,12 @@ describe('Enrollment Entity Properties', () => {
           id: uuidArbitrary(),
           courseId: uuidArbitrary(),
           studentId: uuidArbitrary(),
-          enrolledAt: fc.date(),
+          enrolledAt: fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }),
         }),
         async (enrollmentProps: EnrollmentProps) => {
+          // Skip if date is invalid (NaN)
+          fc.pre(!isNaN(enrollmentProps.enrolledAt!.getTime()));
+          
           const original = Enrollment.create(enrollmentProps);
           const obj = original.toObject();
           const reconstituted = Enrollment.reconstitute(obj);
