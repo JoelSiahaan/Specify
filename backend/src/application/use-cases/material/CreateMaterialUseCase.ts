@@ -28,26 +28,7 @@ import { MaterialType } from '../../../domain/entities/Material';
 import { CreateMaterialDTO, MaterialDTO } from '../../dtos/MaterialDTO';
 import { MaterialMapper } from '../../mappers/MaterialMapper';
 import { ApplicationError } from '../../errors/ApplicationErrors';
-
-/**
- * Allowed file MIME types
- * Requirements: 7.4, 7.10
- */
-const ALLOWED_MIME_TYPES = [
-  // Documents
-  'application/pdf',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
-  // Images
-  'image/jpeg',
-  'image/png',
-  'image/gif'
-];
-
-/**
- * Maximum file size in bytes (10MB)
- * Requirement: 7.5, 7.9
- */
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+import { FileValidator } from '../../../infrastructure/validation/FileValidator';
 
 @injectable()
 export class CreateMaterialUseCase {
@@ -142,6 +123,11 @@ export class CreateMaterialUseCase {
    * - 7.5: Enforce file size limit
    * - 7.9: Validate file size before upload
    * - 7.10: No video file uploads
+   * - 20.4: Validate file types before accepting uploads
+   * - 20.5: Enforce file size limits on all uploads
+   * 
+   * Note: File validation is now handled by FileValidator in LocalFileStorage.
+   * This method validates that file metadata is provided.
    * 
    * @param dto - CreateMaterialDTO with file data
    * @returns Processed CreateMaterialDTO with file path
@@ -158,25 +144,11 @@ export class CreateMaterialUseCase {
       );
     }
 
-    // Requirement 7.5, 7.9: Validate file size (10MB max)
-    if (dto.fileSize > MAX_FILE_SIZE) {
-      throw new ApplicationError(
-        'INVALID_FILE_SIZE',
-        `File size exceeds maximum limit of ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
-        400
-      );
-    }
+    // File validation (type, size, content) is handled by FileValidator
+    // in LocalFileStorage.upload() method.
+    // The controller uploads the file first, which triggers validation.
+    // If we reach here, the file has already been validated and uploaded.
 
-    // Requirement 7.4, 7.10: Validate file type
-    if (!ALLOWED_MIME_TYPES.includes(dto.mimeType)) {
-      throw new ApplicationError(
-        'INVALID_FILE_TYPE',
-        'File type not allowed. Only PDF, DOCX, and images (JPEG, PNG, GIF) are supported',
-        400
-      );
-    }
-
-    // File is already uploaded by controller (via multer)
     // Just return the DTO with validated metadata
     return dto;
   }

@@ -37,32 +37,7 @@ import { AssignmentSubmissionMapper } from '../../mappers/AssignmentSubmissionMa
 import { ApplicationError, NotFoundError, ForbiddenError } from '../../errors/ApplicationErrors';
 import { randomUUID } from 'crypto';
 import sanitizeHtml from 'sanitize-html';
-
-/**
- * Allowed file MIME types for assignment submissions
- * 
- * Requirements:
- * - 10.13: Support PDF, DOCX, and image formats (JPG, PNG)
- */
-const ALLOWED_MIME_TYPES = [
-  'application/pdf',                                                      // PDF
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
-  'image/jpeg',                                                           // JPEG
-  'image/png'                                                             // PNG
-];
-
-/**
- * Allowed file extensions for assignment submissions
- */
-const ALLOWED_EXTENSIONS = ['.pdf', '.docx', '.jpg', '.jpeg', '.png'];
-
-/**
- * Maximum file size (10MB in bytes)
- * 
- * Requirements:
- * - 20.5: Enforce file size limits on all uploads
- */
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+import { FileValidator } from '../../../infrastructure/validation/FileValidator';
 
 @injectable()
 export class SubmitAssignmentUseCase {
@@ -121,13 +96,15 @@ export class SubmitAssignmentUseCase {
     let filePath: string | undefined;
     let storedFileName: string | undefined;
     if (file && fileName && mimeType && fileSize !== undefined) {
-      // Validate file format (Requirement 10.5, 10.13)
-      this.validateFileFormat(fileName, mimeType);
+      // Comprehensive file validation (Requirements 10.5, 10.13, 20.4, 20.5)
+      // This validates:
+      // - File size (max 10MB)
+      // - File extension (whitelist + blacklist)
+      // - MIME type (whitelist)
+      // - File content (magic numbers)
+      FileValidator.validateOrThrow(file, fileName, mimeType, fileSize);
 
-      // Validate file size (Requirement 20.5)
-      this.validateFileSize(fileSize);
-
-      // Upload file to storage
+      // Upload file to storage (validation passed)
       const fileMetadata = await this.fileStorage.upload(file, {
         originalName: fileName,
         mimeType: mimeType,
@@ -397,59 +374,6 @@ export class SubmitAssignmentUseCase {
           400
         );
       }
-    }
-  }
-
-  /**
-   * Validate file format
-   * 
-   * Requirements:
-   * - 10.5: Reject file uploads in unsupported formats
-   * - 10.13: Support PDF, DOCX, and image formats (JPG, PNG)
-   * 
-   * @param fileName - Original file name
-   * @param mimeType - File MIME type
-   * @throws ApplicationError if file format is not allowed
-   * @private
-   */
-  private validateFileFormat(fileName: string, mimeType: string): void {
-    // Check MIME type
-    if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
-      throw new ApplicationError(
-        'INVALID_FILE_TYPE',
-        `File type not allowed. Supported formats: PDF, DOCX, JPG, PNG`,
-        400
-      );
-    }
-
-    // Check file extension
-    const extension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
-    if (!ALLOWED_EXTENSIONS.includes(extension)) {
-      throw new ApplicationError(
-        'INVALID_FILE_TYPE',
-        `File extension not allowed. Supported extensions: ${ALLOWED_EXTENSIONS.join(', ')}`,
-        400
-      );
-    }
-  }
-
-  /**
-   * Validate file size
-   * 
-   * Requirements:
-   * - 20.5: Enforce file size limits on all uploads
-   * 
-   * @param fileSize - File size in bytes
-   * @throws ApplicationError if file exceeds size limit
-   * @private
-   */
-  private validateFileSize(fileSize: number): void {
-    if (fileSize > MAX_FILE_SIZE) {
-      throw new ApplicationError(
-        'INVALID_FILE_SIZE',
-        `File size exceeds maximum limit of ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
-        400
-      );
     }
   }
 

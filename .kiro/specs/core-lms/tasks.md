@@ -2325,7 +2325,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Implement comprehensive security measures across all features
   - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5_
 
-- [ ] 10.1 Implement HTML sanitization
+- [x] 10.1 Implement HTML sanitization
   - Priority: CRITICAL
   - Dependencies: 5.3.2 (CreateMaterialUseCase), 6.3.7 (SubmitAssignmentUseCase), 7.3.2 (CreateQuizUseCase)
   - Can be parallelized: No (affects multiple features)
@@ -2335,7 +2335,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Apply to: course descriptions, assignment descriptions, quiz questions, material text content, submission feedback
   - _Requirements: 20.2_
 
-- [ ] 10.2 Implement file upload security
+- [x] 10.2 Implement file upload security
   - Priority: CRITICAL
   - Dependencies: 5.2.4 (LocalFileStorage), 6.3.7 (SubmitAssignmentUseCase)
   - Can be parallelized: No (affects multiple features)
@@ -2346,7 +2346,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Apply to: material uploads, assignment submissions
   - _Requirements: 20.3, 20.4, 20.5_
 
-- [ ] 10.3 Implement Content Security Policy (CSP) headers
+- [x] 10.3 Implement Content Security Policy (CSP) headers
   - Priority: VERY HIGH
   - Dependencies: 1.6 (Express server), nginx configuration
   - Can be parallelized: Yes (with 10.1, 10.2)
@@ -2355,7 +2355,8 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Restrict style sources
   - _Requirements: 20.2_
 
-- [ ]* 10.4 Write security tests
+- [x] 10.4 Write security tests
+
   - Priority: MEDIUM (but CRITICAL for security)
   - Dependencies: 10.1, 10.2, 10.3, 1.5 (testing framework)
   - Can be parallelized: Yes (with other tests)

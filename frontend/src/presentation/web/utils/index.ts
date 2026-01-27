@@ -6,3 +6,4 @@
 
 export * from './dateFormatter';
 export * from './fileValidator';
+export * from './htmlSanitizer';

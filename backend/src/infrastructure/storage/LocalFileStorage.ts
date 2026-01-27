@@ -25,11 +25,7 @@ import {
   FileMetadata,
   UploadOptions,
 } from '../../domain/storage/IFileStorage';
-
-/**
- * Maximum file size: 10MB (as per requirements)
- */
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+import { FileValidator } from '../validation/FileValidator';
 
 /**
  * LocalFileStorage
@@ -57,24 +53,33 @@ export class LocalFileStorage implements IFileStorage {
    * Requirements:
    * - 7.1: Store uploaded file
    * - 7.9: Enforce 10MB file size limit
+   * - 20.3: Prevent unauthorized file access
+   * - 20.4: Validate file types before accepting uploads
+   * - 20.5: Enforce file size limits on all uploads
    * 
    * Security:
    * - Generates UUID-based filename to prevent collisions and predictable paths
-   * - Validates file size before upload
+   * - Validates file type, size, and content using FileValidator
    * - Creates directory structure if needed
    * 
    * @param buffer - File content as Buffer
    * @param options - Upload options (file name, MIME type, size, directory)
    * @returns FileMetadata with storage details
-   * @throws Error if file exceeds size limit or upload fails
+   * @throws Error if file validation fails or upload fails
    */
   async upload(buffer: Buffer, options: UploadOptions): Promise<FileMetadata> {
-    // Validate file size (Requirement 7.9)
-    if (options.size > MAX_FILE_SIZE) {
-      throw new Error(
-        `File size exceeds maximum allowed size of ${MAX_FILE_SIZE / 1024 / 1024}MB`
-      );
-    }
+    // Comprehensive file validation (Requirements 20.4, 20.5)
+    // This validates:
+    // - File size (max 10MB)
+    // - File extension (whitelist + blacklist)
+    // - MIME type (whitelist)
+    // - File content (magic numbers)
+    FileValidator.validateOrThrow(
+      buffer,
+      options.originalName,
+      options.mimeType,
+      options.size
+    );
 
     // Extract file extension from original name
     const extension = path.extname(options.originalName);
