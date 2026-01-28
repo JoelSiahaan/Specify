@@ -50,3 +50,39 @@ export interface RegisterRequest {
 export interface RegisterResponse {
   user: User;
 }
+
+/**
+ * User profile (for viewing profile)
+ */
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Update profile request
+ */
+export interface UpdateProfileRequest {
+  name: string;
+}
+
+/**
+ * Change password request
+ */
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+/**
+ * Change password result
+ */
+export interface ChangePasswordResult {
+  success: boolean;
+  message: string;
+}

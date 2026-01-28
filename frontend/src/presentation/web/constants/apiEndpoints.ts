@@ -74,4 +74,10 @@ export const API_ENDPOINTS = {
     EXPORT_GRADES: (courseId: string) => `/api/courses/${courseId}/grades/export`,
     STUDENT_PROGRESS: (courseId: string) => `/api/courses/${courseId}/progress`,
   },
+  
+  // User Profile
+  USER: {
+    PROFILE: '/api/users/profile',
+    PASSWORD: '/api/users/password',
+  },
 } as const;

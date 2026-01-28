@@ -115,20 +115,38 @@ export class User {
   /**
    * Update user name
    * 
+   * Requirements:
+   * - 1.2: Name update functionality
+   * - 2.2: Name validation (1-100 chars after trim)
+   * 
    * @param name - New name
+   * @throws Error if name is invalid
    */
   public updateName(name: string): void {
-    if (!name || name.trim().length === 0) {
+    const trimmedName = name?.trim() || '';
+    
+    if (trimmedName.length === 0) {
       throw new Error('Name is required');
     }
-    this.name = name;
+    
+    if (trimmedName.length > 100) {
+      throw new Error('Name must be 100 characters or less');
+    }
+    
+    this.name = trimmedName;
     this.updatedAt = new Date();
   }
 
   /**
    * Update password hash
    * 
-   * @param passwordHash - New password hash
+   * Requirements:
+   * - 1.3: Password change functionality
+   * - 2.3: Password strength validation (handled by PasswordService)
+   * - 2.4: BCrypt hashing (handled by PasswordService)
+   * 
+   * @param passwordHash - New password hash (BCrypt)
+   * @throws Error if password hash is invalid
    */
   public updatePasswordHash(passwordHash: string): void {
     if (!passwordHash || passwordHash.trim().length === 0) {

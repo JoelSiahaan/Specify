@@ -55,16 +55,17 @@ export const PasswordSchema = z
 /**
  * Name schema
  * 
- * Validates user name
+ * Validates user name (1-100 chars after trim)
+ * Requirement 2.2: Name validation
  */
 export const NameSchema = z
   .string({
     required_error: 'Name is required',
     invalid_type_error: 'Name must be a string'
   })
-  .min(1, 'Name is required')
-  .max(100, 'Name must not exceed 100 characters')
-  .trim();
+  .trim() // Trim first before validation
+  .min(1, 'Name is required') // Check empty after trim
+  .max(100, 'Name must not exceed 100 characters');
 
 /**
  * Register request schema

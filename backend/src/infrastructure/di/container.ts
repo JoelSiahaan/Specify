@@ -76,6 +76,9 @@ import { GradeSubmissionUseCase } from '../../application/use-cases/assignment/G
 import { UpdateGradeUseCase } from '../../application/use-cases/assignment/UpdateGradeUseCase';
 import { GetStudentProgressUseCase } from '../../application/use-cases/progress/GetStudentProgressUseCase';
 import { ExportGradesUseCase } from '../../application/use-cases/progress/ExportGradesUseCase';
+import { GetCurrentUserProfileUseCase } from '../../application/use-cases/user/GetCurrentUserProfileUseCase';
+import { UpdateUserProfileUseCase } from '../../application/use-cases/user/UpdateUserProfileUseCase';
+import { ChangePasswordUseCase } from '../../application/use-cases/user/ChangePasswordUseCase';
 
 /**
  * Initialize the DI container with all application dependencies
@@ -403,6 +406,27 @@ export function configureContainer(): void {
     useClass: ExportGradesUseCase
   });
   console.log('[DI] ExportGradesUseCase registered');
+  
+  // Register GetCurrentUserProfileUseCase as transient
+  console.log('[DI] Registering GetCurrentUserProfileUseCase');
+  container.register(GetCurrentUserProfileUseCase, {
+    useClass: GetCurrentUserProfileUseCase
+  });
+  console.log('[DI] GetCurrentUserProfileUseCase registered');
+  
+  // Register UpdateUserProfileUseCase as transient
+  console.log('[DI] Registering UpdateUserProfileUseCase');
+  container.register(UpdateUserProfileUseCase, {
+    useClass: UpdateUserProfileUseCase
+  });
+  console.log('[DI] UpdateUserProfileUseCase registered');
+  
+  // Register ChangePasswordUseCase as transient
+  console.log('[DI] Registering ChangePasswordUseCase');
+  container.register(ChangePasswordUseCase, {
+    useClass: ChangePasswordUseCase
+  });
+  console.log('[DI] ChangePasswordUseCase registered');
   
   // Example pattern (to be implemented in future tasks):
   // container.register(CreateCourseUseCase, {

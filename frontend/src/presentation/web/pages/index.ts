@@ -13,6 +13,9 @@ export { HomePage, StudentDashboard, TeacherDashboard } from './dashboard';
 // Course pages
 export { AssignmentsPage, QuizzesPage, MaterialsPage, SubmissionsPage, GradingPage, StudentGradesPage } from './course';
 
+// Profile pages
+export { ProfilePage } from './profile/ProfilePage';
+
 // Error pages
 export { NotFoundPage, ForbiddenPage } from './error';
 export { MaintenancePage } from './error/MaintenancePage';

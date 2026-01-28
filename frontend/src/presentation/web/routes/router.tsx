@@ -21,7 +21,8 @@ import {
   QuizzesPage,
   GradingPage,
   StudentGradesPage,
-  MaintenancePage
+  MaintenancePage,
+  ProfilePage
 } from '../pages';
 import { CreateCourse, UpdateCourse, CourseDetails, ManageCourse, CourseList } from '../components/course';
 import { TakeQuiz, QuizResults, QuizSubmissions, QuizSubmissionDetails } from '../components/quiz';
@@ -120,6 +121,16 @@ export function AppRouter() {
               <RegisterPage />
             </PublicRoute>
           } 
+        />
+        
+        {/* Profile route - accessible by all authenticated users */}
+        <Route
+          path={ROUTES.PROFILE}
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.STUDENT, UserRole.TEACHER]}>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
         />
         
         {/* Student protected routes */}

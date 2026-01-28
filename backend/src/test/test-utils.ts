@@ -69,6 +69,60 @@ export function generateUniqueEmail(prefix: string = 'test'): string {
 }
 
 /**
+ * Create test users with unique emails for integration tests
+ * 
+ * @param prisma - Prisma client instance
+ * @param passwordService - Password service for hashing
+ * @returns Object with teacher and student data including tokens
+ */
+export async function createTestUsers(
+  prisma: PrismaClient,
+  passwordService: { hash: (password: string) => Promise<string> }
+): Promise<{
+  teacher: { id: string; email: string; token: string };
+  student: { id: string; email: string; token: string };
+}> {
+  const hashedPassword = await passwordService.hash('password123');
+
+  const teacherEmail = generateUniqueEmail('teacher');
+  const teacher = await prisma.user.create({
+    data: {
+      email: teacherEmail,
+      name: 'Test Teacher',
+      role: 'TEACHER',
+      passwordHash: hashedPassword
+    }
+  });
+
+  const studentEmail = generateUniqueEmail('student');
+  const student = await prisma.user.create({
+    data: {
+      email: studentEmail,
+      name: 'Test Student',
+      role: 'STUDENT',
+      passwordHash: hashedPassword
+    }
+  });
+
+  const teacherToken = generateTestToken({
+    userId: teacher.id,
+    email: teacherEmail,
+    role: 'TEACHER'
+  });
+
+  const studentToken = generateTestToken({
+    userId: student.id,
+    email: studentEmail,
+    role: 'STUDENT'
+  });
+
+  return {
+    teacher: { id: teacher.id, email: teacherEmail, token: teacherToken },
+    student: { id: student.id, email: studentEmail, token: studentToken }
+  };
+}
+
+/**
  * Generate unique test ID
  */
 export function generateUniqueId(prefix: string = 'test'): string {

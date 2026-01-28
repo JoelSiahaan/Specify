@@ -11,6 +11,9 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   
+  // Profile route (authenticated users)
+  PROFILE: '/profile',
+  
   // Student routes
   STUDENT_DASHBOARD: '/student/dashboard',
   STUDENT_COURSES: '/student/courses',

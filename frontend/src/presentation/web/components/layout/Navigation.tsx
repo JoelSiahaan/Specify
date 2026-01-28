@@ -100,9 +100,12 @@ export const Navigation: React.FC = () => {
 
                 {/* User Menu */}
                 <div className="flex items-center gap-4 border-l border-primary-light pl-6">
-                  <span className="text-sm">
-                    {user.name}
-                  </span>
+                  <Link
+                    to={ROUTES.PROFILE}
+                    className="text-sm hover:text-primary-lighter transition-colors"
+                  >
+                    Profile
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="text-sm hover:text-primary-lighter transition-colors"

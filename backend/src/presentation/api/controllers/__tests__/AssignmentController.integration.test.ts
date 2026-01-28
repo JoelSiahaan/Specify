@@ -22,7 +22,7 @@ import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import assignmentRoutes from '../../routes/assignmentRoutes';
 import { errorHandler } from '../../middleware/ErrorHandlerMiddleware';
-import { cleanupDatabase, generateTestToken } from '../../../../test/test-utils';
+import { cleanupDatabase, generateTestToken, createTestUsers } from '../../../../test/test-utils';
 import {
   assertErrorResponse,
   assertSuccessResponse,
@@ -36,7 +36,7 @@ import { PrismaUserRepository } from '../../../../infrastructure/persistence/rep
 import { PrismaCourseRepository } from '../../../../infrastructure/persistence/repositories/PrismaCourseRepository';
 import { PrismaAssignmentRepository } from '../../../../infrastructure/persistence/repositories/PrismaAssignmentRepository';
 import { PrismaEnrollmentRepository } from '../../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository';
-import { PrismaSubmissionRepository } from '../../../../infrastructure/persistence/repositories/PrismaSubmissionRepository';
+import { PrismaAssignmentSubmissionRepository } from '../../../../infrastructure/persistence/repositories/PrismaAssignmentSubmissionRepository';
 import { PasswordService } from '../../../../infrastructure/auth/PasswordService';
 import { JWTService } from '../../../../infrastructure/auth/JWTService';
 import { LocalFileStorage } from '../../../../infrastructure/storage/LocalFileStorage';
@@ -68,7 +68,7 @@ describe('AssignmentController Integration Tests', () => {
     container.registerSingleton('ICourseRepository', PrismaCourseRepository);
     container.registerSingleton('IAssignmentRepository', PrismaAssignmentRepository);
     container.registerSingleton('IEnrollmentRepository', PrismaEnrollmentRepository);
-    container.registerSingleton('ISubmissionRepository', PrismaSubmissionRepository);
+    container.registerSingleton('IAssignmentSubmissionRepository', PrismaAssignmentSubmissionRepository);
     container.registerSingleton(PasswordService);
     container.registerSingleton(JWTService);
     container.registerSingleton('IFileStorage', LocalFileStorage);
@@ -93,29 +93,14 @@ describe('AssignmentController Integration Tests', () => {
     // Clean database before each test
     await cleanupDatabase(prisma);
 
-    // Create test users
+    // Create test users with unique emails
     const passwordService = container.resolve(PasswordService);
-    const hashedPassword = await passwordService.hash('password123');
-
-    const teacher = await prisma.user.create({
-      data: {
-        email: 'teacher@test.com',
-        name: 'Test Teacher',
-        role: 'TEACHER',
-        passwordHash: hashedPassword
-      }
-    });
-    teacherId = teacher.id;
-
-    const student = await prisma.user.create({
-      data: {
-        email: 'student@test.com',
-        name: 'Test Student',
-        role: 'STUDENT',
-        passwordHash: hashedPassword
-      }
-    });
-    studentId = student.id;
+    const users = await createTestUsers(prisma, passwordService);
+    
+    teacherId = users.teacher.id;
+    teacherToken = users.teacher.token;
+    studentId = users.student.id;
+    studentToken = users.student.token;
 
     // Create test course
     const course = await prisma.course.create({
@@ -135,19 +120,6 @@ describe('AssignmentController Integration Tests', () => {
         studentId: studentId,
         courseId: courseId
       }
-    });
-
-    // Generate tokens
-    teacherToken = generateTestToken({
-      userId: teacherId,
-      email: 'teacher@test.com',
-      role: 'TEACHER'
-    });
-
-    studentToken = generateTestToken({
-      userId: studentId,
-      email: 'student@test.com',
-      role: 'STUDENT'
     });
   });
 
@@ -482,12 +454,13 @@ describe('AssignmentController Integration Tests', () => {
       });
       assignmentId = assignment.id;
 
-      // Create another teacher
+      // Create another teacher with unique email
       const passwordService = container.resolve(PasswordService);
       const hashedPassword = await passwordService.hash('password123');
+      const otherTeacherEmail = `other-teacher-${Date.now()}-${Math.random().toString(36).substring(7)}@test.com`;
       const otherTeacher = await prisma.user.create({
         data: {
-          email: 'other-teacher@test.com',
+          email: otherTeacherEmail,
           name: 'Other Teacher',
           role: 'TEACHER',
           passwordHash: hashedPassword
@@ -496,7 +469,7 @@ describe('AssignmentController Integration Tests', () => {
       otherTeacherId = otherTeacher.id;
       otherTeacherToken = generateTestToken({
         userId: otherTeacherId,
-        email: 'other-teacher@test.com',
+        email: otherTeacherEmail,
         role: 'TEACHER'
       });
     });
@@ -648,12 +621,13 @@ describe('AssignmentController Integration Tests', () => {
       });
       assignmentId = assignment.id;
 
-      // Create another teacher
+      // Create another teacher with unique email
       const passwordService = container.resolve(PasswordService);
       const hashedPassword = await passwordService.hash('password123');
+      const otherTeacherEmail = `other-teacher2-${Date.now()}-${Math.random().toString(36).substring(7)}@test.com`;
       const otherTeacher = await prisma.user.create({
         data: {
-          email: 'other-teacher2@test.com',
+          email: otherTeacherEmail,
           name: 'Other Teacher 2',
           role: 'TEACHER',
           passwordHash: hashedPassword
@@ -662,7 +636,7 @@ describe('AssignmentController Integration Tests', () => {
       otherTeacherId = otherTeacher.id;
       otherTeacherToken = generateTestToken({
         userId: otherTeacherId,
-        email: 'other-teacher2@test.com',
+        email: otherTeacherEmail,
         role: 'TEACHER'
       });
     });

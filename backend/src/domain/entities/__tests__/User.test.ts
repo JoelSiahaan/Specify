@@ -127,10 +127,52 @@ describe('User Entity', () => {
       expect(user.getName()).toBe(newName);
     });
 
+    it('should trim whitespace from name', () => {
+      const user = User.create(validUserProps);
+      const nameWithSpaces = '  New Name  ';
+
+      user.updateName(nameWithSpaces);
+
+      expect(user.getName()).toBe('New Name');
+    });
+
     it('should throw error when updating to empty name', () => {
       const user = User.create(validUserProps);
 
       expect(() => user.updateName('')).toThrow('Name is required');
+    });
+
+    it('should throw error when updating to whitespace-only name', () => {
+      const user = User.create(validUserProps);
+
+      expect(() => user.updateName('   ')).toThrow('Name is required');
+    });
+
+    it('should accept name with exactly 100 characters', () => {
+      const user = User.create(validUserProps);
+      const longName = 'a'.repeat(100);
+
+      user.updateName(longName);
+
+      expect(user.getName()).toBe(longName);
+    });
+
+    it('should throw error when name exceeds 100 characters', () => {
+      const user = User.create(validUserProps);
+      const tooLongName = 'a'.repeat(101);
+
+      expect(() => user.updateName(tooLongName)).toThrow('Name must be 100 characters or less');
+    });
+
+    it('should update timestamp when name is updated', () => {
+      const user = User.create(validUserProps);
+      const beforeUpdate = user.getUpdatedAt();
+
+      // Small delay to ensure timestamp difference
+      setTimeout(() => {
+        user.updateName('New Name');
+        expect(user.getUpdatedAt().getTime()).toBeGreaterThanOrEqual(beforeUpdate.getTime());
+      }, 10);
     });
   });
 

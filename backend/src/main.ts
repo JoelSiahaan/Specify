@@ -3,7 +3,7 @@ import express, { type Express } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { configureContainer } from './infrastructure/di/index.js';
-import { authRoutes, courseRoutes, materialRoutes, quizRoutes, assignmentRoutes, gradingRoutes } from './presentation/api/routes/index.js';
+import { authRoutes, courseRoutes, materialRoutes, quizRoutes, assignmentRoutes, gradingRoutes, userRoutes } from './presentation/api/routes/index.js';
 import { errorHandler, requestLogger, errorLogger, maintenanceMode } from './presentation/api/middleware/index.js';
 import { getPrismaClient } from './infrastructure/persistence/prisma/client.js';
 import { logger } from './infrastructure/logging/logger.js';
@@ -83,6 +83,7 @@ app.use('/api', materialRoutes);
 app.use('/api', quizRoutes);
 app.use('/api', assignmentRoutes);
 app.use('/api', gradingRoutes);
+app.use('/api/users', userRoutes);
 
 // Error logging middleware (log errors before handling)
 // Requirements: 21.2 - Error tracking with context

@@ -57,3 +57,55 @@ export interface LoginResponseDTO {
 export interface RefreshTokenResponseDTO {
   accessToken: string;
 }
+
+/**
+ * User Profile DTO for profile view
+ * 
+ * Requirements:
+ * - 1.1: View profile information
+ * 
+ * Excludes password hash for security
+ */
+export interface UserProfileDTO {
+  id: string;
+  name: string;
+  email: string;
+  role: 'STUDENT' | 'TEACHER';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Update User Profile DTO
+ * 
+ * Requirements:
+ * - 1.2: Edit profile name
+ * - 2.2: Name validation (1-100 chars)
+ */
+export interface UpdateUserProfileDTO {
+  name: string;
+}
+
+/**
+ * Change Password DTO
+ * 
+ * Requirements:
+ * - 1.3: Change password functionality
+ * - 2.3: Password strength validation
+ */
+export interface ChangePasswordDTO {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+/**
+ * Change Password Result DTO
+ * 
+ * Requirements:
+ * - 1.3: Password change feedback
+ */
+export interface ChangePasswordResultDTO {
+  success: boolean;
+  message: string;
+}

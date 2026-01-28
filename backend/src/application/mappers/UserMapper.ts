@@ -9,7 +9,7 @@
  */
 
 import { User } from '../../domain/entities/User';
-import { UserDTO, CreateUserDTO } from '../dtos/UserDTO';
+import { UserDTO, CreateUserDTO, UserProfileDTO } from '../dtos/UserDTO';
 import { randomUUID } from 'crypto';
 
 export class UserMapper {
@@ -25,6 +25,29 @@ export class UserMapper {
       id: user.getId(),
       email: user.getEmail(),
       name: user.getName(),
+      role: user.getRole(),
+      createdAt: user.getCreatedAt(),
+      updatedAt: user.getUpdatedAt()
+    };
+  }
+
+  /**
+   * Convert User entity to UserProfileDTO
+   * 
+   * Requirements:
+   * - 1.1: View profile information
+   * 
+   * Excludes password hash for security.
+   * Maps User entity to profile-specific DTO.
+   * 
+   * @param user - User domain entity
+   * @returns UserProfileDTO for profile API response
+   */
+  static toProfileDTO(user: User): UserProfileDTO {
+    return {
+      id: user.getId(),
+      name: user.getName(),
+      email: user.getEmail(),
       role: user.getRole(),
       createdAt: user.getCreatedAt(),
       updatedAt: user.getUpdatedAt()
