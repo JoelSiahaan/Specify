@@ -50,6 +50,17 @@ const mockMaterialRepository: jest.Mocked<IMaterialRepository> = {
   deleteByCourseId: jest.fn()
 };
 
+const mockEnrollmentRepository: jest.Mocked<any> = {
+  findById: jest.fn(),
+  findByStudentId: jest.fn(),
+  findByCourseId: jest.fn(),
+  findByStudentAndCourse: jest.fn(),
+  save: jest.fn(),
+  delete: jest.fn(),
+  bulkDelete: jest.fn(),
+  update: jest.fn()
+};
+
 const mockAuthPolicy: jest.Mocked<IAuthorizationPolicy> = {
   canAccessCourse: jest.fn(),
   canModifyCourse: jest.fn(),
@@ -139,6 +150,7 @@ describe('ListMaterialsUseCase Properties', () => {
       mockCourseRepository,
       mockMaterialRepository,
       mockUserRepository,
+      mockEnrollmentRepository,
       mockAuthPolicy
     );
   });
@@ -168,6 +180,7 @@ describe('ListMaterialsUseCase Properties', () => {
           // Setup mocks
           mockUserRepository.findById.mockResolvedValue(teacher);
           mockCourseRepository.findById.mockResolvedValue(course);
+          mockEnrollmentRepository.findByStudentAndCourse.mockResolvedValue(null); // Teacher doesn't need enrollment
           mockAuthPolicy.canViewMaterials.mockReturnValue(true); // Teacher owns course
           mockMaterialRepository.findByCourseId.mockResolvedValue(materials);
 
@@ -207,6 +220,7 @@ describe('ListMaterialsUseCase Properties', () => {
           // Setup mocks
           mockUserRepository.findById.mockResolvedValue(student);
           mockCourseRepository.findById.mockResolvedValue(course);
+          mockEnrollmentRepository.findByStudentAndCourse.mockResolvedValue(null); // Not enrolled
           mockAuthPolicy.canViewMaterials.mockReturnValue(false); // Not enrolled
           mockMaterialRepository.findByCourseId.mockResolvedValue(materials);
 
@@ -248,6 +262,9 @@ describe('ListMaterialsUseCase Properties', () => {
           // Setup mocks
           mockUserRepository.findById.mockResolvedValue(user);
           mockCourseRepository.findById.mockResolvedValue(course);
+          mockEnrollmentRepository.findByStudentAndCourse.mockResolvedValue(
+            isAuthorized && role === Role.STUDENT ? { id: randomUUID() } : null
+          );
           mockAuthPolicy.canViewMaterials.mockReturnValue(isAuthorized);
           mockMaterialRepository.findByCourseId.mockResolvedValue([]);
 
@@ -297,6 +314,9 @@ describe('ListMaterialsUseCase Properties', () => {
           // Setup mocks
           mockUserRepository.findById.mockResolvedValue(user);
           mockCourseRepository.findById.mockResolvedValue(course);
+          mockEnrollmentRepository.findByStudentAndCourse.mockResolvedValue(
+            role === Role.STUDENT ? { id: randomUUID() } : null
+          );
           mockAuthPolicy.canViewMaterials.mockReturnValue(true); // Authorized
           mockMaterialRepository.findByCourseId.mockResolvedValue([]); // Empty list
 
@@ -335,6 +355,7 @@ describe('ListMaterialsUseCase Properties', () => {
           // Setup mocks
           mockUserRepository.findById.mockResolvedValue(teacher);
           mockCourseRepository.findById.mockResolvedValue(course);
+          mockEnrollmentRepository.findByStudentAndCourse.mockResolvedValue(null);
           mockAuthPolicy.canViewMaterials.mockReturnValue(true);
           mockMaterialRepository.findByCourseId.mockResolvedValue(materials);
 
@@ -374,6 +395,7 @@ describe('ListMaterialsUseCase Properties', () => {
           // Setup mocks
           mockUserRepository.findById.mockResolvedValue(teacher);
           mockCourseRepository.findById.mockResolvedValue(course);
+          mockEnrollmentRepository.findByStudentAndCourse.mockResolvedValue(null);
           mockAuthPolicy.canViewMaterials.mockReturnValue(true);
           mockMaterialRepository.findByCourseId.mockResolvedValue(materials);
 

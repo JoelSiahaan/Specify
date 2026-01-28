@@ -50,6 +50,17 @@ const mockMaterialRepository: jest.Mocked<IMaterialRepository> = {
   deleteByCourseId: jest.fn()
 };
 
+const mockEnrollmentRepository: jest.Mocked<any> = {
+  findById: jest.fn(),
+  findByStudentId: jest.fn(),
+  findByCourseId: jest.fn(),
+  findByStudentAndCourse: jest.fn(),
+  save: jest.fn(),
+  delete: jest.fn(),
+  bulkDelete: jest.fn(),
+  update: jest.fn()
+};
+
 const mockFileStorage: jest.Mocked<IFileStorage> = {
   upload: jest.fn(),
   download: jest.fn(),
@@ -144,6 +155,7 @@ describe('DownloadMaterialUseCase Properties', () => {
       mockCourseRepository,
       mockMaterialRepository,
       mockUserRepository,
+      mockEnrollmentRepository,
       mockFileStorage,
       mockAuthPolicy
     );
@@ -173,6 +185,7 @@ describe('DownloadMaterialUseCase Properties', () => {
           mockUserRepository.findById.mockResolvedValue(teacher);
           mockMaterialRepository.findById.mockResolvedValue(material);
           mockCourseRepository.findById.mockResolvedValue(course);
+          mockEnrollmentRepository.findByStudentAndCourse.mockResolvedValue(null); // Teacher doesn't need enrollment
           mockAuthPolicy.canViewMaterials.mockReturnValue(true); // Teacher owns course
           mockFileStorage.download.mockResolvedValue(fileBuffer);
 
@@ -213,6 +226,7 @@ describe('DownloadMaterialUseCase Properties', () => {
           mockUserRepository.findById.mockResolvedValue(student);
           mockMaterialRepository.findById.mockResolvedValue(material);
           mockCourseRepository.findById.mockResolvedValue(course);
+          mockEnrollmentRepository.findByStudentAndCourse.mockResolvedValue(null); // Not enrolled
           mockAuthPolicy.canViewMaterials.mockReturnValue(false); // Not enrolled
 
           // Property: Student cannot download
@@ -265,6 +279,7 @@ describe('DownloadMaterialUseCase Properties', () => {
           mockUserRepository.findById.mockResolvedValue(teacher);
           mockMaterialRepository.findById.mockResolvedValue(material);
           mockCourseRepository.findById.mockResolvedValue(course);
+          mockEnrollmentRepository.findByStudentAndCourse.mockResolvedValue(null);
           mockAuthPolicy.canViewMaterials.mockReturnValue(true);
 
           // Property: Non-FILE materials cannot be downloaded
@@ -306,6 +321,9 @@ describe('DownloadMaterialUseCase Properties', () => {
           mockUserRepository.findById.mockResolvedValue(user);
           mockMaterialRepository.findById.mockResolvedValue(material);
           mockCourseRepository.findById.mockResolvedValue(course);
+          mockEnrollmentRepository.findByStudentAndCourse.mockResolvedValue(
+            isAuthorized && role === Role.STUDENT ? { id: randomUUID() } : null
+          );
           mockAuthPolicy.canViewMaterials.mockReturnValue(isAuthorized);
           mockFileStorage.download.mockResolvedValue(Buffer.alloc(1024));
 
@@ -389,6 +407,9 @@ describe('DownloadMaterialUseCase Properties', () => {
           mockUserRepository.findById.mockResolvedValue(user);
           mockMaterialRepository.findById.mockResolvedValue(material);
           mockCourseRepository.findById.mockResolvedValue(course);
+          mockEnrollmentRepository.findByStudentAndCourse.mockResolvedValue(
+            role === Role.STUDENT ? { id: randomUUID() } : null
+          );
           mockAuthPolicy.canViewMaterials.mockReturnValue(true);
           mockFileStorage.download.mockRejectedValue(new Error('File not found'));
 

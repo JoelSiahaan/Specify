@@ -682,17 +682,16 @@ describe('EnrollmentController Integration Tests', () => {
     });
 
     describe('Business Logic Errors', () => {
-      it('should return 403 when trying to bulk unenroll from active course', async () => {
+      it('should return 409 when trying to bulk unenroll from active course', async () => {
         // Act
         const response = await request(app)
           .post(`/api/courses/${activeCourseId}/unenroll-bulk`)
           .set('Cookie', [`access_token=${teacherToken}`]);
 
         // Assert
-        // Note: Returns 403 NOT_OWNER because authorization check happens before archived status check
-        // This is because canDeleteCourse policy checks if course is archived first
-        assertAuthorizationError(response);
-        expect(response.body.code).toBe('NOT_OWNER');
+        // Note: Returns 409 COURSE_ACTIVE because authorization passes (teacher is owner)
+        // but business rule validation fails (course must be archived)
+        assertErrorResponse(response, 409, 'COURSE_ACTIVE');
       });
     });
 
