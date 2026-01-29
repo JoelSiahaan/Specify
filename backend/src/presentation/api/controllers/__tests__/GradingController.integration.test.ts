@@ -25,6 +25,7 @@ import request from 'supertest';
 import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import gradingRoutes from '../../routes/gradingRoutes';
 import { errorHandler } from '../../middleware/ErrorHandlerMiddleware';
 import { cleanupDatabase, generateTestToken } from '../../../../test/test-utils';
@@ -97,58 +98,98 @@ describe('GradingController Integration Tests', () => {
   });
 
   afterAll(async () => {
+    // Final cleanup
+    try {
+      await prisma.quizSubmission.deleteMany({});
+      await prisma.assignmentSubmission.deleteMany({});
+      await prisma.quiz.deleteMany({});
+      await prisma.assignment.deleteMany({});
+      await prisma.enrollment.deleteMany({});
+      await prisma.course.deleteMany({});
+      await prisma.user.deleteMany({});
+    } catch (error) {
+      // Ignore cleanup errors
+    }
     await prisma.$disconnect();
   });
 
-  beforeEach(async () => {
-    // Clean database before each test
-    await cleanupDatabase(prisma);
+  afterEach(async () => {
+    // Clean up only this test's data (ignore errors if already deleted by cascade)
+    try {
+      if (courseId) {
+        await prisma.quizSubmission.deleteMany({ where: { quiz: { courseId } } }).catch(() => {});
+        await prisma.assignmentSubmission.deleteMany({ where: { assignment: { courseId } } }).catch(() => {});
+        await prisma.quiz.deleteMany({ where: { courseId } }).catch(() => {});
+        await prisma.assignment.deleteMany({ where: { courseId } }).catch(() => {});
+        await prisma.enrollment.deleteMany({ where: { courseId } }).catch(() => {});
+        await prisma.course.deleteMany({ where: { id: courseId } }).catch(() => {});
+      }
+      if (teacherId) {
+        await prisma.user.deleteMany({ where: { id: teacherId } }).catch(() => {});
+      }
+      if (studentId) {
+        await prisma.user.deleteMany({ where: { id: studentId } }).catch(() => {});
+      }
+      if (otherTeacherId) {
+        await prisma.user.deleteMany({ where: { id: otherTeacherId } }).catch(() => {});
+      }
+    } catch (error) {
+      // Ignore cleanup errors - data might have been cascade deleted
+    }
+  });
 
-    // Create test users
+  beforeEach(async () => {
+    // Generate unique IDs for this test
+    teacherId = randomUUID();
+    studentId = randomUUID();
+    otherTeacherId = randomUUID();
+    courseId = randomUUID();
+
+    // Create test users with unique emails
     const passwordService = container.resolve(PasswordService);
     const hashedPassword = await passwordService.hash('password123');
 
-    const teacher = await prisma.user.create({
+    await prisma.user.create({
       data: {
-        email: 'teacher@test.com',
+        id: teacherId,
+        email: `teacher-${teacherId}@test.com`,
         name: 'Test Teacher',
         role: 'TEACHER',
         passwordHash: hashedPassword
       }
     });
-    teacherId = teacher.id;
 
-    const student = await prisma.user.create({
+    await prisma.user.create({
       data: {
-        email: 'student@test.com',
+        id: studentId,
+        email: `student-${studentId}@test.com`,
         name: 'Test Student',
         role: 'STUDENT',
         passwordHash: hashedPassword
       }
     });
-    studentId = student.id;
 
-    const otherTeacher = await prisma.user.create({
+    await prisma.user.create({
       data: {
-        email: 'other-teacher@test.com',
+        id: otherTeacherId,
+        email: `other-teacher-${otherTeacherId}@test.com`,
         name: 'Other Teacher',
         role: 'TEACHER',
         passwordHash: hashedPassword
       }
     });
-    otherTeacherId = otherTeacher.id;
 
-    // Create test course
-    const course = await prisma.course.create({
+    // Create test course with unique code
+    await prisma.course.create({
       data: {
+        id: courseId,
         name: 'Test Course',
         description: 'Test Description',
-        courseCode: 'TEST123',
+        courseCode: `TEST${courseId.substring(0, 6).toUpperCase()}`,
         status: 'ACTIVE',
         teacherId: teacherId
       }
     });
-    courseId = course.id;
 
     // Enroll student in course
     await prisma.enrollment.create({
@@ -158,22 +199,22 @@ describe('GradingController Integration Tests', () => {
       }
     });
 
-    // Generate tokens
+    // Generate tokens with unique emails
     teacherToken = generateTestToken({
       userId: teacherId,
-      email: 'teacher@test.com',
+      email: `teacher-${teacherId}@test.com`,
       role: 'TEACHER'
     });
 
     studentToken = generateTestToken({
       userId: studentId,
-      email: 'student@test.com',
+      email: `student-${studentId}@test.com`,
       role: 'STUDENT'
     });
 
     otherTeacherToken = generateTestToken({
       userId: otherTeacherId,
-      email: 'other-teacher@test.com',
+      email: `other-teacher-${otherTeacherId}@test.com`,
       role: 'TEACHER'
     });
   });
@@ -291,7 +332,7 @@ describe('GradingController Integration Tests', () => {
     });
   });
 
-  describe('GET /api/submissions/:id', () => {
+  describe('GET /api/assignment-submissions/:id', () => {
     let assignmentId: string;
     let submissionId: string;
 
@@ -327,7 +368,7 @@ describe('GradingController Integration Tests', () => {
       it('should get submission by ID (student viewing own submission)', async () => {
         // Act
         const response = await request(app)
-          .get(`/api/submissions/${submissionId}`)
+          .get(`/api/assignment-submissions/${submissionId}`)
           .set('Cookie', [`access_token=${studentToken}`]);
 
         // Assert
@@ -335,14 +376,14 @@ describe('GradingController Integration Tests', () => {
         expect(response.body.id).toBe(submissionId);
         expect(response.body.assignmentId).toBe(assignmentId);
         expect(response.body.studentId).toBe(studentId);
-        expect(response.body.content).toBe('My submission');
+        expect(response.body.textContent).toBe('My submission');
         expect(response.body.status).toBe('SUBMITTED');
       });
 
       it('should get submission by ID (teacher viewing student submission)', async () => {
         // Act
         const response = await request(app)
-          .get(`/api/submissions/${submissionId}`)
+          .get(`/api/assignment-submissions/${submissionId}`)
           .set('Cookie', [`access_token=${teacherToken}`]);
 
         // Assert
@@ -366,7 +407,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .get(`/api/submissions/${submissionId}`)
+          .get(`/api/assignment-submissions/${submissionId}`)
           .set('Cookie', [`access_token=${studentToken}`]);
 
         // Assert
@@ -399,7 +440,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .get(`/api/submissions/${submissionId}`)
+          .get(`/api/assignment-submissions/${submissionId}`)
           .set('Cookie', [`access_token=${otherStudentToken}`]);
 
         // Assert
@@ -411,7 +452,7 @@ describe('GradingController Integration Tests', () => {
       it('should return 401 when access token is missing', async () => {
         // Act
         const response = await request(app)
-          .get(`/api/submissions/${submissionId}`);
+          .get(`/api/assignment-submissions/${submissionId}`);
 
         // Assert
         assertAuthenticationError(response);
@@ -425,7 +466,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .get(`/api/submissions/${nonExistentId}`)
+          .get(`/api/assignment-submissions/${nonExistentId}`)
           .set('Cookie', [`access_token=${studentToken}`]);
 
         // Assert
@@ -434,7 +475,7 @@ describe('GradingController Integration Tests', () => {
     });
   });
 
-  describe('POST /api/submissions/:id/grade', () => {
+  describe('POST /api/assignment-submissions/:id/grade', () => {
     let assignmentId: string;
     let submissionId: string;
 
@@ -476,7 +517,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(gradeData);
 
@@ -504,7 +545,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(gradeData);
 
@@ -522,7 +563,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(gradeData);
 
@@ -539,7 +580,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(gradeData);
 
@@ -558,7 +599,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(gradeData);
 
@@ -579,7 +620,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(gradeData);
 
@@ -596,7 +637,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(gradeData);
 
@@ -613,7 +654,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(gradeData);
 
@@ -630,7 +671,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(gradeData);
 
@@ -649,7 +690,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${otherTeacherToken}`])
           .send(gradeData);
 
@@ -666,7 +707,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${studentToken}`])
           .send(gradeData);
 
@@ -685,7 +726,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .send(gradeData);
 
         // Assert
@@ -704,7 +745,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .post(`/api/submissions/${nonExistentId}/grade`)
+          .post(`/api/assignment-submissions/${nonExistentId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(gradeData);
 
@@ -714,7 +755,7 @@ describe('GradingController Integration Tests', () => {
     });
   });
 
-  describe('PUT /api/submissions/:id/grade', () => {
+  describe('PUT /api/assignment-submissions/:id/grade', () => {
     let assignmentId: string;
     let submissionId: string;
 
@@ -762,7 +803,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .put(`/api/submissions/${submissionId}/grade`)
+          .put(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(updateData);
 
@@ -784,7 +825,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .put(`/api/submissions/${submissionId}/grade`)
+          .put(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(updateData);
 
@@ -804,7 +845,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .put(`/api/submissions/${submissionId}/grade`)
+          .put(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(updateData);
 
@@ -825,7 +866,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .put(`/api/submissions/${submissionId}/grade`)
+          .put(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(updateData);
 
@@ -842,7 +883,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .put(`/api/submissions/${submissionId}/grade`)
+          .put(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(updateData);
 
@@ -859,7 +900,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .put(`/api/submissions/${submissionId}/grade`)
+          .put(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(updateData);
 
@@ -879,7 +920,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .put(`/api/submissions/${submissionId}/grade`)
+          .put(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${otherTeacherToken}`])
           .send(updateData);
 
@@ -897,7 +938,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .put(`/api/submissions/${submissionId}/grade`)
+          .put(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${studentToken}`])
           .send(updateData);
 
@@ -917,7 +958,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .put(`/api/submissions/${submissionId}/grade`)
+          .put(`/api/assignment-submissions/${submissionId}/grade`)
           .send(updateData);
 
         // Assert
@@ -937,7 +978,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .put(`/api/submissions/${nonExistentId}/grade`)
+          .put(`/api/assignment-submissions/${nonExistentId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(updateData);
 
@@ -1000,7 +1041,7 @@ describe('GradingController Integration Tests', () => {
 
       // Act - First update succeeds
       const response1 = await request(app)
-        .put(`/api/submissions/${submissionId}/grade`)
+        .put(`/api/assignment-submissions/${submissionId}/grade`)
         .set('Cookie', [`access_token=${teacherToken}`])
         .send(updateData1);
 
@@ -1010,13 +1051,13 @@ describe('GradingController Integration Tests', () => {
 
       // Act - Second update with stale version should fail
       const response2 = await request(app)
-        .put(`/api/submissions/${submissionId}/grade`)
+        .put(`/api/assignment-submissions/${submissionId}/grade`)
         .set('Cookie', [`access_token=${teacherToken}`])
         .send(updateData2);
 
       // Assert second update failed with conflict
-      assertErrorResponse(response2, 409, 'VERSION_CONFLICT');
-      expect(response2.body.message).toContain('concurrent');
+      assertErrorResponse(response2, 409, 'CONCURRENT_MODIFICATION');
+      expect(response2.body.message).toContain('modified');
     });
 
     it('should allow sequential updates with correct version', async () => {
@@ -1035,7 +1076,7 @@ describe('GradingController Integration Tests', () => {
 
       // Act - First update
       const response1 = await request(app)
-        .put(`/api/submissions/${submissionId}/grade`)
+        .put(`/api/assignment-submissions/${submissionId}/grade`)
         .set('Cookie', [`access_token=${teacherToken}`])
         .send(updateData1);
 
@@ -1045,7 +1086,7 @@ describe('GradingController Integration Tests', () => {
 
       // Act - Second update with correct version
       const response2 = await request(app)
-        .put(`/api/submissions/${submissionId}/grade`)
+        .put(`/api/assignment-submissions/${submissionId}/grade`)
         .set('Cookie', [`access_token=${teacherToken}`])
         .send(updateData2);
 
@@ -1064,7 +1105,7 @@ describe('GradingController Integration Tests', () => {
 
       // Act
       const response = await request(app)
-        .put(`/api/submissions/${submissionId}/grade`)
+        .put(`/api/assignment-submissions/${submissionId}/grade`)
         .set('Cookie', [`access_token=${teacherToken}`])
         .send(updateData);
 
@@ -1125,8 +1166,11 @@ describe('GradingController Integration Tests', () => {
       it('should grade quiz submission with manual points (Requirement 13.10)', async () => {
         // Arrange
         const gradeData = {
-          questionPoints: [50, 50],
-          feedback: 'Good answers'
+          questionGrades: [
+            { questionIndex: 0, points: 50 },
+            { questionIndex: 1, points: 50 }
+          ],
+          generalFeedback: 'Good answers'
         };
 
         // Act
@@ -1142,15 +1186,21 @@ describe('GradingController Integration Tests', () => {
         expect(response.body.submission.grade).toBe(100);
         expect(response.body.submission.feedback).toBe('Good answers');
         expect(response.body.submission.status).toBe('GRADED');
-        expect(response.body.submission.questionPoints).toEqual([50, 50]);
+        expect(response.body.submission.questionGrades).toEqual([
+          { questionIndex: 0, points: 50 },
+          { questionIndex: 1, points: 50 }
+        ]);
         expect(response.body.warning).toBeUndefined();
       });
 
       it('should display warning when points do not sum to 100 (Requirement 13.9)', async () => {
         // Arrange
         const gradeData = {
-          questionPoints: [40, 40],
-          feedback: 'Points do not sum to 100'
+          questionGrades: [
+            { questionIndex: 0, points: 40 },
+            { questionIndex: 1, points: 40 }
+          ],
+          generalFeedback: 'Points do not sum to 100'
         };
 
         // Act
@@ -1170,8 +1220,11 @@ describe('GradingController Integration Tests', () => {
       it('should grade with zero points for some questions', async () => {
         // Arrange
         const gradeData = {
-          questionPoints: [0, 100],
-          feedback: 'First answer incorrect'
+          questionGrades: [
+            { questionIndex: 0, points: 0 },
+            { questionIndex: 1, points: 100 }
+          ],
+          generalFeedback: 'First answer incorrect'
         };
 
         // Act
@@ -1183,13 +1236,19 @@ describe('GradingController Integration Tests', () => {
         // Assert
         assertSuccessResponse(response, 200);
         expect(response.body.submission.grade).toBe(100);
-        expect(response.body.submission.questionPoints).toEqual([0, 100]);
+        expect(response.body.submission.questionGrades).toEqual([
+          { questionIndex: 0, points: 0 },
+          { questionIndex: 1, points: 100 }
+        ]);
       });
 
       it('should grade without feedback (optional)', async () => {
         // Arrange
         const gradeData = {
-          questionPoints: [50, 50]
+          questionGrades: [
+            { questionIndex: 0, points: 50 },
+            { questionIndex: 1, points: 50 }
+          ]
         };
 
         // Act
@@ -1206,10 +1265,10 @@ describe('GradingController Integration Tests', () => {
     });
 
     describe('Validation Errors', () => {
-      it('should return 400 when questionPoints is missing', async () => {
+      it('should return 400 when questionGrades is missing', async () => {
         // Arrange
         const gradeData = {
-          feedback: 'Missing points'
+          generalFeedback: 'Missing points'
         };
 
         // Act
@@ -1219,14 +1278,14 @@ describe('GradingController Integration Tests', () => {
           .send(gradeData);
 
         // Assert
-        assertValidationError(response, ['questionPoints']);
+        assertValidationError(response, ['questionGrades']);
       });
 
-      it('should return 400 when questionPoints is not an array', async () => {
+      it('should return 400 when questionGrades is not an array', async () => {
         // Arrange
         const gradeData = {
-          questionPoints: 'not-an-array',
-          feedback: 'Invalid format'
+          questionGrades: 'not-an-array',
+          generalFeedback: 'Invalid format'
         };
 
         // Act
@@ -1236,14 +1295,17 @@ describe('GradingController Integration Tests', () => {
           .send(gradeData);
 
         // Assert
-        assertValidationError(response, ['questionPoints']);
+        assertValidationError(response, ['questionGrades']);
       });
 
-      it('should return 400 when questionPoints contains negative values', async () => {
+      it('should return 400 when questionGrades contains negative values', async () => {
         // Arrange
         const gradeData = {
-          questionPoints: [-10, 50],
-          feedback: 'Negative points'
+          questionGrades: [
+            { questionIndex: 0, points: -10 },
+            { questionIndex: 1, points: 50 }
+          ],
+          generalFeedback: 'Negative points'
         };
 
         // Act
@@ -1253,14 +1315,19 @@ describe('GradingController Integration Tests', () => {
           .send(gradeData);
 
         // Assert
-        assertValidationError(response, ['questionPoints']);
+        expect(response.status).toBe(400);
+        expect(response.body.code).toBe('VALIDATION_FAILED');
+        // Zod returns validation errors with the full path as a key
+        expect(response.body.details['questionGrades.0.points']).toBeDefined();
       });
 
-      it('should return 400 when questionPoints array length does not match questions', async () => {
+      it('should return 400 when questionGrades array length does not match questions', async () => {
         // Arrange
         const gradeData = {
-          questionPoints: [50], // Only 1 point, but quiz has 2 questions
-          feedback: 'Wrong length'
+          questionGrades: [
+            { questionIndex: 0, points: 50 }
+          ], // Only 1 grade, but quiz has 2 questions
+          generalFeedback: 'Wrong length'
         };
 
         // Act
@@ -1270,7 +1337,7 @@ describe('GradingController Integration Tests', () => {
           .send(gradeData);
 
         // Assert
-        assertErrorResponse(response, 400, 'INVALID_QUESTION_POINTS');
+        assertErrorResponse(response, 400, 'VALIDATION_FAILED');
       });
     });
 
@@ -1278,8 +1345,11 @@ describe('GradingController Integration Tests', () => {
       it('should return 403 when user is not the course owner', async () => {
         // Arrange
         const gradeData = {
-          questionPoints: [50, 50],
-          feedback: 'Good work'
+          questionGrades: [
+            { questionIndex: 0, points: 50 },
+            { questionIndex: 1, points: 50 }
+          ],
+          generalFeedback: 'Good work'
         };
 
         // Act
@@ -1295,8 +1365,11 @@ describe('GradingController Integration Tests', () => {
       it('should return 403 when user is a student', async () => {
         // Arrange
         const gradeData = {
-          questionPoints: [50, 50],
-          feedback: 'Good work'
+          questionGrades: [
+            { questionIndex: 0, points: 50 },
+            { questionIndex: 1, points: 50 }
+          ],
+          generalFeedback: 'Good work'
         };
 
         // Act
@@ -1314,8 +1387,11 @@ describe('GradingController Integration Tests', () => {
       it('should return 401 when access token is missing', async () => {
         // Arrange
         const gradeData = {
-          questionPoints: [50, 50],
-          feedback: 'Good work'
+          questionGrades: [
+            { questionIndex: 0, points: 50 },
+            { questionIndex: 1, points: 50 }
+          ],
+          generalFeedback: 'Good work'
         };
 
         // Act
@@ -1333,8 +1409,11 @@ describe('GradingController Integration Tests', () => {
         // Arrange
         const nonExistentId = '00000000-0000-0000-0000-000000000000';
         const gradeData = {
-          questionPoints: [50, 50],
-          feedback: 'Good work'
+          questionGrades: [
+            { questionIndex: 0, points: 50 },
+            { questionIndex: 1, points: 50 }
+          ],
+          generalFeedback: 'Good work'
         };
 
         // Act
@@ -1390,7 +1469,7 @@ describe('GradingController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send(invalidData);
 
@@ -1406,9 +1485,9 @@ describe('GradingController Integration Tests', () => {
       it('should protect all grading endpoints with authentication', async () => {
         // Act - Test multiple endpoints without token
         const listResponse = await request(app).get(`/api/assignments/${assignmentId}/submissions`);
-        const getResponse = await request(app).get(`/api/submissions/${submissionId}`);
-        const gradeResponse = await request(app).post(`/api/submissions/${submissionId}/grade`).send({});
-        const updateResponse = await request(app).put(`/api/submissions/${submissionId}/grade`).send({});
+        const getResponse = await request(app).get(`/api/assignment-submissions/${submissionId}`);
+        const gradeResponse = await request(app).post(`/api/assignment-submissions/${submissionId}/grade`).send({});
+        const updateResponse = await request(app).put(`/api/assignment-submissions/${submissionId}/grade`).send({});
 
         // Assert
         expect(listResponse.status).toBe(401);
@@ -1422,7 +1501,7 @@ describe('GradingController Integration Tests', () => {
       it('should not expose internal error details', async () => {
         // Act - Try to get non-existent submission
         const response = await request(app)
-          .get('/api/submissions/00000000-0000-0000-0000-000000000000')
+          .get('/api/assignment-submissions/00000000-0000-0000-0000-000000000000')
           .set('Cookie', [`access_token=${teacherToken}`]);
 
         // Assert
@@ -1433,16 +1512,16 @@ describe('GradingController Integration Tests', () => {
       it('should return consistent error format for all errors', async () => {
         // Act - Multiple error scenarios
         const notFoundResponse = await request(app)
-          .get('/api/submissions/00000000-0000-0000-0000-000000000000')
+          .get('/api/assignment-submissions/00000000-0000-0000-0000-000000000000')
           .set('Cookie', [`access_token=${teacherToken}`]);
 
         const validationResponse = await request(app)
-          .post(`/api/submissions/${submissionId}/grade`)
+          .post(`/api/assignment-submissions/${submissionId}/grade`)
           .set('Cookie', [`access_token=${teacherToken}`])
           .send({ grade: -1 });
 
         const authResponse = await request(app)
-          .get(`/api/submissions/${submissionId}`);
+          .get(`/api/assignment-submissions/${submissionId}`);
 
         // Assert - All errors have consistent format
         expect(notFoundResponse.body).toHaveProperty('code');

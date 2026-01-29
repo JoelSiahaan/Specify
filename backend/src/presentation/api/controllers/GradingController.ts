@@ -374,9 +374,9 @@ export class GradingController {
    * Path parameters:
    * - id: Quiz Submission ID (UUID)
    * 
-   * Request body:
-   * - questionPoints: number[] (points per question)
-   * - feedback: string (optional)
+   * Request body (validated by GradeQuizSubmissionRequestSchema):
+   * - questionGrades: Array of { questionIndex, points, feedback? }
+   * - generalFeedback: string (optional)
    * 
    * Response (200 OK):
    * - submission: QuizSubmissionDTO with grade and feedback
@@ -422,16 +422,46 @@ export class GradingController {
         return;
       }
       
+      // Transform validated request body to use case DTO format
+      // Validator provides: { questionGrades: [{questionIndex, points, feedback?}], generalFeedback? }
+      // Use case expects: { questionPoints: number[], feedback?: string }
+      const { questionGrades, generalFeedback } = req.body;
+      
+      // Sort by questionIndex to ensure correct order
+      const sortedGrades = [...questionGrades].sort((a: any, b: any) => a.questionIndex - b.questionIndex);
+      
+      // Extract just the points values into an array
+      const questionPoints = sortedGrades.map((grade: any) => grade.points);
+      
+      // Transform to use case DTO format
+      const useCaseDTO = {
+        questionPoints,
+        feedback: generalFeedback
+      };
+      
       // Execute use case
       const gradeQuizSubmissionUseCase = container.resolve(GradeQuizSubmissionUseCase);
       const result = await gradeQuizSubmissionUseCase.execute(
-        req.body,
+        useCaseDTO,
         submissionId,
         authenticatedReq.user.userId
       );
       
-      // Return graded submission with optional warning (200 OK)
-      res.status(200).json(result);
+      // Add questionGrades to response (for API compatibility)
+      // Extract only questionIndex and points (no feedback) for response
+      const responseQuestionGrades = sortedGrades.map((grade: any) => ({
+        questionIndex: grade.questionIndex,
+        points: grade.points
+      }));
+      
+      // Return graded submission with optional warning and questionGrades (200 OK)
+      res.status(200).json({
+        ...result,
+        submission: {
+          ...result.submission,
+          questionGrades: responseQuestionGrades
+        }
+      });
     } catch (error) {
       // Pass error to error handler middleware
       next(error);
