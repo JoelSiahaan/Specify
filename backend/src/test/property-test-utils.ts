@@ -97,6 +97,45 @@ export const questionTypeArbitrary = () =>
   fc.constantFrom('MCQ', 'ESSAY');
 
 /**
+ * Generator for material types
+ */
+export const materialTypeArbitrary = () =>
+  fc.constantFrom('FILE', 'TEXT', 'VIDEO_LINK');
+
+/**
+ * Generator for valid file names
+ */
+export const fileNameArbitrary = () =>
+  fc.tuple(
+    fc.string({ minLength: 1, maxLength: 50 }).filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+    fc.constantFrom('pdf', 'docx', 'txt', 'jpg', 'png')
+  ).map(([name, ext]) => `${name}.${ext}`);
+
+/**
+ * Generator for valid URLs
+ */
+export const urlArbitrary = () =>
+  fc.webUrl();
+
+/**
+ * Generator for file sizes (1KB to 10MB)
+ */
+export const fileSizeArbitrary = () =>
+  fc.integer({ min: 1024, max: 10485760 });
+
+/**
+ * Generator for MIME types
+ */
+export const mimeTypeArbitrary = () =>
+  fc.constantFrom(
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain',
+    'image/jpeg',
+    'image/png'
+  );
+
+/**
  * Generator for UUIDs (simplified for testing)
  */
 export const uuidArbitrary = () =>
@@ -138,6 +177,24 @@ export const assignmentArbitrary = () =>
     dueDate: futureDateArbitrary(),
     courseId: uuidArbitrary(),
     submissionType: submissionTypeArbitrary(),
+  });
+
+/**
+ * Generator for valid material objects
+ */
+export const materialArbitrary = () =>
+  fc.record({
+    id: uuidArbitrary(),
+    courseId: uuidArbitrary(),
+    title: fc.string({ minLength: 1, maxLength: 200 }).filter(s => s.trim().length > 0),
+    description: fc.option(fc.string({ minLength: 0, maxLength: 1000 }), { nil: undefined }),
+    type: materialTypeArbitrary(),
+    content: fc.option(fc.string({ minLength: 1, maxLength: 5000 }), { nil: undefined }),
+    filePath: fc.option(fc.string({ minLength: 1, maxLength: 500 }), { nil: undefined }),
+    fileName: fc.option(fileNameArbitrary(), { nil: undefined }),
+    fileSize: fc.option(fileSizeArbitrary(), { nil: undefined }),
+    mimeType: fc.option(mimeTypeArbitrary(), { nil: undefined }),
+    videoUrl: fc.option(urlArbitrary(), { nil: undefined }),
   });
 
 /**

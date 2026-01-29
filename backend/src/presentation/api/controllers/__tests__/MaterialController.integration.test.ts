@@ -37,11 +37,55 @@ import { container } from 'tsyringe';
 import { PrismaUserRepository } from '../../../../infrastructure/persistence/repositories/PrismaUserRepository';
 import { PrismaCourseRepository } from '../../../../infrastructure/persistence/repositories/PrismaCourseRepository';
 import { PrismaMaterialRepository } from '../../../../infrastructure/persistence/repositories/PrismaMaterialRepository';
+import { PrismaEnrollmentRepository } from '../../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository';
 import { PasswordService } from '../../../../infrastructure/auth/PasswordService';
 import { JWTService } from '../../../../infrastructure/auth/JWTService';
 import { LocalFileStorage } from '../../../../infrastructure/storage/LocalFileStorage';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+
+/**
+ * Helper functions to create valid file buffers with proper magic numbers
+ * These ensure files pass FileValidator's content validation
+ */
+const createValidPdfBuffer = (content: string = 'test content'): Buffer => {
+  // PDF magic number: %PDF-1.4
+  const header = Buffer.from([0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34, 0x0A]);
+  const body = Buffer.from(content);
+  return Buffer.concat([header, body]);
+};
+
+const createValidDocxBuffer = (): Buffer => {
+  // DOCX is a ZIP file, starts with PK magic number
+  const header = Buffer.from([0x50, 0x4B, 0x03, 0x04]);
+  // Add minimal ZIP structure
+  const body = Buffer.alloc(100);
+  return Buffer.concat([header, body]);
+};
+
+const createValidJpegBuffer = (): Buffer => {
+  // JPEG magic number: FF D8 FF E0 (JFIF)
+  const header = Buffer.from([0xFF, 0xD8, 0xFF, 0xE0]);
+  // Add minimal JPEG structure
+  const body = Buffer.alloc(100);
+  return Buffer.concat([header, body]);
+};
+
+const createValidPngBuffer = (): Buffer => {
+  // PNG magic number: 89 50 4E 47 0D 0A 1A 0A
+  const header = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+  // Add minimal PNG structure
+  const body = Buffer.alloc(100);
+  return Buffer.concat([header, body]);
+};
+
+const createValidGifBuffer = (): Buffer => {
+  // GIF magic number: GIF89a
+  const header = Buffer.from([0x47, 0x49, 0x46, 0x38, 0x39, 0x61]);
+  // Add minimal GIF structure
+  const body = Buffer.alloc(100);
+  return Buffer.concat([header, body]);
+};
 
 describe('MaterialController Integration Tests', () => {
   let app: Express;
@@ -74,6 +118,7 @@ describe('MaterialController Integration Tests', () => {
     container.registerSingleton('IUserRepository', PrismaUserRepository);
     container.registerSingleton('ICourseRepository', PrismaCourseRepository);
     container.registerSingleton('IMaterialRepository', PrismaMaterialRepository);
+    container.registerSingleton('IEnrollmentRepository', PrismaEnrollmentRepository);
     container.registerSingleton(PasswordService);
     container.registerSingleton(JWTService);
     
@@ -164,7 +209,7 @@ describe('MaterialController Integration Tests', () => {
     describe('Success Scenarios', () => {
       it('should create a FILE material with valid data (teacher)', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('test file content');
+        const fileBuffer = createValidPdfBuffer('test file content');
 
         // Act
         const response = await request(app)
@@ -187,7 +232,7 @@ describe('MaterialController Integration Tests', () => {
 
       it('should accept PDF files (Requirement 20.4)', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('test pdf content');
+        const fileBuffer = createValidPdfBuffer('test pdf content');
 
         // Act
         const response = await request(app)
@@ -204,7 +249,7 @@ describe('MaterialController Integration Tests', () => {
 
       it('should accept DOCX files (Requirement 20.4)', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('test docx content');
+        const fileBuffer = createValidDocxBuffer();
 
         // Act
         const response = await request(app)
@@ -221,7 +266,7 @@ describe('MaterialController Integration Tests', () => {
 
       it('should accept JPG files (Requirement 20.4)', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('test jpg content');
+        const fileBuffer = createValidJpegBuffer();
 
         // Act
         const response = await request(app)
@@ -238,7 +283,7 @@ describe('MaterialController Integration Tests', () => {
 
       it('should accept PNG files (Requirement 20.4)', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('test png content');
+        const fileBuffer = createValidPngBuffer();
 
         // Act
         const response = await request(app)
@@ -255,7 +300,7 @@ describe('MaterialController Integration Tests', () => {
 
       it('should accept GIF files (Requirement 20.4)', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('test gif content');
+        const fileBuffer = createValidGifBuffer();
 
         // Act
         const response = await request(app)
@@ -271,8 +316,10 @@ describe('MaterialController Integration Tests', () => {
       });
 
       it('should accept file at size limit (10MB) (Requirement 20.5)', async () => {
-        // Arrange - Create slightly under 10MB to account for multipart overhead
-        const fileBuffer = Buffer.alloc(9.5 * 1024 * 1024);
+        // Arrange - Create slightly under 10MB PDF with valid header
+        const pdfHeader = Buffer.from([0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34, 0x0A]);
+        const pdfBody = Buffer.alloc(9.5 * 1024 * 1024 - pdfHeader.length);
+        const fileBuffer = Buffer.concat([pdfHeader, pdfBody]);
 
         // Act
         const response = await request(app)
@@ -291,7 +338,7 @@ describe('MaterialController Integration Tests', () => {
     describe('Validation Errors', () => {
       it('should return 400 when title is missing', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('test file content');
+        const fileBuffer = createValidPdfBuffer('test file content');
 
         // Act
         const response = await request(app)
@@ -534,7 +581,7 @@ describe('MaterialController Integration Tests', () => {
     describe('Security Tests - Path Traversal Prevention (Requirement 20.3)', () => {
       it('should reject filename with parent directory traversal (..)', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('malicious content');
+        const fileBuffer = createValidPdfBuffer('malicious content');
 
         // Act
         const response = await request(app)
@@ -551,7 +598,7 @@ describe('MaterialController Integration Tests', () => {
 
       it('should safely store files with current directory reference (./)', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('test content');
+        const fileBuffer = createValidPdfBuffer('test content');
 
         // Act
         const response = await request(app)
@@ -573,7 +620,7 @@ describe('MaterialController Integration Tests', () => {
 
       it('should safely store files with home directory reference (~)', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('test content');
+        const fileBuffer = createValidPdfBuffer('test content');
 
         // Act
         const response = await request(app)
@@ -594,7 +641,7 @@ describe('MaterialController Integration Tests', () => {
 
       it('should accept filename with special characters but sanitize them', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('test content');
+        const fileBuffer = createValidPdfBuffer('test content');
 
         // Act
         const response = await request(app)
@@ -616,7 +663,7 @@ describe('MaterialController Integration Tests', () => {
 
       it('should handle absolute path attempts', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('malicious content');
+        const fileBuffer = createValidPdfBuffer('malicious content');
 
         // Act
         const response = await request(app)
@@ -633,7 +680,7 @@ describe('MaterialController Integration Tests', () => {
 
       it('should safely store files with valid extensions regardless of path', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('test content');
+        const fileBuffer = createValidPdfBuffer('test content');
 
         // Act
         const response = await request(app)
@@ -655,7 +702,7 @@ describe('MaterialController Integration Tests', () => {
     describe('Authorization Errors', () => {
       it('should return 403 when user is a student', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('test file content');
+        const fileBuffer = createValidPdfBuffer('test file content');
 
         // Act
         const response = await request(app)
@@ -673,7 +720,7 @@ describe('MaterialController Integration Tests', () => {
     describe('Authentication Errors', () => {
       it('should return 401 when access token is missing', async () => {
         // Arrange
-        const fileBuffer = Buffer.from('test file content');
+        const fileBuffer = createValidPdfBuffer('test file content');
 
         // Act
         const response = await request(app)
@@ -1079,12 +1126,13 @@ describe('MaterialController Integration Tests', () => {
     let filePath: string;
 
     beforeEach(async () => {
-      // Create actual file for download first
+      // Create actual file for download first with valid PDF content
       const fileStorage = container.resolve('IFileStorage') as LocalFileStorage;
-      const fileMetadata = await fileStorage.upload(Buffer.from('test file content'), {
+      const validPdfBuffer = createValidPdfBuffer('test file content');
+      const fileMetadata = await fileStorage.upload(validPdfBuffer, {
         originalName: 'download.pdf',
         mimeType: 'application/pdf',
-        size: 1024,
+        size: validPdfBuffer.length,
         directory: 'test'
       });
       filePath = fileMetadata.path;
@@ -1097,7 +1145,7 @@ describe('MaterialController Integration Tests', () => {
           courseId: courseId,
           filePath: filePath,
           fileName: 'download.pdf',
-          fileSize: 1024,
+          fileSize: validPdfBuffer.length,
           mimeType: 'application/pdf'
         }
       });
