@@ -300,9 +300,39 @@ export const SubmitQuizRequestSchema = z.object({
 });
 
 /**
- * Grade quiz submission request schema (simple array format)
+ * Question grade schema for individual question grading
  * 
- * Validates quiz grading request body with simple array of points
+ * Validates grade for a single question with optional feedback
+ * Requirements: 13.3, 13.4, 13.6
+ */
+export const QuestionGradeSchema = z.object({
+  questionIndex: z
+    .number({
+      required_error: 'Question index is required',
+      invalid_type_error: 'Question index must be a number'
+    })
+    .int('Question index must be an integer')
+    .nonnegative('Question index must be non-negative'),
+  points: z
+    .number({
+      required_error: 'Points are required',
+      invalid_type_error: 'Points must be a number'
+    })
+    .min(0, 'Points must be between 0 and 100')
+    .max(100, 'Points must be between 0 and 100'),
+  feedback: z
+    .string({
+      invalid_type_error: 'Feedback must be a string'
+    })
+    .trim()
+    .max(2000, 'Feedback must not exceed 2000 characters')
+    .optional()
+});
+
+/**
+ * Grade quiz submission request schema (detailed format with per-question grades)
+ * 
+ * Validates quiz grading request body with detailed question grades
  * Requirements: 13.3, 13.4, 13.6, 13.8, 13.9, 13.10, 18.4, 20.2
  * 
  * Note: The system will warn if the sum of points does not equal 100,
@@ -310,26 +340,25 @@ export const SubmitQuizRequestSchema = z.object({
  * The validation only ensures each question's points are between 0 and 100.
  */
 export const GradeQuizSubmissionRequestSchema = z.object({
-  questionPoints: z
-    .array(
-      z.number({
-        required_error: 'Points are required',
-        invalid_type_error: 'Points must be a number'
-      })
-      .min(0, 'Points must be between 0 and 100')
-      .max(100, 'Points must be between 0 and 100'),
-      {
-        required_error: 'Question points are required',
-        invalid_type_error: 'Question points must be an array'
-      }
-    )
-    .min(1, 'At least one question point is required'),
-  feedback: z
+  questionGrades: z
+    .array(QuestionGradeSchema, {
+      required_error: 'Question grades are required',
+      invalid_type_error: 'Question grades must be an array'
+    })
+    .min(1, 'At least one question grade is required'),
+  generalFeedback: z
     .string({
-      invalid_type_error: 'Feedback must be a string'
+      invalid_type_error: 'General feedback must be a string'
     })
     .trim()
-    .max(5000, 'Feedback must not exceed 5000 characters')
+    .max(5000, 'General feedback must not exceed 5000 characters')
+    .optional(),
+  version: z
+    .number({
+      invalid_type_error: 'Version must be a number'
+    })
+    .int('Version must be an integer')
+    .positive('Version must be a positive number')
     .optional()
 });
 
@@ -347,4 +376,5 @@ export type UpdateQuizRequest = z.infer<typeof UpdateQuizRequestSchema>;
 export type Answer = z.infer<typeof AnswerSchema>;
 export type AutoSaveQuizRequest = z.infer<typeof AutoSaveQuizRequestSchema>;
 export type SubmitQuizRequest = z.infer<typeof SubmitQuizRequestSchema>;
+export type QuestionGrade = z.infer<typeof QuestionGradeSchema>;
 export type GradeQuizSubmissionRequest = z.infer<typeof GradeQuizSubmissionRequestSchema>;

@@ -234,16 +234,27 @@ describe('PrismaQuizSubmissionRepository Integration Tests', () => {
       expect(foundSubmission).toBeNull();
     });
 
-    it('should enforce unique constraint on quizId and studentId', async () => {
+    it('should update existing submission when saving with same quiz and student', async () => {
       // Arrange
       const submission1 = QuizSubmission.create(testQuizId, testStudentId);
       await repository.save(submission1);
 
       // Try to create another submission for same quiz and student
       const submission2 = QuizSubmission.create(testQuizId, testStudentId);
+      const quizDueDate = new Date(Date.now() + 86400000);
+      submission2.start(quizDueDate);
 
-      // Act & Assert
-      await expect(repository.save(submission2)).rejects.toThrow('already exists');
+      // Act - This should update the existing submission (upsert behavior)
+      const saved = await repository.save(submission2);
+
+      // Assert - Should have updated the existing submission
+      expect(saved.getId()).toBe(submission1.getId()); // Same ID as first submission
+      expect(saved.getStatus()).toBe(QuizSubmissionStatus.IN_PROGRESS);
+      expect(saved.getStartedAt()).not.toBeNull();
+
+      // Verify only one submission exists
+      const submissions = await repository.findByQuizId(testQuizId);
+      expect(submissions).toHaveLength(1);
     });
   });
 

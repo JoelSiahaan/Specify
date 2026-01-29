@@ -145,12 +145,10 @@ export class QuizSubmission {
       throw new Error('Submitted date is required for submitted submissions');
     }
 
-    // Note: We allow GRADED status with null grade during reconstitution
-    // This handles edge cases where status was updated but grade wasn't set
-    // The setGrade() method will enforce grade requirement when grading
+    // Note: We enforce grade requirement for GRADED status
+    // This ensures data consistency and prevents incomplete grading
     if (this.status === QuizSubmissionStatus.GRADED && this.grade === null) {
-      // Log warning but don't throw - this allows reconstitution of inconsistent data
-      console.warn(`QuizSubmission ${this.id} has GRADED status but null grade - data inconsistency`);
+      throw new Error('Grade is required for graded submissions');
     }
 
     // Validate grade range

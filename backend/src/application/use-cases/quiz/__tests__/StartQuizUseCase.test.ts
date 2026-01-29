@@ -314,17 +314,60 @@ describe('StartQuizUseCase', () => {
     });
   });
 
-  describe('Multiple submission prevention', () => {
-    it('should throw error when student has already started quiz', async () => {
+  describe('Multiple submission prevention and resume functionality', () => {
+    it('should allow student to resume in-progress quiz (browser crash recovery)', async () => {
       // Arrange
       const existingSubmission = QuizSubmission.create(quizId, studentId);
       existingSubmission.start(quiz.getDueDate());
+      // Add some saved answers to simulate auto-save
+      existingSubmission.updateAnswers([
+        { questionIndex: 0, answer: 1 }
+      ]);
       mockQuizSubmissionRepository.findByQuizAndStudent.mockResolvedValue(existingSubmission);
 
-      // Act & Assert
-      await expect(useCase.execute(quizId, studentId)).rejects.toThrow(
-        new ApplicationError('DUPLICATE_ENTRY', 'You have already started or submitted this quiz', 409)
-      );
+      // Act
+      const result = await useCase.execute(quizId, studentId);
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.quizId).toBe(quizId);
+      expect(result.submissionId).toBe(existingSubmission.getId());
+      expect(result.currentAnswers).toHaveLength(1);
+      expect(result.currentAnswers[0].answer).toBe(1);
+      expect(result.startedAt).toBeDefined();
+      expect(result.remainingTimeSeconds).toBeGreaterThan(0);
+
+      // Verify repository was NOT called to save (resume, not create)
+      expect(mockQuizSubmissionRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('should auto-submit quiz when time expired on resume', async () => {
+      // Arrange
+      const existingSubmission = QuizSubmission.create(quizId, studentId);
+      existingSubmission.start(quiz.getDueDate());
+      
+      // Mock isTimeExpired to return true (time has expired)
+      jest.spyOn(existingSubmission, 'isTimeExpired').mockReturnValue(true);
+      
+      // Mock autoSubmit to change status to SUBMITTED
+      jest.spyOn(existingSubmission, 'autoSubmit').mockImplementation(() => {
+        // Simulate what autoSubmit does - change status to SUBMITTED
+        (existingSubmission as any).status = QuizSubmissionStatus.SUBMITTED;
+        (existingSubmission as any).submittedAt = new Date();
+        (existingSubmission as any).completedAt = new Date();
+      });
+      
+      mockQuizSubmissionRepository.findByQuizAndStudent.mockResolvedValue(existingSubmission);
+      mockQuizSubmissionRepository.save.mockResolvedValue(existingSubmission);
+
+      // Act
+      const result = await useCase.execute(quizId, studentId);
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.timeExpired).toBe(true); // Flag indicating auto-submit
+      expect(existingSubmission.autoSubmit).toHaveBeenCalledWith(quiz.getTimeLimit());
+      expect(mockQuizSubmissionRepository.save).toHaveBeenCalled(); // Auto-submit saves
     });
 
     it('should throw error when student has already submitted quiz', async () => {
@@ -336,7 +379,21 @@ describe('StartQuizUseCase', () => {
 
       // Act & Assert
       await expect(useCase.execute(quizId, studentId)).rejects.toThrow(
-        new ApplicationError('DUPLICATE_ENTRY', 'You have already started or submitted this quiz', 409)
+        new ApplicationError('QUIZ_ALREADY_SUBMITTED', 'You have already submitted this quiz', 409)
+      );
+    });
+
+    it('should throw error when student tries to start graded quiz', async () => {
+      // Arrange
+      const existingSubmission = QuizSubmission.create(quizId, studentId);
+      existingSubmission.start(quiz.getDueDate());
+      existingSubmission.submit([], quiz.getTimeLimit(), false);
+      existingSubmission.setGrade(85, 'Good work');
+      mockQuizSubmissionRepository.findByQuizAndStudent.mockResolvedValue(existingSubmission);
+
+      // Act & Assert
+      await expect(useCase.execute(quizId, studentId)).rejects.toThrow(
+        new ApplicationError('QUIZ_ALREADY_SUBMITTED', 'You have already submitted this quiz', 409)
       );
     });
   });
