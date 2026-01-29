@@ -17,4 +17,4 @@ process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-key-for-testing-only';
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://lms_test_user:test_password@localhost:5433/lms_test';
 
 // Increase test timeout for integration tests
-jest.setTimeout(10000);
+jest.setTimeout(5000);

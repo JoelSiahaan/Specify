@@ -108,13 +108,26 @@ export class StartQuizUseCase {
       if (existingSubmission.isTimeExpired(quiz.getTimeLimit())) {
         // Auto-submit the quiz with current answers
         existingSubmission.autoSubmit(quiz.getTimeLimit());
-        const savedSubmission = await this.quizSubmissionRepository.save(existingSubmission);
+        await this.quizSubmissionRepository.save(existingSubmission);
         
-        // Return special DTO indicating quiz was auto-submitted due to time expiration
+        // Return special response indicating quiz was auto-submitted due to time expiration
         // Frontend will detect this and redirect to results page
-        const attemptDTO = QuizSubmissionMapper.toAttemptDTO(savedSubmission, quiz);
-        attemptDTO.timeExpired = true; // Flag to indicate auto-submit happened
-        return attemptDTO;
+        // Note: Cannot use toAttemptDTO() because submission is now SUBMITTED, not IN_PROGRESS
+        return {
+          quizId: quiz.getId(),
+          submissionId: existingSubmission.getId(),
+          title: quiz.getTitle(),
+          description: quiz.getDescription(),
+          timeLimit: quiz.getTimeLimit(),
+          questions: [], // Empty questions since quiz is already submitted
+          startedAt: existingSubmission.getStartedAt()!,
+          remainingTimeSeconds: 0, // Time expired
+          currentAnswers: QuizSubmissionMapper.answersToDomain(existingSubmission.getAnswers()).map(a => ({
+            questionIndex: a.questionIndex,
+            answer: a.answer
+          })),
+          timeExpired: true // Flag to indicate auto-submit happened
+        };
       }
 
       // If started but not submitted, allow resume (Design: Browser Crash Recovery)

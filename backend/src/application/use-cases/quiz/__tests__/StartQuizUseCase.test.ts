@@ -346,11 +346,16 @@ describe('StartQuizUseCase', () => {
       const existingSubmission = QuizSubmission.create(quizId, studentId);
       existingSubmission.start(quiz.getDueDate());
       
+      // Add some saved answers to simulate auto-save
+      existingSubmission.updateAnswers([
+        { questionIndex: 0, answer: 1 }
+      ]);
+      
       // Mock isTimeExpired to return true (time has expired)
       jest.spyOn(existingSubmission, 'isTimeExpired').mockReturnValue(true);
       
       // Mock autoSubmit to change status to SUBMITTED
-      jest.spyOn(existingSubmission, 'autoSubmit').mockImplementation(() => {
+      const autoSubmitSpy = jest.spyOn(existingSubmission, 'autoSubmit').mockImplementation(() => {
         // Simulate what autoSubmit does - change status to SUBMITTED
         (existingSubmission as any).status = QuizSubmissionStatus.SUBMITTED;
         (existingSubmission as any).submittedAt = new Date();
@@ -366,7 +371,11 @@ describe('StartQuizUseCase', () => {
       // Assert
       expect(result).toBeDefined();
       expect(result.timeExpired).toBe(true); // Flag indicating auto-submit
-      expect(existingSubmission.autoSubmit).toHaveBeenCalledWith(quiz.getTimeLimit());
+      expect(result.remainingTimeSeconds).toBe(0); // Time expired
+      expect(result.questions).toEqual([]); // Empty questions since quiz is already submitted
+      expect(result.currentAnswers).toHaveLength(1); // Saved answers returned
+      expect(result.currentAnswers[0].answer).toBe(1);
+      expect(autoSubmitSpy).toHaveBeenCalledWith(quiz.getTimeLimit());
       expect(mockQuizSubmissionRepository.save).toHaveBeenCalled(); // Auto-submit saves
     });
 
@@ -426,8 +435,9 @@ describe('StartQuizUseCase', () => {
       // Act
       const result = await useCase.execute(quizId, studentId);
 
-      // Assert
-      expect(result.remainingTimeSeconds).toBe(3600); // 60 minutes = 3600 seconds
+      // Assert - Allow 1 second tolerance for test execution time
+      expect(result.remainingTimeSeconds).toBeGreaterThanOrEqual(3599);
+      expect(result.remainingTimeSeconds).toBeLessThanOrEqual(3600);
       expect(result.timeLimit).toBe(60);
     });
 

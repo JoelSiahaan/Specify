@@ -22,6 +22,7 @@ import request from 'supertest';
 import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import quizRoutes from '../../routes/quizRoutes';
 import { errorHandler } from '../../middleware/ErrorHandlerMiddleware';
 import { cleanupDatabase, generateTestToken } from '../../../../test/test-utils';
@@ -86,69 +87,105 @@ describe('QuizController Integration Tests', () => {
   });
 
   afterAll(async () => {
+    // Final cleanup
+    try {
+      await prisma.quizSubmission.deleteMany({});
+      await prisma.quiz.deleteMany({});
+      await prisma.enrollment.deleteMany({});
+      await prisma.course.deleteMany({});
+      await prisma.user.deleteMany({});
+    } catch (error) {
+      // Ignore cleanup errors
+    }
     await prisma.$disconnect();
   });
 
+  afterEach(async () => {
+    // Clean up only this test's data (ignore errors if already deleted by cascade)
+    try {
+      if (courseId) {
+        await prisma.quiz.deleteMany({ where: { courseId } }).catch(() => {});
+        await prisma.enrollment.deleteMany({ where: { courseId } }).catch(() => {});
+        await prisma.course.deleteMany({ where: { id: courseId } }).catch(() => {});
+      }
+      if (teacherId) {
+        await prisma.user.deleteMany({ where: { id: teacherId } }).catch(() => {});
+      }
+      if (studentId) {
+        await prisma.user.deleteMany({ where: { id: studentId } }).catch(() => {});
+      }
+    } catch (error) {
+      // Ignore cleanup errors - data might have been cascade deleted
+    }
+  });
+
   beforeEach(async () => {
-    // Clean database before each test
-    await cleanupDatabase(prisma);
+    try {
+      // Generate unique IDs for this test
+      teacherId = randomUUID();
+      studentId = randomUUID();
+      courseId = randomUUID();
 
-    // Create test users
-    const passwordService = container.resolve(PasswordService);
-    const hashedPassword = await passwordService.hash('password123');
+      // Create test users with unique emails
+      const passwordService = container.resolve(PasswordService);
+      const hashedPassword = await passwordService.hash('password123');
 
-    const teacher = await prisma.user.create({
-      data: {
-        email: 'teacher@test.com',
-        name: 'Test Teacher',
-        role: 'TEACHER',
-        passwordHash: hashedPassword
-      }
-    });
-    teacherId = teacher.id;
+      await prisma.user.create({
+        data: {
+          id: teacherId,
+          email: `teacher-${teacherId}@test.com`,
+          name: 'Test Teacher',
+          role: 'TEACHER',
+          passwordHash: hashedPassword
+        }
+      });
 
-    const student = await prisma.user.create({
-      data: {
-        email: 'student@test.com',
-        name: 'Test Student',
-        role: 'STUDENT',
-        passwordHash: hashedPassword
-      }
-    });
-    studentId = student.id;
+      await prisma.user.create({
+        data: {
+          id: studentId,
+          email: `student-${studentId}@test.com`,
+          name: 'Test Student',
+          role: 'STUDENT',
+          passwordHash: hashedPassword
+        }
+      });
 
-    // Create test course
-    const course = await prisma.course.create({
-      data: {
-        name: 'Test Course',
-        description: 'Test Description',
-        courseCode: 'TEST01',
-        status: 'ACTIVE',
-        teacherId: teacherId
-      }
-    });
-    courseId = course.id;
+      // Create test course with unique code
+      await prisma.course.create({
+        data: {
+          id: courseId,
+          name: 'Test Course',
+          description: 'Test Description',
+          courseCode: `TEST${courseId.substring(0, 6).toUpperCase()}`,
+          status: 'ACTIVE',
+          teacherId: teacherId
+        }
+      });
 
-    // Enroll student in course
-    await prisma.enrollment.create({
-      data: {
-        studentId: studentId,
-        courseId: courseId
-      }
-    });
+      // Enroll student in course
+      await prisma.enrollment.create({
+        data: {
+          studentId: studentId,
+          courseId: courseId
+        }
+      });
 
-    // Generate tokens
-    teacherToken = generateTestToken({
-      userId: teacherId,
-      email: 'teacher@test.com',
-      role: 'TEACHER'
-    });
+      // Generate tokens with unique emails
+      teacherToken = generateTestToken({
+        userId: teacherId,
+        email: `teacher-${teacherId}@test.com`,
+        role: 'TEACHER'
+      });
 
-    studentToken = generateTestToken({
-      userId: studentId,
-      email: 'student@test.com',
-      role: 'STUDENT'
-    });
+      studentToken = generateTestToken({
+        userId: studentId,
+        email: `student-${studentId}@test.com`,
+        role: 'STUDENT'
+      });
+    } catch (error) {
+      console.error('Error in beforeEach setup:', error);
+      throw error;
+    }
   });
 
   describe('POST /api/courses/:courseId/quizzes', () => {

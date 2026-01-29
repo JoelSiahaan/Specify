@@ -41,74 +41,102 @@ describe('PrismaQuizSubmissionRepository Integration Tests', () => {
   });
 
   afterAll(async () => {
-    await prisma.$disconnect();
-  });
-
-  beforeEach(async () => {
-    // Clean up tables before each test
+    // Final cleanup before disconnecting
     await prisma.quizSubmission.deleteMany({});
     await prisma.quiz.deleteMany({});
     await prisma.enrollment.deleteMany({});
     await prisma.course.deleteMany({});
     await prisma.user.deleteMany({});
-    
-    // Create a test teacher
-    testTeacherId = randomUUID();
-    await prisma.user.create({
-      data: {
-        id: testTeacherId,
-        email: 'teacher@example.com',
-        name: 'Test Teacher',
-        role: 'TEACHER',
-        passwordHash: 'hashed_password'
-      }
-    });
+    await prisma.$disconnect();
+  });
 
-    // Create a test student
-    testStudentId = randomUUID();
-    await prisma.user.create({
-      data: {
-        id: testStudentId,
-        email: 'student@example.com',
-        name: 'Test Student',
-        role: 'STUDENT',
-        passwordHash: 'hashed_password'
-      }
-    });
+  beforeEach(async () => {
+    try {
+      // Generate unique IDs for this test
+      testTeacherId = randomUUID();
+      testStudentId = randomUUID();
+      testCourseId = randomUUID();
+      testQuizId = randomUUID();
+      
+      // Create a test teacher with unique email
+      await prisma.user.create({
+        data: {
+          id: testTeacherId,
+          email: `teacher-${testTeacherId}@example.com`,
+          name: 'Test Teacher',
+          role: 'TEACHER',
+          passwordHash: 'hashed_password'
+        }
+      });
 
-    // Create a test course
-    testCourseId = randomUUID();
-    await prisma.course.create({
-      data: {
-        id: testCourseId,
-        name: 'Test Course',
-        description: 'Test Description',
-        courseCode: 'TEST123',
-        status: 'ACTIVE',
-        teacherId: testTeacherId
-      }
-    });
+      // Create a test student with unique email
+      await prisma.user.create({
+        data: {
+          id: testStudentId,
+          email: `student-${testStudentId}@example.com`,
+          name: 'Test Student',
+          role: 'STUDENT',
+          passwordHash: 'hashed_password'
+        }
+      });
 
-    // Create a test quiz
-    testQuizId = randomUUID();
-    await prisma.quiz.create({
-      data: {
-        id: testQuizId,
-        courseId: testCourseId,
-        title: 'Test Quiz',
-        description: 'Test Description',
-        dueDate: new Date(Date.now() + 86400000), // 1 day in future
-        timeLimit: 60,
-        questions: [
-          {
-            type: 'MCQ',
-            questionText: 'What is 2+2?',
-            options: ['3', '4', '5'],
-            correctAnswer: 1
-          }
-        ]
+      // Create a test course with unique code
+      await prisma.course.create({
+        data: {
+          id: testCourseId,
+          name: 'Test Course',
+          description: 'Test Description',
+          courseCode: `TEST${testCourseId.substring(0, 6).toUpperCase()}`,
+          status: 'ACTIVE',
+          teacherId: testTeacherId
+        }
+      });
+
+      // Create a test quiz
+      await prisma.quiz.create({
+        data: {
+          id: testQuizId,
+          courseId: testCourseId,
+          title: 'Test Quiz',
+          description: 'Test Description',
+          dueDate: new Date(Date.now() + 86400000), // 1 day in future
+          timeLimit: 60,
+          questions: [
+            {
+              type: 'MCQ',
+              questionText: 'What is 2+2?',
+              options: ['3', '4', '5'],
+              correctAnswer: 1
+            }
+          ]
+        }
+      });
+    } catch (error) {
+      console.error('Error in beforeEach setup:', error);
+      throw error;
+    }
+  });
+
+  afterEach(async () => {
+    // Clean up only this test's data (ignore errors if already deleted by cascade)
+    try {
+      if (testQuizId) {
+        await prisma.quizSubmission.deleteMany({ where: { quizId: testQuizId } }).catch(() => {});
+        await prisma.quiz.deleteMany({ where: { id: testQuizId } }).catch(() => {});
       }
-    });
+      if (testCourseId) {
+        await prisma.enrollment.deleteMany({ where: { courseId: testCourseId } }).catch(() => {});
+        await prisma.course.deleteMany({ where: { id: testCourseId } }).catch(() => {});
+      }
+      if (testTeacherId) {
+        await prisma.user.deleteMany({ where: { id: testTeacherId } }).catch(() => {});
+      }
+      if (testStudentId) {
+        await prisma.user.deleteMany({ where: { id: testStudentId } }).catch(() => {});
+      }
+    } catch (error) {
+      // Ignore cleanup errors - data might have been cascade deleted
+    }
   });
 
   describe('save', () => {
@@ -265,7 +293,7 @@ describe('PrismaQuizSubmissionRepository Integration Tests', () => {
       await prisma.user.create({
         data: {
           id: student2Id,
-          email: 'student2@example.com',
+          email: `student2-${student2Id}@example.com`,
           name: 'Test Student 2',
           role: 'STUDENT',
           passwordHash: 'hashed_password'
@@ -284,6 +312,9 @@ describe('PrismaQuizSubmissionRepository Integration Tests', () => {
       expect(submissions).toHaveLength(2);
       expect(submissions.map(s => s.getStudentId())).toContain(testStudentId);
       expect(submissions.map(s => s.getStudentId())).toContain(student2Id);
+      
+      // Cleanup
+      await prisma.user.delete({ where: { id: student2Id } });
     });
 
     it('should return empty array when quiz has no submissions', async () => {
@@ -348,7 +379,7 @@ describe('PrismaQuizSubmissionRepository Integration Tests', () => {
           id: course2Id,
           name: 'Another Course',
           description: 'Another Description',
-          courseCode: 'OTHER123',
+          courseCode: `OTHER${course2Id.substring(0, 6).toUpperCase()}`,
           status: 'ACTIVE',
           teacherId: testTeacherId
         }
@@ -385,6 +416,10 @@ describe('PrismaQuizSubmissionRepository Integration Tests', () => {
       // Assert
       expect(submissions).toHaveLength(1);
       expect(submissions[0].getQuizId()).toBe(testQuizId);
+      
+      // Cleanup
+      await prisma.quiz.delete({ where: { id: quiz2Id } });
+      await prisma.course.delete({ where: { id: course2Id } });
     });
   });
 
@@ -539,7 +574,7 @@ describe('PrismaQuizSubmissionRepository Integration Tests', () => {
       await prisma.user.create({
         data: {
           id: student2Id,
-          email: 'student2@example.com',
+          email: `student2-${student2Id}@example.com`,
           name: 'Test Student 2',
           role: 'STUDENT',
           passwordHash: 'hashed_password'
@@ -558,6 +593,9 @@ describe('PrismaQuizSubmissionRepository Integration Tests', () => {
       expect(deletedCount).toBe(2);
       const submissions = await repository.findByQuizId(testQuizId);
       expect(submissions).toHaveLength(0);
+      
+      // Cleanup
+      await prisma.user.delete({ where: { id: student2Id } });
     });
 
     it('should return 0 when quiz has no submissions', async () => {
@@ -622,7 +660,7 @@ describe('PrismaQuizSubmissionRepository Integration Tests', () => {
       await prisma.user.create({
         data: {
           id: student2Id,
-          email: 'student2@example.com',
+          email: `student2-${student2Id}@example.com`,
           name: 'Test Student 2',
           role: 'STUDENT',
           passwordHash: 'hashed_password'
@@ -639,6 +677,9 @@ describe('PrismaQuizSubmissionRepository Integration Tests', () => {
 
       // Assert
       expect(count).toBe(2);
+      
+      // Cleanup
+      await prisma.user.delete({ where: { id: student2Id } });
     });
 
     it('should return 0 when quiz has no submissions', async () => {
@@ -682,7 +723,8 @@ describe('PrismaQuizSubmissionRepository Integration Tests', () => {
       // Assert
       expect(dbSubmission).not.toBeNull();
       expect(dbSubmission!.student.id).toBe(testStudentId);
-      expect(dbSubmission!.student.email).toBe('student@example.com');
+      expect(dbSubmission!.student.email).toContain('@example.com'); // Check pattern instead of exact email
+      expect(dbSubmission!.student.name).toBe('Test Student');
     });
 
     it('should cascade delete submissions when quiz is deleted', async () => {
