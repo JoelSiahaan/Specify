@@ -28,7 +28,7 @@ import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import courseRoutes from '../../routes/courseRoutes';
 import { errorHandler } from '../../middleware/ErrorHandlerMiddleware';
-import { cleanupDatabase, generateTestToken } from '../../../../test/test-utils';
+import { cleanupDatabase, generateTestToken, createTestUsers, generateUniqueEmail } from '../../../../test/test-utils';
 import {
   assertErrorResponse,
   assertSuccessResponse,
@@ -96,56 +96,30 @@ describe('EnrollmentController Integration Tests', () => {
     // Clean database before each test
     await cleanupDatabase(prisma);
 
-    // Create test users
+    // Create test users with unique emails
     const passwordService = container.resolve(PasswordService);
+    const users = await createTestUsers(prisma, passwordService);
+
+    teacherId = users.teacher.id;
+    teacherToken = users.teacher.token;
+    studentId = users.student.id;
+    studentToken = users.student.token;
+
+    // Create second student with unique email
     const hashedPassword = await passwordService.hash('password123');
-
-    const teacher = await prisma.user.create({
-      data: {
-        email: 'teacher@test.com',
-        name: 'Test Teacher',
-        role: 'TEACHER',
-        passwordHash: hashedPassword
-      }
-    });
-    teacherId = teacher.id;
-
-    const student = await prisma.user.create({
-      data: {
-        email: 'student@test.com',
-        name: 'Test Student',
-        role: 'STUDENT',
-        passwordHash: hashedPassword
-      }
-    });
-    studentId = student.id;
-
+    const student2Email = generateUniqueEmail('student2');
     const student2 = await prisma.user.create({
       data: {
-        email: 'student2@test.com',
+        email: student2Email,
         name: 'Test Student 2',
         role: 'STUDENT',
         passwordHash: hashedPassword
       }
     });
     student2Id = student2.id;
-
-    // Generate tokens
-    teacherToken = generateTestToken({
-      userId: teacherId,
-      email: 'teacher@test.com',
-      role: 'TEACHER'
-    });
-
-    studentToken = generateTestToken({
-      userId: studentId,
-      email: 'student@test.com',
-      role: 'STUDENT'
-    });
-
     student2Token = generateTestToken({
       userId: student2Id,
-      email: 'student2@test.com',
+      email: student2Email,
       role: 'STUDENT'
     });
   });
@@ -616,12 +590,13 @@ describe('EnrollmentController Integration Tests', () => {
         }
       });
 
-      // Create another teacher
+      // Create another teacher with unique email
       const passwordService = container.resolve(PasswordService);
       const hashedPassword = await passwordService.hash('password123');
+      const otherTeacherEmail = generateUniqueEmail('other-teacher');
       const otherTeacher = await prisma.user.create({
         data: {
-          email: 'other-teacher@test.com',
+          email: otherTeacherEmail,
           name: 'Other Teacher',
           role: 'TEACHER',
           passwordHash: hashedPassword
@@ -630,7 +605,7 @@ describe('EnrollmentController Integration Tests', () => {
       otherTeacherId = otherTeacher.id;
       otherTeacherToken = generateTestToken({
         userId: otherTeacherId,
-        email: 'other-teacher@test.com',
+        email: otherTeacherEmail,
         role: 'TEACHER'
       });
     });

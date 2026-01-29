@@ -22,73 +22,26 @@ import { FileValidator } from '../infrastructure/validation/FileValidator';
 import { LocalFileStorage } from '../infrastructure/storage/LocalFileStorage';
 import { PrismaCourseRepository } from '../infrastructure/persistence/repositories/PrismaCourseRepository';
 import { PasswordService } from '../infrastructure/auth/PasswordService';
-import { generateTestToken, cleanupDatabase } from '../test/test-utils';
+import { generateTestToken, getTestPrismaClient } from '../test/test-utils';
 
 describe('Security Tests', () => {
   let app: Express;
   let prisma: PrismaClient;
-  let teacherToken: string;
-  let studentToken: string;
-  let teacherId: string;
-  let studentId: string;
 
   beforeAll(async () => {
-    // Initialize Prisma client
-    prisma = new PrismaClient();
-
-    // Clean up database before creating test users
-    await cleanupDatabase(prisma);
-
-    // Create test users
-    teacherId = randomUUID();
-    studentId = randomUUID();
-
-    const passwordService = new PasswordService();
-    const hashedPassword = await passwordService.hash('Test123!@#');
-
-    await prisma.user.create({
-      data: {
-        id: teacherId,
-        email: 'teacher@test.com',
-        name: 'Test Teacher',
-        role: 'TEACHER',
-        passwordHash: hashedPassword
-      }
-    });
-
-    await prisma.user.create({
-      data: {
-        id: studentId,
-        email: 'student@test.com',
-        name: 'Test Student',
-        role: 'STUDENT',
-        passwordHash: hashedPassword
-      }
-    });
-
-    // Generate tokens
-    teacherToken = generateTestToken({
-      userId: teacherId,
-      email: 'teacher@test.com',
-      role: 'TEACHER'
-    });
-
-    studentToken = generateTestToken({
-      userId: studentId,
-      email: 'student@test.com',
-      role: 'STUDENT'
-    });
+    // Create Prisma client for this test suite
+    prisma = getTestPrismaClient();
 
     // Create minimal Express app for testing
     app = express();
     app.use(express.json());
     app.use(cookieParser());
-  });
+  }, 30000);
 
   afterAll(async () => {
-    await cleanupDatabase(prisma);
+    // Disconnect Prisma client after all tests
     await prisma.$disconnect();
-  });
+  }, 30000);
 
   describe('XSS Prevention (Requirement 20.2)', () => {
     const sanitizer = new HtmlSanitizer();
@@ -473,7 +426,23 @@ describe('Security Tests', () => {
     it('should use parameterized queries for all database operations', async () => {
       // Create a course with special characters that could break SQL
       const courseId = randomUUID();
+      const teacherId = randomUUID();
       const specialChars = "Test'; DROP TABLE courses; --";
+
+      // Create teacher for this test
+      const passwordService = new PasswordService();
+      const hashedPassword = await passwordService.hash('Test123!@#');
+      const teacher = await prisma.user.create({
+        data: {
+          id: teacherId,
+          email: `teacher-${teacherId}@test.com`,
+          name: 'Test Teacher',
+          role: 'TEACHER',
+          passwordHash: hashedPassword
+        }
+      });
+
+      expect(teacher).not.toBeNull();
 
       // This should safely store the special characters as data
       await prisma.course.create({
@@ -496,7 +465,8 @@ describe('Security Tests', () => {
       expect(course?.name).toBe(specialChars);
 
       // Cleanup
-      await prisma.course.delete({ where: { id: courseId } });
+      await prisma.course.delete({ where: { id: courseId } }).catch(() => {});
+      await prisma.user.delete({ where: { id: teacherId } }).catch(() => {});
     });
   });
 
@@ -595,14 +565,27 @@ describe('Security Tests', () => {
     });
 
     it('should never store passwords in plain text', async () => {
-      // Verify that user passwords in database are hashed
-      const user = await prisma.user.findUnique({
-        where: { id: teacherId }
+      // Create a test user for this test
+      const testUserId = randomUUID();
+      const hashedPassword = await passwordService.hash('Test123!@#');
+      
+      const user = await prisma.user.create({
+        data: {
+          id: testUserId,
+          email: `password-test-${testUserId}@test.com`,
+          name: 'Password Test User',
+          role: 'STUDENT',
+          passwordHash: hashedPassword
+        }
       });
 
+      // Verify that user passwords in database are hashed
       expect(user).not.toBeNull();
-      expect(user?.passwordHash).toContain('$2b$');
-      expect(user?.passwordHash).not.toBe('Test123!@#');
+      expect(user.passwordHash).toContain('$2b$');
+      expect(user.passwordHash).not.toBe('Test123!@#');
+
+      // Cleanup
+      await prisma.user.delete({ where: { id: testUserId } }).catch(() => {});
     });
   });
 
@@ -616,6 +599,7 @@ describe('Security Tests', () => {
 
       // Students should not be able to create courses
       expect(studentRole).not.toBe('TEACHER');
+      expect(teacherOnlyAction).toBe('CREATE_COURSE');
     });
 
     it('should prevent users from accessing resources they don\'t own', async () => {

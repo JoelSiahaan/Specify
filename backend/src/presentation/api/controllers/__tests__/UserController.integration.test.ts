@@ -20,10 +20,11 @@ import request from 'supertest';
 import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import userRoutes from '../../routes/userRoutes';
 import authRoutes from '../../routes/authRoutes';
 import { errorHandler } from '../../middleware/ErrorHandlerMiddleware';
-import { cleanupDatabase } from '../../../../test/test-utils';
+import { cleanupDatabase, getTestPrismaClient } from '../../../../test/test-utils';
 import {
   assertErrorResponse,
   assertSuccessResponse,
@@ -35,21 +36,20 @@ import { PrismaUserRepository } from '../../../../infrastructure/persistence/rep
 import { PasswordService } from '../../../../infrastructure/auth/PasswordService';
 import { JWTService } from '../../../../infrastructure/auth/JWTService';
 
+/**
+ * Helper function to generate unique email for tests
+ */
+function uniqueEmail(prefix: string): string {
+  return `${prefix}-${randomUUID()}@test.com`;
+}
+
 describe('UserController Integration Tests', () => {
   let app: Express;
   let prisma: PrismaClient;
 
   beforeAll(async () => {
-    // Create Prisma client
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL
-        }
-      }
-    });
-
-    await prisma.$connect();
+    // Create Prisma client for this test suite
+    prisma = getTestPrismaClient();
 
     // Register dependencies
     container.registerInstance('PrismaClient', prisma);
@@ -64,16 +64,17 @@ describe('UserController Integration Tests', () => {
     app.use('/api/auth', authRoutes);
     app.use('/api/users', userRoutes);
     app.use(errorHandler);
-  });
+  }, 30000);
 
   afterAll(async () => {
+    // Disconnect Prisma client after all tests
     await prisma.$disconnect();
-  });
+  }, 30000);
 
   beforeEach(async () => {
     // Clean database before each test
     await cleanupDatabase(prisma);
-  });
+  }, 30000);
 
   /**
    * Helper function to register and login a test user
@@ -104,8 +105,9 @@ describe('UserController Integration Tests', () => {
     describe('Success Scenarios', () => {
       it('should return current user profile with valid authentication', async () => {
         // Arrange
+        const email = uniqueEmail('profile');
         const { accessToken } = await registerAndLogin(
-          'profile@test.com',
+          email,
           'password123',
           'Profile Test User'
         );
@@ -119,7 +121,7 @@ describe('UserController Integration Tests', () => {
         assertSuccessResponse(response, 200);
         expect(response.body).toHaveProperty('profile');
         expect(response.body.profile).toHaveProperty('id');
-        expect(response.body.profile.email).toBe('profile@test.com');
+        expect(response.body.profile.email).toBe(email);
         expect(response.body.profile.name).toBe('Profile Test User');
         expect(response.body.profile.role).toBe('STUDENT');
         expect(response.body.profile).toHaveProperty('createdAt');
@@ -129,8 +131,9 @@ describe('UserController Integration Tests', () => {
 
       it('should return teacher profile correctly', async () => {
         // Arrange
+        const email = uniqueEmail('teacher');
         const { accessToken } = await registerAndLogin(
-          'teacher@test.com',
+          email,
           'password123',
           'Teacher User',
           'TEACHER'
@@ -173,8 +176,9 @@ describe('UserController Integration Tests', () => {
     describe('Success Scenarios', () => {
       it('should update user name successfully', async () => {
         // Arrange
+        const email = uniqueEmail('update');
         const { accessToken } = await registerAndLogin(
-          'update@test.com',
+          email,
           'password123',
           'Original Name'
         );
@@ -193,13 +197,14 @@ describe('UserController Integration Tests', () => {
         assertSuccessResponse(response, 200);
         expect(response.body).toHaveProperty('profile');
         expect(response.body.profile.name).toBe('Updated Name');
-        expect(response.body.profile.email).toBe('update@test.com');
+        expect(response.body.profile.email).toBe(email);
       });
 
       it('should trim whitespace from name', async () => {
         // Arrange
+        const email = uniqueEmail('trim');
         const { accessToken } = await registerAndLogin(
-          'trim@test.com',
+          email,
           'password123',
           'Original Name'
         );
@@ -221,8 +226,9 @@ describe('UserController Integration Tests', () => {
 
       it('should allow name with maximum length (100 chars)', async () => {
         // Arrange
+        const email = uniqueEmail('maxlength');
         const { accessToken } = await registerAndLogin(
-          'maxlength@test.com',
+          email,
           'password123',
           'Original Name'
         );
@@ -247,8 +253,9 @@ describe('UserController Integration Tests', () => {
     describe('Validation Errors', () => {
       it('should return 400 when name is missing', async () => {
         // Arrange
+        const email = uniqueEmail('missing');
         const { accessToken } = await registerAndLogin(
-          'missing@test.com',
+          email,
           'password123',
           'Original Name'
         );
@@ -265,8 +272,9 @@ describe('UserController Integration Tests', () => {
 
       it('should return 400 when name is empty after trim', async () => {
         // Arrange
+        const email = uniqueEmail('empty');
         const { accessToken } = await registerAndLogin(
-          'empty@test.com',
+          email,
           'password123',
           'Original Name'
         );
@@ -287,8 +295,9 @@ describe('UserController Integration Tests', () => {
 
       it('should return 400 when name exceeds 100 characters', async () => {
         // Arrange
+        const email = uniqueEmail('toolong');
         const { accessToken } = await registerAndLogin(
-          'toolong@test.com',
+          email,
           'password123',
           'Original Name'
         );
@@ -330,8 +339,9 @@ describe('UserController Integration Tests', () => {
     describe('Success Scenarios', () => {
       it('should change password successfully with valid current password', async () => {
         // Arrange
+        const email = uniqueEmail('changepass');
         const { accessToken } = await registerAndLogin(
-          'changepass@test.com',
+          email,
           'OldPassword123!',
           'Change Password User'
         );
@@ -358,7 +368,7 @@ describe('UserController Integration Tests', () => {
         const loginResponse = await request(app)
           .post('/api/auth/login')
           .send({
-            email: 'changepass@test.com',
+            email: email,
             password: 'NewPassword456!'
           });
 
@@ -367,8 +377,9 @@ describe('UserController Integration Tests', () => {
 
       it('should not allow login with old password after change', async () => {
         // Arrange
+        const email = uniqueEmail('oldpass');
         const { accessToken } = await registerAndLogin(
-          'oldpass@test.com',
+          email,
           'OldPassword123!',
           'Old Password User'
         );
@@ -388,7 +399,7 @@ describe('UserController Integration Tests', () => {
         const loginResponse = await request(app)
           .post('/api/auth/login')
           .send({
-            email: 'oldpass@test.com',
+            email: email,
             password: 'OldPassword123!'
           });
 
@@ -398,8 +409,9 @@ describe('UserController Integration Tests', () => {
 
       it('should keep session valid after password change', async () => {
         // Arrange
+        const email = uniqueEmail('session');
         const { accessToken } = await registerAndLogin(
-          'session@test.com',
+          email,
           'OldPassword123!',
           'Session User'
         );
@@ -422,15 +434,16 @@ describe('UserController Integration Tests', () => {
 
         // Assert
         assertSuccessResponse(profileResponse, 200);
-        expect(profileResponse.body.profile.email).toBe('session@test.com');
+        expect(profileResponse.body.profile.email).toBe(email);
       });
     });
 
     describe('Validation Errors', () => {
       it('should return 400 when current password is wrong', async () => {
         // Arrange
+        const email = uniqueEmail('wrongpass');
         const { accessToken } = await registerAndLogin(
-          'wrongpass@test.com',
+          email,
           'CorrectPassword123!',
           'Wrong Password User'
         );
@@ -453,8 +466,9 @@ describe('UserController Integration Tests', () => {
 
       it('should return 400 when passwords do not match', async () => {
         // Arrange
+        const email = uniqueEmail('mismatch');
         const { accessToken } = await registerAndLogin(
-          'mismatch@test.com',
+          email,
           'OldPassword123!',
           'Mismatch User'
         );
@@ -477,8 +491,9 @@ describe('UserController Integration Tests', () => {
 
       it('should return 400 when new password is too short', async () => {
         // Arrange
+        const email = uniqueEmail('short');
         const { accessToken } = await registerAndLogin(
-          'short@test.com',
+          email,
           'OldPassword123!',
           'Short Password User'
         );
@@ -501,8 +516,9 @@ describe('UserController Integration Tests', () => {
 
       it('should return 400 when new password lacks uppercase letter', async () => {
         // Arrange
+        const email = uniqueEmail('nouppercase');
         const { accessToken } = await registerAndLogin(
-          'nouppercase@test.com',
+          email,
           'OldPassword123!',
           'No Uppercase User'
         );
@@ -525,8 +541,9 @@ describe('UserController Integration Tests', () => {
 
       it('should return 400 when new password lacks lowercase letter', async () => {
         // Arrange
+        const email = uniqueEmail('nolowercase');
         const { accessToken } = await registerAndLogin(
-          'nolowercase@test.com',
+          email,
           'OldPassword123!',
           'No Lowercase User'
         );
@@ -549,8 +566,9 @@ describe('UserController Integration Tests', () => {
 
       it('should return 400 when new password lacks number', async () => {
         // Arrange
+        const email = uniqueEmail('nonumber');
         const { accessToken } = await registerAndLogin(
-          'nonumber@test.com',
+          email,
           'OldPassword123!',
           'No Number User'
         );
@@ -573,8 +591,9 @@ describe('UserController Integration Tests', () => {
 
       it('should return 400 when new password lacks special character', async () => {
         // Arrange
+        const email = uniqueEmail('nospecial');
         const { accessToken } = await registerAndLogin(
-          'nospecial@test.com',
+          email,
           'OldPassword123!',
           'No Special User'
         );
@@ -597,8 +616,9 @@ describe('UserController Integration Tests', () => {
 
       it('should return 400 when new password is same as current password', async () => {
         // Arrange
+        const email = uniqueEmail('samepass');
         const { accessToken } = await registerAndLogin(
-          'samepass@test.com',
+          email,
           'SamePassword123!',
           'Same Password User'
         );
@@ -621,8 +641,9 @@ describe('UserController Integration Tests', () => {
 
       it('should return 400 when required fields are missing', async () => {
         // Arrange
+        const email = uniqueEmail('missing');
         const { accessToken } = await registerAndLogin(
-          'missing@test.com',
+          email,
           'OldPassword123!',
           'Missing Fields User'
         );
@@ -662,8 +683,9 @@ describe('UserController Integration Tests', () => {
     describe('Validation Middleware', () => {
       it('should return consistent validation error format for profile update', async () => {
         // Arrange
+        const email = uniqueEmail('validation');
         const { accessToken } = await registerAndLogin(
-          'validation@test.com',
+          email,
           'password123',
           'Validation User'
         );
@@ -688,8 +710,9 @@ describe('UserController Integration Tests', () => {
 
       it('should return consistent validation error format for password change', async () => {
         // Arrange
+        const email = uniqueEmail('passvalidation');
         const { accessToken } = await registerAndLogin(
-          'passvalidation@test.com',
+          email,
           'OldPassword123!',
           'Password Validation User'
         );
@@ -743,8 +766,9 @@ describe('UserController Integration Tests', () => {
     describe('Error Handler Middleware', () => {
       it('should not expose internal error details', async () => {
         // Arrange
+        const email = uniqueEmail('error');
         const { accessToken } = await registerAndLogin(
-          'error@test.com',
+          email,
           'OldPassword123!',
           'Error User'
         );

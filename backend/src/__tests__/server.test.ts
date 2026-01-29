@@ -44,8 +44,8 @@ describe('Express Server Configuration', () => {
         .set('Content-Type', 'application/json')
         .send({ test: 'data' });
       
-      // Expect 404 since endpoint doesn't exist yet, but JSON should be parsed
-      expect(response.status).toBe(404);
+      // Expect 401 since authentication middleware runs before route matching
+      expect(response.status).toBe(401);
     });
 
     it('should handle CORS preflight requests', async () => {

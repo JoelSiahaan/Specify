@@ -424,9 +424,11 @@ describe('GradingController Integration Tests', () => {
         // Arrange - Create another student
         const passwordService = container.resolve(PasswordService);
         const hashedPassword = await passwordService.hash('password123');
+        const otherStudentId = randomUUID();
         const otherStudent = await prisma.user.create({
           data: {
-            email: 'other-student@test.com',
+            id: otherStudentId,
+            email: `other-student-${otherStudentId}@test.com`,
             name: 'Other Student',
             role: 'STUDENT',
             passwordHash: hashedPassword
@@ -434,7 +436,7 @@ describe('GradingController Integration Tests', () => {
         });
         const otherStudentToken = generateTestToken({
           userId: otherStudent.id,
-          email: 'other-student@test.com',
+          email: `other-student-${otherStudentId}@test.com`,
           role: 'STUDENT'
         });
 

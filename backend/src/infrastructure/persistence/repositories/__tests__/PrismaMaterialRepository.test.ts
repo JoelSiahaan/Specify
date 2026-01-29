@@ -14,6 +14,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaMaterialRepository } from '../PrismaMaterialRepository';
 import { Material, MaterialType } from '../../../../domain/entities/Material';
 import { randomUUID } from 'crypto';
+import { getTestPrismaClient } from '../../../../test/test-utils';
 
 describe('PrismaMaterialRepository Integration Tests', () => {
   let prisma: PrismaClient;
@@ -22,37 +23,26 @@ describe('PrismaMaterialRepository Integration Tests', () => {
   let testTeacherId: string;
 
   beforeAll(async () => {
-    // Create a fresh PrismaClient instance for tests
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL
-        }
-      }
-    });
-    
+    // Create Prisma client for this test suite
+    prisma = getTestPrismaClient();
     repository = new PrismaMaterialRepository(prisma);
-    
-    // Connect to database
-    await prisma.$connect();
   });
 
   afterAll(async () => {
+    // Disconnect Prisma client after all tests in this suite
     await prisma.$disconnect();
   });
 
   beforeEach(async () => {
-    // Clean up materials, courses, and users tables before each test
-    await prisma.material.deleteMany({});
-    await prisma.course.deleteMany({});
-    await prisma.user.deleteMany({});
-    
-    // Create a test teacher
+    // Generate unique IDs for this test to avoid conflicts
     testTeacherId = randomUUID();
+    testCourseId = randomUUID();
+    
+    // Create a test teacher with unique email
     await prisma.user.create({
       data: {
         id: testTeacherId,
-        email: 'teacher@example.com',
+        email: `teacher-${testTeacherId}@example.com`,
         name: 'Test Teacher',
         role: 'TEACHER',
         passwordHash: 'hashed_password'
@@ -60,13 +50,12 @@ describe('PrismaMaterialRepository Integration Tests', () => {
     });
 
     // Create a test course for material relationships
-    testCourseId = randomUUID();
     await prisma.course.create({
       data: {
         id: testCourseId,
         name: 'Test Course',
         description: 'Test course description',
-        courseCode: 'TEST123',
+        courseCode: `TEST${testCourseId.substring(0, 6).toUpperCase()}`,
         status: 'ACTIVE',
         teacherId: testTeacherId
       }
@@ -275,7 +264,7 @@ describe('PrismaMaterialRepository Integration Tests', () => {
           id: anotherCourseId,
           name: 'Another Course',
           description: 'Another description',
-          courseCode: 'OTHER123',
+          courseCode: `OTHER${anotherCourseId.substring(0, 6).toUpperCase()}`,
           status: 'ACTIVE',
           teacherId: testTeacherId
         }
@@ -453,7 +442,7 @@ describe('PrismaMaterialRepository Integration Tests', () => {
           id: anotherCourseId,
           name: 'Another Course',
           description: 'Another description',
-          courseCode: 'OTHER123',
+          courseCode: `OTHER${anotherCourseId.substring(0, 6).toUpperCase()}`,
           status: 'ACTIVE',
           teacherId: testTeacherId
         }
@@ -511,7 +500,7 @@ describe('PrismaMaterialRepository Integration Tests', () => {
       expect(dbMaterial).not.toBeNull();
       expect(dbMaterial!.course.id).toBe(testCourseId);
       expect(dbMaterial!.course.name).toBe('Test Course');
-      expect(dbMaterial!.course.courseCode).toBe('TEST123');
+      expect(dbMaterial!.course.courseCode).toContain('TEST'); // Check pattern instead of exact code
     });
 
     it('should cascade delete materials when course is deleted', async () => {

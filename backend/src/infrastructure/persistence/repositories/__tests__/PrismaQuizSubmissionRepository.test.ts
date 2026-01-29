@@ -15,6 +15,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaQuizSubmissionRepository } from '../PrismaQuizSubmissionRepository';
 import { QuizSubmission, QuizSubmissionStatus } from '../../../../domain/entities/QuizSubmission';
 import { randomUUID } from 'crypto';
+import { getTestPrismaClient } from '../../../../test/test-utils';
 
 describe('PrismaQuizSubmissionRepository Integration Tests', () => {
   let prisma: PrismaClient;
@@ -25,28 +26,13 @@ describe('PrismaQuizSubmissionRepository Integration Tests', () => {
   let testTeacherId: string;
 
   beforeAll(async () => {
-    // Create a fresh PrismaClient instance for tests
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL
-        }
-      }
-    });
-    
+    // Create Prisma client for this test suite
+    prisma = getTestPrismaClient();
     repository = new PrismaQuizSubmissionRepository(prisma);
-    
-    // Connect to database
-    await prisma.$connect();
   });
 
   afterAll(async () => {
-    // Final cleanup before disconnecting
-    await prisma.quizSubmission.deleteMany({});
-    await prisma.quiz.deleteMany({});
-    await prisma.enrollment.deleteMany({});
-    await prisma.course.deleteMany({});
-    await prisma.user.deleteMany({});
+    // Disconnect Prisma client after all tests
     await prisma.$disconnect();
   });
 

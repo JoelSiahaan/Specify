@@ -16,7 +16,7 @@ import type { AuthenticatedRequest } from './AuthenticationMiddleware';
  */
 function getUserId(req: Request): string | undefined {
   const authReq = req as AuthenticatedRequest;
-  return authReq.user?.userId;
+  return authReq.user?.id;
 }
 
 /**

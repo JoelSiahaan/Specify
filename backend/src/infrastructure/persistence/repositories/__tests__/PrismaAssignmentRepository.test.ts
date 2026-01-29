@@ -14,45 +14,55 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaAssignmentRepository } from '../PrismaAssignmentRepository';
 import { Assignment, SubmissionType } from '../../../../domain/entities/Assignment';
 import { randomUUID } from 'crypto';
+import { getTestPrismaClient } from '../../../../test/test-utils';
 
 describe('PrismaAssignmentRepository Integration Tests', () => {
   let prisma: PrismaClient;
   let repository: PrismaAssignmentRepository;
   let testCourseId: string;
   let testTeacherId: string;
+  const createdTeacherIds: string[] = [];
+  const createdCourseIds: string[] = [];
 
   beforeAll(async () => {
-    // Create a fresh PrismaClient instance for tests
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL
-        }
-      }
-    });
-    
+    // Create Prisma client for this test suite
+    prisma = getTestPrismaClient();
     repository = new PrismaAssignmentRepository(prisma);
-    
-    // Connect to database
-    await prisma.$connect();
-  });
+  }, 30000);
 
   afterAll(async () => {
+    // Clean up all created data in correct order (children first, then parents)
+    try {
+      // Delete courses (will cascade delete assignments)
+      if (createdCourseIds.length > 0) {
+        await prisma.course.deleteMany({
+          where: { id: { in: createdCourseIds } }
+        });
+      }
+      
+      // Delete teachers
+      if (createdTeacherIds.length > 0) {
+        await prisma.user.deleteMany({
+          where: { id: { in: createdTeacherIds } }
+        });
+      }
+    } catch (error) {
+      // Ignore cleanup errors
+    }
+    
+    // Disconnect Prisma client after all tests
     await prisma.$disconnect();
-  });
+  }, 30000);
 
   beforeEach(async () => {
-    // Clean up tables before each test
-    await prisma.assignment.deleteMany({});
-    await prisma.course.deleteMany({});
-    await prisma.user.deleteMany({});
-    
-    // Create a test teacher and course for assignment relationships
+    // Generate unique IDs for this test to avoid conflicts
     testTeacherId = randomUUID();
+    createdTeacherIds.push(testTeacherId);
+    
     await prisma.user.create({
       data: {
         id: testTeacherId,
-        email: 'teacher@example.com',
+        email: `teacher-${testTeacherId}@example.com`,
         name: 'Test Teacher',
         role: 'TEACHER',
         passwordHash: 'hashed_password'
@@ -60,12 +70,14 @@ describe('PrismaAssignmentRepository Integration Tests', () => {
     });
 
     testCourseId = randomUUID();
+    createdCourseIds.push(testCourseId);
+    
     await prisma.course.create({
       data: {
         id: testCourseId,
         name: 'Test Course',
         description: 'Test Description',
-        courseCode: 'TEST123',
+        courseCode: `TEST${testCourseId.substring(0, 6).toUpperCase()}`,
         status: 'ACTIVE',
         teacherId: testTeacherId
       }
@@ -476,18 +488,30 @@ describe('PrismaAssignmentRepository Integration Tests', () => {
       expect(dbAssignment).not.toBeNull();
       expect(dbAssignment!.course.id).toBe(testCourseId);
       expect(dbAssignment!.course.name).toBe('Test Course');
-      expect(dbAssignment!.course.courseCode).toBe('TEST123');
+      expect(dbAssignment!.course.courseCode).toContain('TEST');
     });
 
     it('should cascade delete assignments when course is deleted', async () => {
-      // Arrange
+      // Arrange - Create a fresh course for this test
+      const cascadeTestCourseId = randomUUID();
+      await prisma.course.create({
+        data: {
+          id: cascadeTestCourseId,
+          name: 'Cascade Test Course',
+          description: 'Test Description',
+          courseCode: `CASC${cascadeTestCourseId.substring(0, 3).toUpperCase()}`,
+          status: 'ACTIVE',
+          teacherId: testTeacherId
+        }
+      });
+
       const assignmentId = randomUUID();
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 7);
       
       const assignment = Assignment.create({
         id: assignmentId,
-        courseId: testCourseId,
+        courseId: cascadeTestCourseId,
         title: 'Assignment 1',
         description: 'Complete the exercises',
         dueDate: futureDate,
@@ -498,7 +522,7 @@ describe('PrismaAssignmentRepository Integration Tests', () => {
 
       // Act - Delete course (should cascade to assignments)
       await prisma.course.delete({
-        where: { id: testCourseId }
+        where: { id: cascadeTestCourseId }
       });
 
       // Assert

@@ -24,7 +24,7 @@ import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import materialRoutes from '../../routes/materialRoutes';
 import { errorHandler } from '../../middleware/ErrorHandlerMiddleware';
-import { cleanupDatabase, generateTestToken } from '../../../../test/test-utils';
+import { cleanupDatabase, generateTestToken, createTestUsers } from '../../../../test/test-utils';
 import {
   assertErrorResponse,
   assertSuccessResponse,
@@ -155,29 +155,14 @@ describe('MaterialController Integration Tests', () => {
     // Clean database before each test
     await cleanupDatabase(prisma);
 
-    // Create test users
+    // Create test users with unique emails
     const passwordService = container.resolve(PasswordService);
-    const hashedPassword = await passwordService.hash('password123');
+    const users = await createTestUsers(prisma, passwordService);
 
-    const teacher = await prisma.user.create({
-      data: {
-        email: 'teacher@test.com',
-        name: 'Test Teacher',
-        role: 'TEACHER',
-        passwordHash: hashedPassword
-      }
-    });
-    teacherId = teacher.id;
-
-    const student = await prisma.user.create({
-      data: {
-        email: 'student@test.com',
-        name: 'Test Student',
-        role: 'STUDENT',
-        passwordHash: hashedPassword
-      }
-    });
-    studentId = student.id;
+    teacherId = users.teacher.id;
+    teacherToken = users.teacher.token;
+    studentId = users.student.id;
+    studentToken = users.student.token;
 
     // Create test course
     const course = await prisma.course.create({
@@ -190,19 +175,6 @@ describe('MaterialController Integration Tests', () => {
       }
     });
     courseId = course.id;
-
-    // Generate tokens
-    teacherToken = generateTestToken({
-      userId: teacherId,
-      email: 'teacher@test.com',
-      role: 'TEACHER'
-    });
-
-    studentToken = generateTestToken({
-      userId: studentId,
-      email: 'student@test.com',
-      role: 'STUDENT'
-    });
   });
 
   describe('POST /api/courses/:courseId/materials/file', () => {

@@ -35,5 +35,6 @@ export default {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   roots: ['<rootDir>/src'],
-  testTimeout: 10000,
+  testTimeout: 30000, // 30 seconds per test
+  maxWorkers: 1, // Run tests serially to avoid database conflicts
 };

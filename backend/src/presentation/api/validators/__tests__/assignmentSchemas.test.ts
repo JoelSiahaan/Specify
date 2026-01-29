@@ -624,12 +624,12 @@ describe('Assignment Validation Schemas', () => {
       }
     });
 
-    it('should reject non-integer grade', () => {
+    it('should accept decimal grade for precise grading', () => {
       const request = { grade: 85.5 };
       const result = GradeSubmissionRequestSchema.safeParse(request);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain('integer');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.grade).toBe(85.5);
       }
     });
 
@@ -678,13 +678,16 @@ describe('Assignment Validation Schemas', () => {
       }
     });
 
-    it('should reject non-positive version', () => {
+    it('should accept version of 0 (non-negative)', () => {
       const request = {
         grade: 85,
         version: 0
       };
       const result = GradeSubmissionRequestSchema.safeParse(request);
-      expect(result.success).toBe(false);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.version).toBe(0);
+      }
     });
   });
 

@@ -48,7 +48,9 @@ describe('LocalFileStorage Integration Tests', () => {
   describe('upload', () => {
     it('should upload a file successfully', async () => {
       // Arrange
-      const fileContent = Buffer.from('Test file content');
+      // Create a minimal valid PDF file (PDF header)
+      const pdfHeader = Buffer.from('%PDF-1.4\n');
+      const fileContent = Buffer.concat([pdfHeader, Buffer.from('Test file content')]);
       const options = {
         originalName: 'test.pdf',
         mimeType: 'application/pdf',
@@ -74,12 +76,13 @@ describe('LocalFileStorage Integration Tests', () => {
 
       // Verify file content
       const savedContent = await fs.readFile(filePath);
-      expect(savedContent.toString()).toBe('Test file content');
+      expect(savedContent.toString()).toContain('Test file content');
     });
 
     it('should upload file with subdirectory', async () => {
       // Arrange
-      const fileContent = Buffer.from('Test file content');
+      const pdfHeader = Buffer.from('%PDF-1.4\n');
+      const fileContent = Buffer.concat([pdfHeader, Buffer.from('Test file content')]);
       const options = {
         originalName: 'test.pdf',
         mimeType: 'application/pdf',
@@ -103,7 +106,9 @@ describe('LocalFileStorage Integration Tests', () => {
 
     it('should preserve file extension', async () => {
       // Arrange
-      const fileContent = Buffer.from('Image content');
+      // Create a minimal valid JPEG file (JPEG header)
+      const jpegHeader = Buffer.from([0xFF, 0xD8, 0xFF, 0xE0]);
+      const fileContent = Buffer.concat([jpegHeader, Buffer.from('Image content')]);
       const options = {
         originalName: 'photo.jpg',
         mimeType: 'image/jpeg',
@@ -129,13 +134,16 @@ describe('LocalFileStorage Integration Tests', () => {
 
       // Act & Assert
       await expect(storage.upload(fileContent, options)).rejects.toThrow(
-        'File size exceeds maximum allowed size of 10MB'
+        'File size exceeds maximum limit of 10MB'
       );
     });
 
     it('should accept file at size limit (10MB)', async () => {
       // Arrange
-      const fileContent = Buffer.alloc(10 * 1024 * 1024); // Exactly 10MB
+      // Create a 10MB file with PDF header
+      const pdfHeader = Buffer.from('%PDF-1.4\n');
+      const padding = Buffer.alloc(10 * 1024 * 1024 - pdfHeader.length);
+      const fileContent = Buffer.concat([pdfHeader, padding]);
       const options = {
         originalName: 'max-size.pdf',
         mimeType: 'application/pdf',
@@ -152,7 +160,8 @@ describe('LocalFileStorage Integration Tests', () => {
 
     it('should create directory structure if not exists', async () => {
       // Arrange
-      const fileContent = Buffer.from('Test content');
+      const pdfHeader = Buffer.from('%PDF-1.4\n');
+      const fileContent = Buffer.concat([pdfHeader, Buffer.from('Test content')]);
       const options = {
         originalName: 'test.pdf',
         mimeType: 'application/pdf',
@@ -173,7 +182,8 @@ describe('LocalFileStorage Integration Tests', () => {
   describe('download', () => {
     it('should download an existing file', async () => {
       // Arrange - Upload a file first
-      const originalContent = Buffer.from('Download test content');
+      const pdfHeader = Buffer.from('%PDF-1.4\n');
+      const originalContent = Buffer.concat([pdfHeader, Buffer.from('Download test content')]);
       const uploadOptions = {
         originalName: 'download-test.pdf',
         mimeType: 'application/pdf',
@@ -186,7 +196,7 @@ describe('LocalFileStorage Integration Tests', () => {
 
       // Assert
       expect(downloadedContent).toBeInstanceOf(Buffer);
-      expect(downloadedContent.toString()).toBe('Download test content');
+      expect(downloadedContent.toString()).toContain('Download test content');
     });
 
     it('should throw error when file not found', async () => {
@@ -231,7 +241,8 @@ describe('LocalFileStorage Integration Tests', () => {
   describe('delete', () => {
     it('should delete an existing file', async () => {
       // Arrange - Upload a file first
-      const fileContent = Buffer.from('Delete test content');
+      const pdfHeader = Buffer.from('%PDF-1.4\n');
+      const fileContent = Buffer.concat([pdfHeader, Buffer.from('Delete test content')]);
       const uploadOptions = {
         originalName: 'delete-test.pdf',
         mimeType: 'application/pdf',
@@ -274,7 +285,8 @@ describe('LocalFileStorage Integration Tests', () => {
   describe('exists', () => {
     it('should return true for existing file', async () => {
       // Arrange - Upload a file first
-      const fileContent = Buffer.from('Exists test content');
+      const pdfHeader = Buffer.from('%PDF-1.4\n');
+      const fileContent = Buffer.concat([pdfHeader, Buffer.from('Exists test content')]);
       const uploadOptions = {
         originalName: 'exists-test.pdf',
         mimeType: 'application/pdf',
@@ -314,7 +326,8 @@ describe('LocalFileStorage Integration Tests', () => {
   describe('getMetadata', () => {
     it('should return metadata for existing file', async () => {
       // Arrange - Upload a file first
-      const fileContent = Buffer.from('Metadata test content');
+      const pdfHeader = Buffer.from('%PDF-1.4\n');
+      const fileContent = Buffer.concat([pdfHeader, Buffer.from('Metadata test content')]);
       const uploadOptions = {
         originalName: 'metadata-test.pdf',
         mimeType: 'application/pdf',
@@ -377,7 +390,8 @@ describe('LocalFileStorage Integration Tests', () => {
 
     it('should accept valid nested path', async () => {
       // Arrange - Upload file in nested directory
-      const fileContent = Buffer.from('Valid nested path');
+      const pdfHeader = Buffer.from('%PDF-1.4\n');
+      const fileContent = Buffer.concat([pdfHeader, Buffer.from('Valid nested path')]);
       const uploadOptions = {
         originalName: 'test.pdf',
         mimeType: 'application/pdf',
@@ -390,7 +404,7 @@ describe('LocalFileStorage Integration Tests', () => {
       const downloadedContent = await storage.download(metadata.path);
 
       // Assert
-      expect(downloadedContent.toString()).toBe('Valid nested path');
+      expect(downloadedContent.toString()).toContain('Valid nested path');
     });
   });
 });

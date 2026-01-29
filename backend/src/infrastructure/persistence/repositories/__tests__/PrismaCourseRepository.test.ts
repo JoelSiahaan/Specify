@@ -15,6 +15,7 @@ import { PrismaCourseRepository } from '../PrismaCourseRepository';
 import { Course, CourseStatus } from '../../../../domain/entities/Course';
 import { User, Role } from '../../../../domain/entities/User';
 import { randomUUID } from 'crypto';
+import { getTestPrismaClient } from '../../../../test/test-utils';
 
 describe('PrismaCourseRepository Integration Tests', () => {
   let prisma: PrismaClient;
@@ -22,42 +23,33 @@ describe('PrismaCourseRepository Integration Tests', () => {
   let testTeacherId: string;
 
   beforeAll(async () => {
-    // Create a fresh PrismaClient instance for tests
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL
-        }
-      }
-    });
-    
+    // Create Prisma client for this test suite
+    prisma = getTestPrismaClient();
     repository = new PrismaCourseRepository(prisma);
-    
-    // Connect to database
-    await prisma.$connect();
-  });
+  }, 30000);
 
   afterAll(async () => {
+    // Disconnect Prisma client after all tests
     await prisma.$disconnect();
-  });
+  }, 30000);
 
   beforeEach(async () => {
     // Clean up courses and users tables before each test
     await prisma.course.deleteMany({});
     await prisma.user.deleteMany({});
     
-    // Create a test teacher for course relationships
+    // Create a test teacher for course relationships with unique email
     testTeacherId = randomUUID();
     await prisma.user.create({
       data: {
         id: testTeacherId,
-        email: 'teacher@example.com',
+        email: `teacher-${testTeacherId}@example.com`,
         name: 'Test Teacher',
         role: 'TEACHER',
         passwordHash: 'hashed_password'
       }
     });
-  });
+  }, 30000);
 
   describe('save', () => {
     it('should create a new course', async () => {
@@ -210,12 +202,12 @@ describe('PrismaCourseRepository Integration Tests', () => {
     });
 
     it('should only return courses for specified teacher', async () => {
-      // Arrange - Create another teacher
+      // Arrange - Create another teacher with unique email
       const anotherTeacherId = randomUUID();
       await prisma.user.create({
         data: {
           id: anotherTeacherId,
-          email: 'teacher2@example.com',
+          email: `teacher-${anotherTeacherId}@example.com`,
           name: 'Another Teacher',
           role: 'TEACHER',
           passwordHash: 'hashed_password'
@@ -398,7 +390,7 @@ describe('PrismaCourseRepository Integration Tests', () => {
       // Assert
       expect(dbCourse).not.toBeNull();
       expect(dbCourse!.teacher.id).toBe(testTeacherId);
-      expect(dbCourse!.teacher.email).toBe('teacher@example.com');
+      expect(dbCourse!.teacher.email).toBe(`teacher-${testTeacherId}@example.com`);
       expect(dbCourse!.teacher.name).toBe('Test Teacher');
     });
 

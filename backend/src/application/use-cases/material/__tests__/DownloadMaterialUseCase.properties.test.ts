@@ -436,8 +436,16 @@ describe('DownloadMaterialUseCase Properties', () => {
   it('Property 7: For any authorized download, file metadata matches material metadata', async () => {
     await fc.assert(
       fc.asyncProperty(
-        fc.string({ minLength: 1, maxLength: 100 }), // File name
-        fc.string({ minLength: 1, maxLength: 50 }), // MIME type
+        // Use alphanumeric strings with dots and dashes for file names
+        fc.array(
+          fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789.-_'),
+          { minLength: 1, maxLength: 100 }
+        ).map(arr => arr.join('') || 'default.pdf'), // Ensure non-empty
+        // Use alphanumeric strings with slashes for MIME types
+        fc.array(
+          fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789/-'),
+          { minLength: 1, maxLength: 50 }
+        ).map(arr => arr.join('') || 'application/pdf'), // Ensure non-empty
         fc.integer({ min: 1, max: 10240 }), // File size
         async (fileName, mimeType, fileSize) => {
           // Create teacher and course
@@ -451,9 +459,9 @@ describe('DownloadMaterialUseCase Properties', () => {
             title: 'Test Material',
             type: MaterialType.FILE,
             filePath: '/uploads/test.pdf',
-            fileName,
+            fileName: fileName,
             fileSize,
-            mimeType,
+            mimeType: mimeType,
             createdAt: new Date(),
             updatedAt: new Date()
           });

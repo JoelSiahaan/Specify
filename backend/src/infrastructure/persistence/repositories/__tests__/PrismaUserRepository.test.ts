@@ -14,36 +14,24 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaUserRepository } from '../PrismaUserRepository';
 import { User, Role } from '../../../../domain/entities/User';
 import { randomUUID } from 'crypto';
+import { getTestPrismaClient } from '../../../../test/test-utils';
 
 describe('PrismaUserRepository Integration Tests', () => {
   let prisma: PrismaClient;
   let repository: PrismaUserRepository;
 
   beforeAll(async () => {
-    // Create a fresh PrismaClient instance for tests
-    // Explicitly pass DATABASE_URL to ensure correct database connection
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL
-        }
-      }
-    });
-    
+    // Create Prisma client for this test suite
+    prisma = getTestPrismaClient();
     repository = new PrismaUserRepository(prisma);
-    
-    // Connect to database
-    await prisma.$connect();
-  });
+  }, 30000);
 
   afterAll(async () => {
+    // Disconnect Prisma client after all tests
     await prisma.$disconnect();
-  });
+  }, 30000);
 
-  beforeEach(async () => {
-    // Clean up users table before each test
-    await prisma.user.deleteMany({});
-  });
+  // No beforeEach cleanup - rely on unique UUIDs for test isolation
 
   describe('save', () => {
     it('should create a new user', async () => {
@@ -51,7 +39,7 @@ describe('PrismaUserRepository Integration Tests', () => {
       const userId = randomUUID();
       const user = User.create({
         id: userId,
-        email: 'test@example.com',
+        email: `test-${userId}@example.com`,
         name: 'Test User',
         role: Role.STUDENT,
         passwordHash: 'hashed_password'
@@ -62,7 +50,7 @@ describe('PrismaUserRepository Integration Tests', () => {
 
       // Assert
       expect(savedUser.getId()).toBe(userId);
-      expect(savedUser.getEmail()).toBe('test@example.com');
+      expect(savedUser.getEmail()).toBe(`test-${userId}@example.com`);
       expect(savedUser.getName()).toBe('Test User');
       expect(savedUser.getRole()).toBe(Role.STUDENT);
       expect(savedUser.getPasswordHash()).toBe('hashed_password');
@@ -73,7 +61,7 @@ describe('PrismaUserRepository Integration Tests', () => {
       const userId = randomUUID();
       const user = User.create({
         id: userId,
-        email: 'test@example.com',
+        email: `test-${userId}@example.com`,
         name: 'Test User',
         role: Role.STUDENT,
         passwordHash: 'hashed_password'
@@ -82,22 +70,24 @@ describe('PrismaUserRepository Integration Tests', () => {
 
       // Update user
       user.updateName('Updated Name');
-      user.updateEmail('updated@example.com');
+      const updatedEmail = `updated-${userId}@example.com`;
+      user.updateEmail(updatedEmail);
 
       // Act
       const updatedUser = await repository.save(user);
 
       // Assert
       expect(updatedUser.getId()).toBe(userId);
-      expect(updatedUser.getEmail()).toBe('updated@example.com');
+      expect(updatedUser.getEmail()).toBe(updatedEmail);
       expect(updatedUser.getName()).toBe('Updated Name');
     });
 
     it('should throw error when email already exists', async () => {
       // Arrange
+      const duplicateEmail = `duplicate-${randomUUID()}@example.com`;
       const user1 = User.create({
         id: randomUUID(),
-        email: 'duplicate@example.com',
+        email: duplicateEmail,
         name: 'User 1',
         role: Role.STUDENT,
         passwordHash: 'hashed_password'
@@ -106,7 +96,7 @@ describe('PrismaUserRepository Integration Tests', () => {
 
       const user2 = User.create({
         id: randomUUID(),
-        email: 'duplicate@example.com',
+        email: duplicateEmail,
         name: 'User 2',
         role: Role.TEACHER,
         passwordHash: 'hashed_password'
@@ -123,7 +113,7 @@ describe('PrismaUserRepository Integration Tests', () => {
       const userId = randomUUID();
       const user = User.create({
         id: userId,
-        email: 'test@example.com',
+        email: `test-${userId}@example.com`,
         name: 'Test User',
         role: Role.STUDENT,
         passwordHash: 'hashed_password'
@@ -136,7 +126,7 @@ describe('PrismaUserRepository Integration Tests', () => {
       // Assert
       expect(foundUser).not.toBeNull();
       expect(foundUser!.getId()).toBe(userId);
-      expect(foundUser!.getEmail()).toBe('test@example.com');
+      expect(foundUser!.getEmail()).toBe(`test-${userId}@example.com`);
     });
 
     it('should return null when user not found', async () => {
@@ -151,9 +141,11 @@ describe('PrismaUserRepository Integration Tests', () => {
   describe('findByEmail', () => {
     it('should find user by email', async () => {
       // Arrange
+      const userId = randomUUID();
+      const testEmail = `test-${userId}@example.com`;
       const user = User.create({
-        id: randomUUID(),
-        email: 'test@example.com',
+        id: userId,
+        email: testEmail,
         name: 'Test User',
         role: Role.STUDENT,
         passwordHash: 'hashed_password'
@@ -161,17 +153,17 @@ describe('PrismaUserRepository Integration Tests', () => {
       await repository.save(user);
 
       // Act
-      const foundUser = await repository.findByEmail('test@example.com');
+      const foundUser = await repository.findByEmail(testEmail);
 
       // Assert
       expect(foundUser).not.toBeNull();
-      expect(foundUser!.getEmail()).toBe('test@example.com');
+      expect(foundUser!.getEmail()).toBe(testEmail);
       expect(foundUser!.getName()).toBe('Test User');
     });
 
     it('should return null when email not found', async () => {
       // Act
-      const foundUser = await repository.findByEmail('nonexistent@example.com');
+      const foundUser = await repository.findByEmail(`nonexistent-${randomUUID()}@example.com`);
 
       // Assert
       expect(foundUser).toBeNull();
@@ -184,7 +176,7 @@ describe('PrismaUserRepository Integration Tests', () => {
       const userId = randomUUID();
       const user = User.create({
         id: userId,
-        email: 'test@example.com',
+        email: `test-${userId}@example.com`,
         name: 'Test User',
         role: Role.STUDENT,
         passwordHash: 'hashed_password'

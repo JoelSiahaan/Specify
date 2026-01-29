@@ -9,14 +9,17 @@ import jwt from 'jsonwebtoken';
 
 /**
  * Create a test Prisma client instance
+ * Each test file should create its own client and disconnect it in afterAll
  */
-export function createTestPrismaClient(): PrismaClient {
+export function getTestPrismaClient(): PrismaClient {
   return new PrismaClient({
     datasources: {
       db: {
         url: process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/test_db',
       },
     },
+    // Configure connection pool for tests
+    log: ['error'], // Only log errors to reduce noise
   });
 }
 

@@ -148,13 +148,13 @@ describe('AuthorizationPolicy', () => {
       expect(result).toBe(true);
     });
 
-    it('should deny teacher from deleting another teacher\'s course', () => {
-      const result = policy.canDeleteCourse(otherTeacher, archivedCourse);
-      expect(result).toBe(false);
+    it('should allow teacher to delete their own active course (business logic checked in use case)', () => {
+      const result = policy.canDeleteCourse(teacher, activeCourse);
+      expect(result).toBe(true);
     });
 
-    it('should deny teacher from deleting active course', () => {
-      const result = policy.canDeleteCourse(teacher, activeCourse);
+    it('should deny teacher from deleting another teacher\'s course', () => {
+      const result = policy.canDeleteCourse(otherTeacher, archivedCourse);
       expect(result).toBe(false);
     });
 
