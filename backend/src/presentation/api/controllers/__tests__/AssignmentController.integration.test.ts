@@ -21,6 +21,7 @@ import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import assignmentRoutes from '../../routes/assignmentRoutes';
+import gradingRoutes from '../../routes/gradingRoutes';
 import { errorHandler } from '../../middleware/ErrorHandlerMiddleware';
 import { cleanupDatabase, generateTestToken, createTestUsers } from '../../../../test/test-utils';
 import {
@@ -82,6 +83,7 @@ describe('AssignmentController Integration Tests', () => {
     app.use(express.json());
     app.use(cookieParser());
     app.use('/api', assignmentRoutes);
+    app.use('/api', gradingRoutes);
     app.use(errorHandler);
   });
 
@@ -774,13 +776,13 @@ describe('AssignmentController Integration Tests', () => {
         expect(response.body).toHaveProperty('id');
         expect(response.body.assignmentId).toBe(textAssignmentId);
         expect(response.body.studentId).toBe(studentId);
-        expect(response.body.content).toBe('This is my submission text');
+        expect(response.body.textContent).toBe('This is my submission text');
         expect(response.body.status).toBe('SUBMITTED');
       });
 
       it('should submit file assignment', async () => {
-        // Arrange
-        const fileBuffer = Buffer.from('PDF content');
+        // Arrange - Create a valid PDF buffer with PDF header
+        const fileBuffer = Buffer.from('%PDF-1.4\n%âãÏÓ\nPDF content here');
 
         // Act
         const response = await request(app)
@@ -889,7 +891,7 @@ describe('AssignmentController Integration Tests', () => {
       assignmentId = assignment.id;
 
       // Create submission
-      const submission = await prisma.submission.create({
+      const submission = await prisma.assignmentSubmission.create({
         data: {
           assignmentId: assignmentId,
           studentId: studentId,
@@ -906,7 +908,7 @@ describe('AssignmentController Integration Tests', () => {
       it('should get submission by ID (student viewing own submission)', async () => {
         // Act
         const response = await request(app)
-          .get(`/api/submissions/${submissionId}`)
+          .get(`/api/assignment-submissions/${submissionId}`)
           .set('Cookie', [`access_token=${studentToken}`]);
 
         // Assert
@@ -914,13 +916,13 @@ describe('AssignmentController Integration Tests', () => {
         expect(response.body.id).toBe(submissionId);
         expect(response.body.assignmentId).toBe(assignmentId);
         expect(response.body.studentId).toBe(studentId);
-        expect(response.body.content).toBe('My submission');
+        expect(response.body.textContent).toBe('My submission');
       });
 
       it('should get submission by ID (teacher viewing student submission)', async () => {
         // Act
         const response = await request(app)
-          .get(`/api/submissions/${submissionId}`)
+          .get(`/api/assignment-submissions/${submissionId}`)
           .set('Cookie', [`access_token=${teacherToken}`]);
 
         // Assert
@@ -936,7 +938,7 @@ describe('AssignmentController Integration Tests', () => {
 
         // Act
         const response = await request(app)
-          .get(`/api/submissions/${nonExistentId}`)
+          .get(`/api/assignment-submissions/${nonExistentId}`)
           .set('Cookie', [`access_token=${studentToken}`]);
 
         // Assert
@@ -948,7 +950,7 @@ describe('AssignmentController Integration Tests', () => {
       it('should return 401 when access token is missing', async () => {
         // Act
         const response = await request(app)
-          .get(`/api/submissions/${submissionId}`);
+          .get(`/api/assignment-submissions/${submissionId}`);
 
         // Assert
         assertAuthenticationError(response);
