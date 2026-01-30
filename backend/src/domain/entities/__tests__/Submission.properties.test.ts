@@ -1,7 +1,7 @@
 /**
- * Submission Entity Property-Based Tests
+ * AssignmentSubmission Entity Property-Based Tests
  * 
- * Property-based tests for Submission domain entity using fast-check.
+ * Property-based tests for AssignmentSubmission domain entity using fast-check.
  * Tests universal properties that should hold for all valid inputs.
  * 
  * Requirements:
@@ -13,9 +13,9 @@
 
 import fc from 'fast-check';
 import { randomUUID } from 'crypto';
-import { Submission, SubmissionStatus, type SubmissionProps } from '../Submission';
+import { AssignmentSubmission, AssignmentSubmissionStatus, type AssignmentAssignmentSubmissionProps } from '../AssignmentSubmission';
 
-describe('Submission Entity - Property-Based Tests', () => {
+describe('AssignmentSubmission Entity - Property-Based Tests', () => {
   /**
    * Property 5: Grade range validation
    * 
@@ -32,23 +32,23 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.option(fc.string(), { nil: undefined }),
           (grade, feedback) => {
             // Arrange: Create a submitted submission
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: false,
-              status: SubmissionStatus.SUBMITTED,
+              status: AssignmentSubmissionStatus.SUBMITTED,
               version: 0,
               submittedAt: new Date()
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Act: Assign grade
             submission.assignGrade(grade, feedback);
 
             // Assert: Grade should be stored correctly
             expect(submission.getGrade()).toBe(grade);
-            expect(submission.getStatus()).toBe(SubmissionStatus.GRADED);
+            expect(submission.getStatus()).toBe(AssignmentSubmissionStatus.GRADED);
             expect(submission.isGraded()).toBe(true);
           }
         ),
@@ -62,20 +62,20 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.integer({ max: -1 }),
           (invalidGrade) => {
             // Arrange: Create a submitted submission
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: false,
-              status: SubmissionStatus.SUBMITTED,
+              status: AssignmentSubmissionStatus.SUBMITTED,
               version: 0,
               submittedAt: new Date()
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Act & Assert: Should throw error
             expect(() => submission.assignGrade(invalidGrade)).toThrow('Grade must be between 0 and 100');
-            expect(submission.getStatus()).toBe(SubmissionStatus.SUBMITTED);
+            expect(submission.getStatus()).toBe(AssignmentSubmissionStatus.SUBMITTED);
             expect(submission.isGraded()).toBe(false);
           }
         ),
@@ -89,20 +89,20 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.integer({ min: 101 }),
           (invalidGrade) => {
             // Arrange: Create a submitted submission
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: false,
-              status: SubmissionStatus.SUBMITTED,
+              status: AssignmentSubmissionStatus.SUBMITTED,
               version: 0,
               submittedAt: new Date()
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Act & Assert: Should throw error
             expect(() => submission.assignGrade(invalidGrade)).toThrow('Grade must be between 0 and 100');
-            expect(submission.getStatus()).toBe(SubmissionStatus.SUBMITTED);
+            expect(submission.getStatus()).toBe(AssignmentSubmissionStatus.SUBMITTED);
             expect(submission.isGraded()).toBe(false);
           }
         ),
@@ -116,20 +116,20 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.integer({ min: 0, max: 100 }),
           (validGrade) => {
             // Arrange & Act: Create submission with valid grade
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: false,
-              status: SubmissionStatus.GRADED,
+              status: AssignmentSubmissionStatus.GRADED,
               version: 0,
               grade: validGrade
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Assert: Grade should be stored correctly
             expect(submission.getGrade()).toBe(validGrade);
-            expect(submission.getStatus()).toBe(SubmissionStatus.GRADED);
+            expect(submission.getStatus()).toBe(AssignmentSubmissionStatus.GRADED);
           }
         ),
         { numRuns: 100 }
@@ -145,17 +145,17 @@ describe('Submission Entity - Property-Based Tests', () => {
           ),
           (invalidGrade) => {
             // Arrange & Act & Assert: Should throw error
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: false,
-              status: SubmissionStatus.GRADED,
+              status: AssignmentSubmissionStatus.GRADED,
               version: 0,
               grade: invalidGrade
             };
 
-            expect(() => Submission.create(props)).toThrow('Grade must be between 0 and 100');
+            expect(() => AssignmentSubmission.create(props)).toThrow('Grade must be between 0 and 100');
           }
         ),
         { numRuns: 100 }
@@ -169,16 +169,16 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.integer({ min: 0, max: 100 }),
           (initialGrade, newGrade) => {
             // Arrange: Create graded submission
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: false,
-              status: SubmissionStatus.GRADED,
+              status: AssignmentSubmissionStatus.GRADED,
               version: 1,
               grade: initialGrade
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Act: Update grade
             submission.updateGrade(newGrade);
@@ -208,15 +208,15 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.boolean(),
           (isLate) => {
             // Arrange: Create not-submitted submission
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: false,
-              status: SubmissionStatus.NOT_SUBMITTED,
+              status: AssignmentSubmissionStatus.NOT_SUBMITTED,
               version: 0
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Act: Submit with late flag
             submission.submit(isLate);
@@ -224,7 +224,7 @@ describe('Submission Entity - Property-Based Tests', () => {
             // Assert: Late flag should match input
             expect(submission.getIsLate()).toBe(isLate);
             expect(submission.isLateSubmission()).toBe(isLate);
-            expect(submission.getStatus()).toBe(SubmissionStatus.SUBMITTED);
+            expect(submission.getStatus()).toBe(AssignmentSubmissionStatus.SUBMITTED);
             expect(submission.getSubmittedAt()).toBeDefined();
           }
         ),
@@ -239,16 +239,16 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.boolean(),
           (initialLate, resubmitLate) => {
             // Arrange: Create submitted submission
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: initialLate,
-              status: SubmissionStatus.SUBMITTED,
+              status: AssignmentSubmissionStatus.SUBMITTED,
               version: 0,
               submittedAt: new Date()
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Act: Resubmit with new late flag
             submission.resubmit(resubmitLate);
@@ -256,7 +256,7 @@ describe('Submission Entity - Property-Based Tests', () => {
             // Assert: Late flag should be updated to new value
             expect(submission.getIsLate()).toBe(resubmitLate);
             expect(submission.isLateSubmission()).toBe(resubmitLate);
-            expect(submission.getStatus()).toBe(SubmissionStatus.SUBMITTED);
+            expect(submission.getStatus()).toBe(AssignmentSubmissionStatus.SUBMITTED);
           }
         ),
         { numRuns: 100 }
@@ -269,15 +269,15 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.boolean(),
           (initialLate) => {
             // Arrange: Create submission with any late status
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: initialLate,
-              status: SubmissionStatus.NOT_SUBMITTED,
+              status: AssignmentSubmissionStatus.NOT_SUBMITTED,
               version: 0
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Act: Mark as late
             submission.markAsLate();
@@ -298,16 +298,16 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.integer({ min: 0, max: 100 }),
           (isLate, grade) => {
             // Arrange: Create submitted submission with late flag
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: isLate,
-              status: SubmissionStatus.SUBMITTED,
+              status: AssignmentSubmissionStatus.SUBMITTED,
               version: 0,
               submittedAt: new Date()
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Act: Grade the submission
             submission.assignGrade(grade);
@@ -315,7 +315,7 @@ describe('Submission Entity - Property-Based Tests', () => {
             // Assert: Late flag should be preserved
             expect(submission.getIsLate()).toBe(isLate);
             expect(submission.isLateSubmission()).toBe(isLate);
-            expect(submission.getStatus()).toBe(SubmissionStatus.GRADED);
+            expect(submission.getStatus()).toBe(AssignmentSubmissionStatus.GRADED);
           }
         ),
         { numRuns: 100 }
@@ -339,22 +339,22 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.boolean(),
           (grade, attemptLate) => {
             // Arrange: Create graded submission
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: false,
-              status: SubmissionStatus.GRADED,
+              status: AssignmentSubmissionStatus.GRADED,
               version: 1,
               grade: grade,
               submittedAt: new Date(),
               gradedAt: new Date()
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Act & Assert: Resubmission should be rejected
             expect(() => submission.resubmit(attemptLate)).toThrow('Cannot resubmit after grading has started');
-            expect(submission.getStatus()).toBe(SubmissionStatus.GRADED);
+            expect(submission.getStatus()).toBe(AssignmentSubmissionStatus.GRADED);
             expect(submission.getGrade()).toBe(grade);
           }
         ),
@@ -371,25 +371,25 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.option(fc.string(), { nil: undefined }),
           (grade, newContent, newFilePath, newFileName) => {
             // Arrange: Create graded submission
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: false,
-              status: SubmissionStatus.GRADED,
+              status: AssignmentSubmissionStatus.GRADED,
               version: 1,
               grade: grade,
               content: 'Original content',
               submittedAt: new Date(),
               gradedAt: new Date()
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Act & Assert: Content update should be rejected
             expect(() => submission.updateContent(newContent, newFilePath, newFileName))
               .toThrow('Cannot update content after grading has started');
             expect(submission.getContent()).toBe('Original content');
-            expect(submission.getStatus()).toBe(SubmissionStatus.GRADED);
+            expect(submission.getStatus()).toBe(AssignmentSubmissionStatus.GRADED);
           }
         ),
         { numRuns: 100 }
@@ -403,22 +403,22 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.boolean(),
           (initialLate, resubmitLate) => {
             // Arrange: Create submitted but not graded submission
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: initialLate,
-              status: SubmissionStatus.SUBMITTED,
+              status: AssignmentSubmissionStatus.SUBMITTED,
               version: 0,
               submittedAt: new Date()
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Act: Resubmit before grading
             submission.resubmit(resubmitLate);
 
             // Assert: Resubmission should succeed
-            expect(submission.getStatus()).toBe(SubmissionStatus.SUBMITTED);
+            expect(submission.getStatus()).toBe(AssignmentSubmissionStatus.SUBMITTED);
             expect(submission.getIsLate()).toBe(resubmitLate);
             expect(submission.isGraded()).toBe(false);
           }
@@ -435,17 +435,17 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.option(fc.string(), { nil: undefined }),
           (newContent, newFilePath, newFileName) => {
             // Arrange: Create submitted but not graded submission
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: false,
-              status: SubmissionStatus.SUBMITTED,
+              status: AssignmentSubmissionStatus.SUBMITTED,
               version: 0,
               content: 'Original content',
               submittedAt: new Date()
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Act: Update content before grading
             submission.updateContent(newContent, newFilePath, newFileName);
@@ -454,7 +454,7 @@ describe('Submission Entity - Property-Based Tests', () => {
             expect(submission.getContent()).toBe(newContent);
             expect(submission.getFilePath()).toBe(newFilePath);
             expect(submission.getFileName()).toBe(newFileName);
-            expect(submission.getStatus()).toBe(SubmissionStatus.SUBMITTED);
+            expect(submission.getStatus()).toBe(AssignmentSubmissionStatus.SUBMITTED);
             expect(submission.isGraded()).toBe(false);
           }
         ),
@@ -468,19 +468,19 @@ describe('Submission Entity - Property-Based Tests', () => {
           fc.integer({ min: 0, max: 100 }),
           (grade) => {
             // Arrange: Create not-submitted submission
-            const props: SubmissionProps = {
+            const props: AssignmentSubmissionProps = {
               id: randomUUID(),
               assignmentId: randomUUID(),
               studentId: randomUUID(),
               isLate: false,
-              status: SubmissionStatus.NOT_SUBMITTED,
+              status: AssignmentSubmissionStatus.NOT_SUBMITTED,
               version: 0
             };
-            const submission = Submission.create(props);
+            const submission = AssignmentSubmission.create(props);
 
             // Act & Assert: Grading should be rejected
             expect(() => submission.assignGrade(grade)).toThrow('Cannot grade submission that has not been submitted');
-            expect(submission.getStatus()).toBe(SubmissionStatus.NOT_SUBMITTED);
+            expect(submission.getStatus()).toBe(AssignmentSubmissionStatus.NOT_SUBMITTED);
             expect(submission.isGraded()).toBe(false);
           }
         ),

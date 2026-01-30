@@ -8,7 +8,7 @@
  */
 
 import { GetSubmissionUseCase } from '../GetSubmissionUseCase';
-import { ISubmissionRepository } from '../../../../domain/repositories/ISubmissionRepository';
+import { IAssignmentSubmissionRepository } from '../../../../domain/repositories/IAssignmentSubmissionRepository';
 import { IAssignmentRepository } from '../../../../domain/repositories/IAssignmentRepository';
 import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
 import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
@@ -16,13 +16,13 @@ import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
 import { User, Role } from '../../../../domain/entities/User';
 import { Course, CourseStatus } from '../../../../domain/entities/Course';
 import { Assignment, SubmissionType } from '../../../../domain/entities/Assignment';
-import { Submission, SubmissionStatus } from '../../../../domain/entities/Submission';
+import { AssignmentSubmission, AssignmentSubmissionStatus } from '../../../../domain/entities/AssignmentSubmission';
 import { NotFoundError, ForbiddenError } from '../../../errors/ApplicationErrors';
 import { randomUUID } from 'crypto';
 
 describe('GetSubmissionUseCase', () => {
   let useCase: GetSubmissionUseCase;
-  let mockSubmissionRepository: jest.Mocked<ISubmissionRepository>;
+  let mockAssignmentSubmissionRepository: jest.Mocked<IAssignmentSubmissionRepository>;
   let mockAssignmentRepository: jest.Mocked<IAssignmentRepository>;
   let mockCourseRepository: jest.Mocked<ICourseRepository>;
   let mockUserRepository: jest.Mocked<IUserRepository>;
@@ -33,13 +33,13 @@ describe('GetSubmissionUseCase', () => {
   let mockOtherStudent: User;
   let mockCourse: Course;
   let mockAssignment: Assignment;
-  let mockSubmission: Submission;
+  let mockSubmission: AssignmentSubmission;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     // Mock repositories
-    mockSubmissionRepository = {
+    mockAssignmentSubmissionRepository = {
       save: jest.fn(),
       findById: jest.fn(),
       findByAssignmentAndStudent: jest.fn(),
@@ -50,7 +50,7 @@ describe('GetSubmissionUseCase', () => {
       delete: jest.fn(),
       countByAssignmentIdAndStatus: jest.fn(),
       findGradedByStudentAndCourse: jest.fn()
-    } as jest.Mocked<ISubmissionRepository>;
+    } as jest.Mocked<IAssignmentSubmissionRepository>;
 
     mockAssignmentRepository = {
       save: jest.fn(),
@@ -155,13 +155,13 @@ describe('GetSubmissionUseCase', () => {
       updatedAt: new Date()
     });
 
-    mockSubmission = Submission.create({
+    mockSubmission = AssignmentSubmission.create({
       id: randomUUID(),
       assignmentId: mockAssignment.getId(),
       studentId: mockStudent.getId(),
       content: 'My submission content',
       isLate: false,
-      status: SubmissionStatus.SUBMITTED,
+      status: AssignmentSubmissionStatus.SUBMITTED,
       version: 0,
       submittedAt: new Date(),
       createdAt: new Date(),
@@ -170,14 +170,14 @@ describe('GetSubmissionUseCase', () => {
 
     // Mock return values
     mockUserRepository.findById.mockResolvedValue(mockStudent);
-    mockSubmissionRepository.findById.mockResolvedValue(mockSubmission);
+    mockAssignmentSubmissionRepository.findById.mockResolvedValue(mockSubmission);
     mockAssignmentRepository.findById.mockResolvedValue(mockAssignment);
     mockCourseRepository.findById.mockResolvedValue(mockCourse);
     mockAuthPolicy.canViewSubmission.mockReturnValue(true);
 
     // Create use case instance
     useCase = new GetSubmissionUseCase(
-      mockSubmissionRepository,
+      mockAssignmentSubmissionRepository,
       mockAssignmentRepository,
       mockCourseRepository,
       mockUserRepository,
@@ -195,8 +195,8 @@ describe('GetSubmissionUseCase', () => {
       expect(result.id).toBe(mockSubmission.getId());
       expect(result.assignmentId).toBe(mockAssignment.getId());
       expect(result.studentId).toBe(mockStudent.getId());
-      expect(result.content).toBe('My submission content');
-      expect(result.status).toBe(SubmissionStatus.SUBMITTED);
+      expect(result.textContent).toBe('My submission content');
+      expect(result.status).toBe(AssignmentSubmissionStatus.SUBMITTED);
     });
 
     it('should retrieve submission when teacher views student submission', async () => {
@@ -219,7 +219,7 @@ describe('GetSubmissionUseCase', () => {
 
     it('should retrieve graded submission with grade and feedback', async () => {
       // Arrange
-      const gradedSubmission = Submission.create({
+      const gradedSubmission = AssignmentSubmission.create({
         id: randomUUID(),
         assignmentId: mockAssignment.getId(),
         studentId: mockStudent.getId(),
@@ -227,7 +227,7 @@ describe('GetSubmissionUseCase', () => {
         grade: 85,
         feedback: 'Good work!',
         isLate: false,
-        status: SubmissionStatus.GRADED,
+        status: AssignmentSubmissionStatus.GRADED,
         version: 1,
         submittedAt: new Date(),
         gradedAt: new Date(),
@@ -235,7 +235,7 @@ describe('GetSubmissionUseCase', () => {
         updatedAt: new Date()
       });
 
-      mockSubmissionRepository.findById.mockResolvedValue(gradedSubmission);
+      mockAssignmentSubmissionRepository.findById.mockResolvedValue(gradedSubmission);
 
       // Act
       const result = await useCase.execute(gradedSubmission.getId(), mockStudent.getId());
@@ -243,26 +243,26 @@ describe('GetSubmissionUseCase', () => {
       // Assert
       expect(result.grade).toBe(85);
       expect(result.feedback).toBe('Good work!');
-      expect(result.status).toBe(SubmissionStatus.GRADED);
+      expect(result.status).toBe(AssignmentSubmissionStatus.GRADED);
       expect(result.gradedAt).toBeDefined();
     });
 
     it('should retrieve late submission', async () => {
       // Arrange
-      const lateSubmission = Submission.create({
+      const lateSubmission = AssignmentSubmission.create({
         id: randomUUID(),
         assignmentId: mockAssignment.getId(),
         studentId: mockStudent.getId(),
         content: 'My late submission',
         isLate: true,
-        status: SubmissionStatus.SUBMITTED,
+        status: AssignmentSubmissionStatus.SUBMITTED,
         version: 0,
         submittedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date()
       });
 
-      mockSubmissionRepository.findById.mockResolvedValue(lateSubmission);
+      mockAssignmentSubmissionRepository.findById.mockResolvedValue(lateSubmission);
 
       // Act
       const result = await useCase.execute(lateSubmission.getId(), mockStudent.getId());
@@ -289,7 +289,7 @@ describe('GetSubmissionUseCase', () => {
 
     it('should throw error when submission is not found', async () => {
       // Arrange
-      mockSubmissionRepository.findById.mockResolvedValue(null);
+      mockAssignmentSubmissionRepository.findById.mockResolvedValue(null);
 
       // Act & Assert
       await expect(
@@ -362,7 +362,7 @@ describe('GetSubmissionUseCase', () => {
 
       // Assert
       expect(mockUserRepository.findById).toHaveBeenCalledWith(mockStudent.getId());
-      expect(mockSubmissionRepository.findById).toHaveBeenCalledWith(mockSubmission.getId());
+      expect(mockAssignmentSubmissionRepository.findById).toHaveBeenCalledWith(mockSubmission.getId());
       expect(mockAssignmentRepository.findById).toHaveBeenCalledWith(mockAssignment.getId());
       expect(mockCourseRepository.findById).toHaveBeenCalledWith(mockCourse.getId());
       expect(mockAuthPolicy.canViewSubmission).toHaveBeenCalledWith(
@@ -381,7 +381,7 @@ describe('GetSubmissionUseCase', () => {
         return mockStudent;
       });
       
-      mockSubmissionRepository.findById.mockImplementation(async () => {
+      mockAssignmentSubmissionRepository.findById.mockImplementation(async () => {
         callOrder.push('submission');
         return mockSubmission;
       });
