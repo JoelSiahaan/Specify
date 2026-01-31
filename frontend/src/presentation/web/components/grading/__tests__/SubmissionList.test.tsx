@@ -81,7 +81,8 @@ describe('SubmissionList', () => {
 
     expect(screen.getByText('All (4)')).toBeInTheDocument();
     expect(screen.getByText('Not Submitted (1)')).toBeInTheDocument();
-    expect(screen.getByText('Submitted (2)')).toBeInTheDocument();
+    // "Submitted" count includes both SUBMITTED and GRADED (3 total: 2 submitted + 1 graded)
+    expect(screen.getByText('Submitted (3)')).toBeInTheDocument();
     expect(screen.getByText('Graded (1)')).toBeInTheDocument();
   });
 
@@ -99,12 +100,15 @@ describe('SubmissionList', () => {
   it('should filter submissions by "Submitted" status', () => {
     render(<SubmissionList submissions={mockSubmissions} />);
 
-    const submittedTab = screen.getByText('Submitted (2)');
+    // "Submitted" tab includes both SUBMITTED and GRADED (3 total)
+    const submittedTab = screen.getByText('Submitted (3)');
     fireEvent.click(submittedTab);
 
+    // Should show both submitted (John, Alice) and graded (Jane)
     expect(screen.getByText('John Doe')).toBeInTheDocument();
     expect(screen.getByText('Alice Johnson')).toBeInTheDocument();
-    expect(screen.queryByText('Jane Smith')).not.toBeInTheDocument();
+    expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+    // Should not show not submitted (Bob)
     expect(screen.queryByText('Bob Lee')).not.toBeInTheDocument();
   });
 
@@ -139,10 +143,11 @@ describe('SubmissionList', () => {
     expect(gradeButtons.length).toBeGreaterThan(0);
   });
 
-  it('should display "View Grade" button for graded submissions', () => {
+  it('should display "Edit Grade" button for graded submissions', () => {
     render(<SubmissionList submissions={mockSubmissions} />);
 
-    expect(screen.getByText('View Grade')).toBeInTheDocument();
+    // Component shows "Edit Grade" for graded submissions, not "View Grade"
+    expect(screen.getByText('Edit Grade')).toBeInTheDocument();
   });
 
   it('should not display grade button for not submitted submissions', () => {

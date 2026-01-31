@@ -23,10 +23,10 @@ import type { QuizListItem, ApiError } from '../../types';
 import { UserRole } from '../../types';
 
 interface QuizListProps {
-  quizzes: QuizListItem[];
+  quizzes?: QuizListItem[];
   courseId: string;
   courseStatus?: 'ACTIVE' | 'ARCHIVED';
-  onRefetch: () => void;
+  onRefetch?: () => void;
 }
 
 /**
@@ -57,7 +57,12 @@ const getTimeRemaining = (dueDate: string): string => {
   }
 };
 
-export const QuizList: React.FC<QuizListProps> = ({ quizzes, courseId, courseStatus = 'ACTIVE', onRefetch }) => {
+export const QuizList: React.FC<QuizListProps> = ({ 
+  quizzes = [], 
+  courseId, 
+  courseStatus = 'ACTIVE', 
+  onRefetch = () => {} 
+}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 

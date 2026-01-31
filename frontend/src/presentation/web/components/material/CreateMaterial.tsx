@@ -277,7 +277,6 @@ export const CreateMaterial: React.FC<CreateMaterialProps> = ({
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g., Lecture 1: Introduction"
           error={validationErrors.title}
-          required
           disabled={loading}
           maxLength={200}
         />
@@ -354,7 +353,6 @@ export const CreateMaterial: React.FC<CreateMaterialProps> = ({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Enter your text content here..."
-              required
               disabled={loading}
               rows={10}
               maxLength={50000}
@@ -384,7 +382,6 @@ export const CreateMaterial: React.FC<CreateMaterialProps> = ({
               onChange={(e) => setContent(e.target.value)}
               placeholder="https://www.youtube.com/watch?v=..."
               error={validationErrors.content}
-              required
               disabled={loading}
             />
             <p className="text-sm text-gray-600 mt-1">

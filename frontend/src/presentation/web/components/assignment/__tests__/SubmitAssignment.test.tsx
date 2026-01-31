@@ -64,7 +64,11 @@ describe('SubmitAssignment', () => {
     });
 
     expect(screen.getByText(/Test description/)).toBeInTheDocument();
-    expect(screen.getByText(/File Upload/)).toBeInTheDocument();
+    // Check for submission type in the info section
+    expect(screen.getByText(/Submission Type:/)).toBeInTheDocument();
+    // "File Upload" appears in multiple places (info section and label), so use getAllByText
+    const fileUploadElements = screen.getAllByText(/File Upload/);
+    expect(fileUploadElements.length).toBeGreaterThan(0);
   });
 
   it('should show file upload for FILE submission type', async () => {

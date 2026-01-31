@@ -227,7 +227,6 @@ export const CreateAssignment: React.FC<CreateAssignmentProps> = ({
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g., Assignment 1: Variables"
           error={validationErrors.title}
-          required
           disabled={loading}
           maxLength={200}
         />
@@ -244,7 +243,6 @@ export const CreateAssignment: React.FC<CreateAssignmentProps> = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Enter assignment description and instructions..."
-            required
             disabled={loading}
             rows={8}
             maxLength={10000}
@@ -274,8 +272,6 @@ export const CreateAssignment: React.FC<CreateAssignmentProps> = ({
             name="dueDate"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            min={getMinDateTime()}
-            required
             disabled={loading}
             className={`w-full h-10 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:border-transparent ${
               validationErrors.dueDate

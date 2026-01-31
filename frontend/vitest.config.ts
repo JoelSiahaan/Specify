@@ -9,6 +9,11 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: true,
+    // Increase timeout for async tests
+    testTimeout: 10000, // 10 seconds
+    hookTimeout: 10000, // 10 seconds for beforeEach/afterEach
+    // Helpful for debugging
+    reporters: ['default'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

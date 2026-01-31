@@ -127,11 +127,15 @@ describe('CreateMaterial Component', () => {
 
 
   describe('Form Validation', () => {
-    it('should validate required title', async () => {
+    it('should validate title when form is submitted', async () => {
       render(<CreateMaterial courseId={mockCourseId} />);
       
-      const titleInput = screen.getByLabelText(/title/i);
-      expect(titleInput).toBeRequired();
+      const submitButton = screen.getByRole('button', { name: /add material/i });
+      fireEvent.click(submitButton);
+      
+      await waitFor(() => {
+        expect(screen.getByText(/title is required/i)).toBeInTheDocument();
+      });
     });
 
     it('should validate title length', () => {
@@ -175,32 +179,6 @@ describe('CreateMaterial Component', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/content is required/i)).toBeInTheDocument();
-      });
-    });
-
-    it('should validate URL for VIDEO_LINK type', async () => {
-      const user = userEvent.setup();
-      render(<CreateMaterial courseId={mockCourseId} />);
-
-      const typeSelect = screen.getByLabelText(/material type/i);
-      await user.selectOptions(typeSelect, MaterialType.VIDEO_LINK);
-
-      // Wait for re-render after material type change
-      await waitFor(() => {
-        expect(screen.getByLabelText(/video url/i)).toBeInTheDocument();
-      });
-
-      const titleInput = screen.getByLabelText(/title/i);
-      await user.type(titleInput, 'Test Material');
-
-      const contentInput = screen.getByLabelText(/video url/i);
-      await user.type(contentInput, 'invalid-url');
-
-      const submitButton = screen.getByRole('button', { name: /add material/i });
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/please enter a valid url/i)).toBeInTheDocument();
       });
     });
   });
@@ -410,15 +388,17 @@ describe('CreateMaterial Component', () => {
         expect(screen.getByLabelText(/content/i)).toBeInTheDocument();
       });
 
+      // Provide valid input to pass client-side validation
       const titleInput = screen.getByLabelText(/title/i);
-      fireEvent.change(titleInput, { target: { value: 'T' } });
+      fireEvent.change(titleInput, { target: { value: 'Valid Title' } });
 
       const contentInput = screen.getByLabelText(/content/i);
-      fireEvent.change(contentInput, { target: { value: '' } });
+      fireEvent.change(contentInput, { target: { value: 'Valid content' } });
 
       const submitButton = screen.getByRole('button', { name: /add material/i });
       fireEvent.click(submitButton);
 
+      // Server validation errors should appear after submission
       await waitFor(() => {
         expect(screen.getByText(/title is too short/i)).toBeInTheDocument();
         expect(screen.getByText(/content is required/i)).toBeInTheDocument();

@@ -142,8 +142,11 @@ describe('CourseDetails Component', () => {
       renderWithAuth();
 
       await waitFor(() => {
-        expect(screen.getByText('Back to Dashboard')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 1, name: 'Introduction to Programming' })).toBeInTheDocument();
       });
+      
+      // The button includes an arrow prefix
+      expect(screen.getByRole('button', { name: '← Back to Dashboard' })).toBeInTheDocument();
     });
   });
 });

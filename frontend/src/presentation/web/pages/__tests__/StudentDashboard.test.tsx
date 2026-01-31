@@ -42,11 +42,7 @@ describe('StudentDashboard', () => {
       courseCode: 'ABC123',
       status: 'ACTIVE' as const,
       teacherId: 'teacher-123',
-      teacher: {
-        id: 'teacher-123',
-        name: 'John Doe',
-        email: 'john@example.com',
-      },
+      teacherName: 'John Doe',
       createdAt: '2025-01-13T10:30:00Z',
       updatedAt: '2025-01-13T10:30:00Z',
     },
@@ -57,11 +53,7 @@ describe('StudentDashboard', () => {
       courseCode: 'DEF456',
       status: 'ACTIVE' as const,
       teacherId: 'teacher-456',
-      teacher: {
-        id: 'teacher-456',
-        name: 'Alice Johnson',
-        email: 'alice@example.com',
-      },
+      teacherName: 'Alice Johnson',
       createdAt: '2025-01-13T10:30:00Z',
       updatedAt: '2025-01-13T10:30:00Z',
     },
@@ -177,8 +169,8 @@ describe('StudentDashboard', () => {
       renderWithRouter(<StudentDashboard />);
       
       await waitFor(() => {
-        expect(screen.getByText('No Courses Yet')).toBeInTheDocument();
-        expect(screen.getByText("You haven't enrolled in any courses yet.")).toBeInTheDocument();
+        expect(screen.getByText('No Enrolled Courses')).toBeInTheDocument();
+        expect(screen.getByText("You haven't enrolled in any courses yet. Browse available courses to get started!")).toBeInTheDocument();
       });
     });
 

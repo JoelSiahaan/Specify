@@ -75,48 +75,41 @@ describe('GradeQuizSubmission', () => {
   it('should display quiz title and questions after loading', async () => {
     render(<GradeQuizSubmission submissionId="submission-1" />);
     
-    await waitFor(() => {
-      expect(screen.getByText('Grade Quiz Submission')).toBeInTheDocument();
-    });
-    
-    expect(screen.getByText('Midterm Exam')).toBeInTheDocument();
-    expect(screen.getByText('What is 2 + 2?')).toBeInTheDocument();
-    expect(screen.getByText('Explain the concept of recursion.')).toBeInTheDocument();
+    // Use findBy* queries which wait for elements to appear
+    expect(await screen.findByText('Grade Quiz Submission')).toBeInTheDocument();
+    expect(await screen.findByText('Midterm Exam')).toBeInTheDocument();
+    expect(await screen.findByText('What is 2 + 2?')).toBeInTheDocument();
+    expect(await screen.findByText('Explain the concept of recursion.')).toBeInTheDocument();
   });
 
   it('should display MCQ options with student answer highlighted', async () => {
     render(<GradeQuizSubmission submissionId="submission-1" />);
     
-    await waitFor(() => {
-      expect(screen.getByText('What is 2 + 2?')).toBeInTheDocument();
-    });
+    // Use findBy* to wait for question to appear
+    expect(await screen.findByText('What is 2 + 2?')).toBeInTheDocument();
     
     // Check that options are displayed
-    expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText('4')).toBeInTheDocument();
+    expect(await screen.findByText('3')).toBeInTheDocument();
+    expect(await screen.findByText('4')).toBeInTheDocument();
     
     // Check that student answer is marked
-    expect(screen.getByText('✓ Student Answer')).toBeInTheDocument();
+    expect(await screen.findByText(/Student's Answer/i)).toBeInTheDocument();
   });
 
   it('should display essay answer', async () => {
     render(<GradeQuizSubmission submissionId="submission-1" />);
     
-    await waitFor(() => {
-      expect(screen.getByText('Explain the concept of recursion.')).toBeInTheDocument();
-    });
-    
-    expect(screen.getByText(/Recursion is when a function calls itself/i)).toBeInTheDocument();
+    // Use findBy* to wait for question to appear
+    expect(await screen.findByText('Explain the concept of recursion.')).toBeInTheDocument();
+    expect(await screen.findByText(/Recursion is when a function calls itself/i)).toBeInTheDocument();
   });
 
   it('should display points input for each question', async () => {
     render(<GradeQuizSubmission submissionId="submission-1" />);
     
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Points for Question 1/i)).toBeInTheDocument();
-    });
-    
-    expect(screen.getByLabelText(/Points for Question 2/i)).toBeInTheDocument();
+    // Use findBy* to wait for inputs to appear
+    expect(await screen.findByLabelText(/Points for Question 1/i)).toBeInTheDocument();
+    expect(await screen.findByLabelText(/Points for Question 2/i)).toBeInTheDocument();
   });
 
   it('should calculate total points correctly', async () => {
@@ -137,21 +130,43 @@ describe('GradeQuizSubmission', () => {
     });
   });
 
-  it('should show warning when total points do not equal 100', async () => {
+  it('should show warning when total points do not equal 100 for multiple MCQ', async () => {
+    // Create a quiz with multiple MCQ questions (no essay)
+    const allMCQQuiz: Quiz = {
+      ...mockQuiz,
+      questions: [
+        {
+          type: 'MCQ',
+          questionText: 'What is 2 + 2?',
+          options: ['3', '4', '5', '6'],
+          correctAnswer: 1,
+        },
+        {
+          type: 'MCQ',
+          questionText: 'What is 3 + 3?',
+          options: ['5', '6', '7', '8'],
+          correctAnswer: 1,
+        },
+      ],
+    };
+    
+    (quizService.getQuiz as any).mockResolvedValue(allMCQQuiz);
+    
     render(<GradeQuizSubmission submissionId="submission-1" />);
     
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Points for Question 1/i)).toBeInTheDocument();
-    });
+    // Wait for inputs to appear
+    expect(await screen.findByLabelText(/Points for Question 1/i)).toBeInTheDocument();
     
     const question1Input = screen.getByLabelText(/Points for Question 1/i);
     const question2Input = screen.getByLabelText(/Points for Question 2/i);
     
+    // Enter points that don't sum to 100
     fireEvent.change(question1Input, { target: { value: '30' } });
     fireEvent.change(question2Input, { target: { value: '50' } });
     
+    // For multiple MCQ, should show error that total must equal 100
     await waitFor(() => {
-      expect(screen.getByText(/Warning: Total points do not equal 100/i)).toBeInTheDocument();
+      expect(screen.getByText(/Total points must equal 100 for multiple choice quizzes/i)).toBeInTheDocument();
     });
   });
 
@@ -187,9 +202,8 @@ describe('GradeQuizSubmission', () => {
     const onSuccess = vi.fn();
     render(<GradeQuizSubmission submissionId="submission-1" onSuccess={onSuccess} />);
     
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Points for Question 1/i)).toBeInTheDocument();
-    });
+    // Wait for inputs to appear
+    expect(await screen.findByLabelText(/Points for Question 1/i)).toBeInTheDocument();
     
     const question1Input = screen.getByLabelText(/Points for Question 1/i);
     const question2Input = screen.getByLabelText(/Points for Question 2/i);
@@ -203,7 +217,7 @@ describe('GradeQuizSubmission', () => {
     
     await waitFor(() => {
       expect(quizService.gradeQuizSubmission).toHaveBeenCalledWith('submission-1', {
-        grade: 100,
+        questionPoints: [50, 50],
         feedback: 'Excellent work!',
       });
     });
@@ -269,13 +283,11 @@ describe('GradeQuizSubmission', () => {
     expect(onCancel).toHaveBeenCalled();
   });
 
-  it('should display manual grading info', async () => {
+  it('should display grading rules info', async () => {
     render(<GradeQuizSubmission submissionId="submission-1" />);
     
-    await waitFor(() => {
-      expect(screen.getByText(/Manual Grading:/i)).toBeInTheDocument();
-    });
-    
-    expect(screen.getByText(/All questions require manual point assignment/i)).toBeInTheDocument();
+    // Wait for the grading rules section to appear
+    expect(await screen.findByText(/Grading Rules:/i)).toBeInTheDocument();
+    expect(await screen.findByText(/All questions require manual point assignment/i)).toBeInTheDocument();
   });
 });

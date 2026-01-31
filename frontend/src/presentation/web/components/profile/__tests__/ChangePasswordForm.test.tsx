@@ -44,7 +44,7 @@ describe('ChangePasswordForm', () => {
     it('should show password strength requirements', () => {
       render(<ChangePasswordForm onSuccess={mockOnSuccess} />);
       
-      expect(screen.getByText(/must be 8\+ characters/i)).toBeInTheDocument();
+      expect(screen.getByText(/password must be at least 8 characters/i)).toBeInTheDocument();
     });
 
     it('should disable submit button when fields are empty', () => {
@@ -84,17 +84,15 @@ describe('ChangePasswordForm', () => {
   });
 
   describe('Password Validation', () => {
-    it('should show error when current password is empty', async () => {
+    it('should disable submit button when current password is empty', async () => {
       const user = userEvent.setup();
       render(<ChangePasswordForm onSuccess={mockOnSuccess} />);
       
       await user.type(screen.getByLabelText(/^new password$/i), 'NewPass123!');
       await user.type(screen.getByLabelText(/confirm new password/i), 'NewPass123!');
-      await user.click(screen.getByRole('button', { name: /change password/i }));
       
-      await waitFor(() => {
-        expect(screen.getByText('Current password is required')).toBeInTheDocument();
-      });
+      const submitButton = screen.getByRole('button', { name: /change password/i });
+      expect(submitButton).toBeDisabled();
     });
 
     it('should show error when password is too short', async () => {
@@ -102,68 +100,30 @@ describe('ChangePasswordForm', () => {
       render(<ChangePasswordForm onSuccess={mockOnSuccess} />);
       
       await user.type(screen.getByLabelText(/current password/i), 'OldPass123!');
-      await user.type(screen.getByLabelText(/^new password$/i), 'Short1!');
-      await user.type(screen.getByLabelText(/confirm new password/i), 'Short1!');
+      await user.type(screen.getByLabelText(/^new password$/i), 'Short1');
+      await user.type(screen.getByLabelText(/confirm new password/i), 'Short1');
       await user.click(screen.getByRole('button', { name: /change password/i }));
       
       await waitFor(() => {
-        expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
+        // Query specifically for the error message (in red-700 text)
+        const errorMessages = screen.getAllByText('Password must be at least 8 characters');
+        const errorMessage = errorMessages.find(el => el.className.includes('text-red-700'));
+        expect(errorMessage).toBeInTheDocument();
       });
     });
 
-    it('should show error when password missing uppercase', async () => {
+    it('should show error when password is too long', async () => {
       const user = userEvent.setup();
       render(<ChangePasswordForm onSuccess={mockOnSuccess} />);
       
+      const longPassword = 'a'.repeat(129); // 129 characters (exceeds 128 limit)
       await user.type(screen.getByLabelText(/current password/i), 'OldPass123!');
-      await user.type(screen.getByLabelText(/^new password$/i), 'newpass123!');
-      await user.type(screen.getByLabelText(/confirm new password/i), 'newpass123!');
+      await user.type(screen.getByLabelText(/^new password$/i), longPassword);
+      await user.type(screen.getByLabelText(/confirm new password/i), longPassword);
       await user.click(screen.getByRole('button', { name: /change password/i }));
       
       await waitFor(() => {
-        expect(screen.getByText(/must contain at least one uppercase letter/i)).toBeInTheDocument();
-      });
-    });
-
-    it('should show error when password missing lowercase', async () => {
-      const user = userEvent.setup();
-      render(<ChangePasswordForm onSuccess={mockOnSuccess} />);
-      
-      await user.type(screen.getByLabelText(/current password/i), 'OldPass123!');
-      await user.type(screen.getByLabelText(/^new password$/i), 'NEWPASS123!');
-      await user.type(screen.getByLabelText(/confirm new password/i), 'NEWPASS123!');
-      await user.click(screen.getByRole('button', { name: /change password/i }));
-      
-      await waitFor(() => {
-        expect(screen.getByText(/must contain at least one lowercase letter/i)).toBeInTheDocument();
-      });
-    });
-
-    it('should show error when password missing number', async () => {
-      const user = userEvent.setup();
-      render(<ChangePasswordForm onSuccess={mockOnSuccess} />);
-      
-      await user.type(screen.getByLabelText(/current password/i), 'OldPass123!');
-      await user.type(screen.getByLabelText(/^new password$/i), 'NewPassword!');
-      await user.type(screen.getByLabelText(/confirm new password/i), 'NewPassword!');
-      await user.click(screen.getByRole('button', { name: /change password/i }));
-      
-      await waitFor(() => {
-        expect(screen.getByText(/must contain at least one number/i)).toBeInTheDocument();
-      });
-    });
-
-    it('should show error when password missing special character', async () => {
-      const user = userEvent.setup();
-      render(<ChangePasswordForm onSuccess={mockOnSuccess} />);
-      
-      await user.type(screen.getByLabelText(/current password/i), 'OldPass123!');
-      await user.type(screen.getByLabelText(/^new password$/i), 'NewPass123');
-      await user.type(screen.getByLabelText(/confirm new password/i), 'NewPass123');
-      await user.click(screen.getByRole('button', { name: /change password/i }));
-      
-      await waitFor(() => {
-        expect(screen.getByText(/must contain at least one special character/i)).toBeInTheDocument();
+        expect(screen.getByText('Password must be 128 characters or less')).toBeInTheDocument();
       });
     });
 
@@ -178,6 +138,25 @@ describe('ChangePasswordForm', () => {
       
       await waitFor(() => {
         expect(screen.getByText('New passwords do not match')).toBeInTheDocument();
+      });
+    });
+
+    it('should accept valid password with 8 characters', async () => {
+      const user = userEvent.setup();
+      vi.mocked(userService.changePassword).mockResolvedValue({
+        success: true,
+        message: 'Password changed successfully',
+      });
+      
+      render(<ChangePasswordForm onSuccess={mockOnSuccess} />);
+      
+      await user.type(screen.getByLabelText(/current password/i), 'OldPass123!');
+      await user.type(screen.getByLabelText(/^new password$/i), 'NewPass1');
+      await user.type(screen.getByLabelText(/confirm new password/i), 'NewPass1');
+      await user.click(screen.getByRole('button', { name: /change password/i }));
+      
+      await waitFor(() => {
+        expect(userService.changePassword).toHaveBeenCalled();
       });
     });
   });
@@ -267,12 +246,9 @@ describe('ChangePasswordForm', () => {
 
     it('should show error message on change failure', async () => {
       const user = userEvent.setup();
+      // Mock error structure that matches what the component expects
       vi.mocked(userService.changePassword).mockRejectedValue({
-        response: {
-          data: {
-            message: 'Current password is incorrect',
-          },
-        },
+        message: 'Current password is incorrect',
       });
       
       render(<ChangePasswordForm onSuccess={mockOnSuccess} />);

@@ -11,13 +11,14 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ProfileInfoCard } from '../ProfileInfoCard';
 import type { UserProfile } from '../../../types';
+import { UserRole } from '../../../types';
 
 describe('ProfileInfoCard', () => {
   const mockProfile: UserProfile = {
     id: 'user-123',
     name: 'John Doe',
     email: 'john@example.com',
-    role: 'STUDENT',
+    role: UserRole.STUDENT,
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-15T00:00:00Z',
   };
@@ -49,7 +50,7 @@ describe('ProfileInfoCard', () => {
     it('should display teacher role correctly', () => {
       const teacherProfile: UserProfile = {
         ...mockProfile,
-        role: 'TEACHER',
+        role: UserRole.TEACHER,
       };
       
       render(<ProfileInfoCard profile={teacherProfile} />);
@@ -67,7 +68,7 @@ describe('ProfileInfoCard', () => {
     it('should apply correct styling for teacher role badge', () => {
       const teacherProfile: UserProfile = {
         ...mockProfile,
-        role: 'TEACHER',
+        role: UserRole.TEACHER,
       };
       
       render(<ProfileInfoCard profile={teacherProfile} />);

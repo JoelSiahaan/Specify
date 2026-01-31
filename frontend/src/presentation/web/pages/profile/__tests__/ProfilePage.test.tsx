@@ -9,7 +9,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
+import { renderWithAuth } from '../../../../../test/test-wrappers';
 import { ProfilePage } from '../ProfilePage';
 import type { UserProfile } from '../../../types';
 import { UserRole } from '../../../types';
@@ -45,7 +46,7 @@ describe('ProfilePage', () => {
         () => new Promise(() => {}) // Never resolves
       );
       
-      render(<ProfilePage />);
+      renderWithAuth(<ProfilePage />);
       
       expect(screen.getByText('Loading profile...')).toBeInTheDocument();
     });
@@ -61,7 +62,7 @@ describe('ProfilePage', () => {
         },
       });
       
-      render(<ProfilePage />);
+      renderWithAuth(<ProfilePage />);
       
       await waitFor(() => {
         expect(screen.getByText('Error Loading Profile')).toBeInTheDocument();
@@ -78,7 +79,7 @@ describe('ProfilePage', () => {
         },
       });
       
-      render(<ProfilePage />);
+      renderWithAuth(<ProfilePage />);
       
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
@@ -92,7 +93,7 @@ describe('ProfilePage', () => {
         })
         .mockResolvedValueOnce(mockProfile);
       
-      render(<ProfilePage />);
+      renderWithAuth(<ProfilePage />);
       
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
@@ -111,7 +112,7 @@ describe('ProfilePage', () => {
     it('should render all profile sections after successful fetch', async () => {
       vi.mocked(userService.getProfile).mockResolvedValue(mockProfile);
       
-      render(<ProfilePage />);
+      renderWithAuth(<ProfilePage />);
       
       await waitFor(() => {
         expect(screen.getByRole('heading', { name: 'My Profile', level: 1 })).toBeInTheDocument();
@@ -124,7 +125,7 @@ describe('ProfilePage', () => {
     it('should display profile information correctly', async () => {
       vi.mocked(userService.getProfile).mockResolvedValue(mockProfile);
       
-      render(<ProfilePage />);
+      renderWithAuth(<ProfilePage />);
       
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -136,7 +137,7 @@ describe('ProfilePage', () => {
     it('should call getProfile on mount', async () => {
       vi.mocked(userService.getProfile).mockResolvedValue(mockProfile);
       
-      render(<ProfilePage />);
+      renderWithAuth(<ProfilePage />);
       
       await waitFor(() => {
         expect(userService.getProfile).toHaveBeenCalledTimes(1);
@@ -157,7 +158,7 @@ describe('ProfilePage', () => {
       
       vi.mocked(userService.updateProfile).mockResolvedValue(updatedProfile);
       
-      render(<ProfilePage />);
+      renderWithAuth(<ProfilePage />);
       
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -173,7 +174,7 @@ describe('ProfilePage', () => {
     it('should use centered layout with max-width container', async () => {
       vi.mocked(userService.getProfile).mockResolvedValue(mockProfile);
       
-      const { container } = render(<ProfilePage />);
+      const { container } = renderWithAuth(<ProfilePage />);
       
       await waitFor(() => {
         expect(screen.getByRole('heading', { name: 'My Profile', level: 1 })).toBeInTheDocument();
@@ -187,7 +188,7 @@ describe('ProfilePage', () => {
     it('should render all sections on same page', async () => {
       vi.mocked(userService.getProfile).mockResolvedValue(mockProfile);
       
-      render(<ProfilePage />);
+      renderWithAuth(<ProfilePage />);
       
       await waitFor(() => {
         // All three sections should be visible (use getByRole for headings to avoid ambiguity)
@@ -202,7 +203,7 @@ describe('ProfilePage', () => {
     it('should have proper heading hierarchy', async () => {
       vi.mocked(userService.getProfile).mockResolvedValue(mockProfile);
       
-      render(<ProfilePage />);
+      renderWithAuth(<ProfilePage />);
       
       await waitFor(() => {
         expect(screen.getByRole('heading', { name: 'My Profile', level: 1 })).toBeInTheDocument();

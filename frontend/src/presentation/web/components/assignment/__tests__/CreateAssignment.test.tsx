@@ -49,7 +49,19 @@ describe('CreateAssignment Component', () => {
       />
     );
 
-    // Submit form without filling title
+    // Fill other required fields but not title
+    const descriptionInput = screen.getByLabelText(/description/i);
+    const dueDateInput = screen.getByLabelText(/due date/i);
+
+    fireEvent.change(descriptionInput, { target: { value: 'Test description' } });
+    
+    // Set due date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const futureDate = tomorrow.toISOString().slice(0, 16);
+    fireEvent.change(dueDateInput, { target: { value: futureDate } });
+
+    // Submit form without title
     const submitButton = screen.getByRole('button', { name: /create assignment/i });
     fireEvent.click(submitButton);
 
@@ -68,11 +80,19 @@ describe('CreateAssignment Component', () => {
       />
     );
 
-    // Fill title but not description
+    // Fill title and due date but not description
     const titleInput = screen.getByLabelText(/title/i);
+    const dueDateInput = screen.getByLabelText(/due date/i);
+    
     fireEvent.change(titleInput, { target: { value: 'Test Assignment' } });
+    
+    // Set due date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const futureDate = tomorrow.toISOString().slice(0, 16);
+    fireEvent.change(dueDateInput, { target: { value: futureDate } });
 
-    // Submit form
+    // Submit form without description
     const submitButton = screen.getByRole('button', { name: /create assignment/i });
     fireEvent.click(submitButton);
 
@@ -213,7 +233,7 @@ describe('CreateAssignment Component', () => {
           title: 'Test Assignment',
           description: 'Test description',
           submissionType: SubmissionType.FILE,
-          allowedFileTypes: ['pdf', 'docx'],
+          acceptedFileFormats: ['pdf', 'docx'],
         })
       );
       expect(mockOnSuccess).toHaveBeenCalledWith(mockAssignment);

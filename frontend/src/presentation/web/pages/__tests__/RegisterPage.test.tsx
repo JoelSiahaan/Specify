@@ -353,6 +353,19 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       mockRegister.mockResolvedValue(undefined);
       
+      // Mock successful login after registration
+      const mockLogin = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(authHooks.useAuth).mockReturnValue({
+        user: null,
+        loading: false,
+        error: null,
+        login: mockLogin,
+        register: mockRegister,
+        logout: vi.fn(),
+        getCurrentUser: vi.fn(),
+        clearError: mockClearError,
+      });
+      
       renderWithRouter(<RegisterPage />);
       
       const nameInput = screen.getByLabelText(/full name/i);
@@ -366,7 +379,26 @@ describe('RegisterPage', () => {
       await user.click(submitButton);
       
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/login');
+        expect(mockRegister).toHaveBeenCalledWith({
+          name: 'Test User',
+          email: 'test@example.com',
+          password: 'password123',
+          role: UserRole.STUDENT,
+        });
+      });
+      
+      // After registration, the component automatically logs in the user
+      // and navigates to role-specific dashboard
+      await waitFor(() => {
+        expect(mockLogin).toHaveBeenCalledWith({
+          email: 'test@example.com',
+          password: 'password123',
+        });
+      });
+      
+      // Navigation to dashboard happens after login completes
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalled();
       });
     });
 
