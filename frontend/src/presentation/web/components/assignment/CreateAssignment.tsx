@@ -71,20 +71,6 @@ export const CreateAssignment: React.FC<CreateAssignmentProps> = ({
     }
   };
 
-  /**
-   * Format date for datetime-local input
-   * Converts ISO string to YYYY-MM-DDTHH:mm format
-   */
-  const formatDateForInput = (isoString: string): string => {
-    if (!isoString) return '';
-    const date = new Date(isoString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
 
   /**
    * Convert datetime-local input to ISO string (UTC)
@@ -197,14 +183,6 @@ export const CreateAssignment: React.FC<CreateAssignmentProps> = ({
     } finally {
       setLoading(false);
     }
-  };
-
-  /**
-   * Get minimum datetime for input (current time)
-   */
-  const getMinDateTime = (): string => {
-    const now = new Date();
-    return formatDateForInput(now.toISOString());
   };
 
   return (

@@ -50,13 +50,13 @@ const ALLOWED_ATTR = ['href', 'title', 'target', 'rel', 'class'];
 /**
  * DOMPurify configuration
  */
-const PURIFY_CONFIG: DOMPurify.Config = {
+const PURIFY_CONFIG = {
   ALLOWED_TAGS,
   ALLOWED_ATTR,
   ALLOW_DATA_ATTR: false,  // Disallow data-* attributes
   ALLOW_UNKNOWN_PROTOCOLS: false,  // Only allow http, https, mailto
   SAFE_FOR_TEMPLATES: true,  // Remove template tags
-};
+} as const;
 
 /**
  * Sanitize HTML content before rendering
@@ -80,7 +80,7 @@ export function sanitizeHtml(html: string): string {
     return '';
   }
 
-  return DOMPurify.sanitize(html, PURIFY_CONFIG);
+  return DOMPurify.sanitize(html, PURIFY_CONFIG) as string;
 }
 
 /**

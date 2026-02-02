@@ -19,7 +19,6 @@ import { RichTextEditor } from '../shared/RichTextEditor';
 import { Input } from '../shared/Input';
 import { Button } from '../shared/Button';
 import { Spinner } from '../shared/Spinner';
-import { ErrorMessage } from '../shared/ErrorMessage';
 import { formatDueDate } from '../../utils/dateFormatter';
 import { getSubmissionById, gradeSubmission, updateGrade } from '../../services/gradingService';
 import type { Submission } from '../../types';
@@ -164,7 +163,7 @@ export const GradeSubmission: React.FC<GradeSubmissionProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Spinner size="large" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -340,7 +339,6 @@ export const GradeSubmission: React.FC<GradeSubmissionProps> = ({
             placeholder="Enter grade (0-100)"
             min="0"
             max="100"
-            step="0.01"
             error={gradeError || undefined}
             required
             disabled={saving}
@@ -383,7 +381,7 @@ export const GradeSubmission: React.FC<GradeSubmissionProps> = ({
           >
             {saving ? (
               <>
-                <Spinner size="small" className="mr-2" />
+                <Spinner size="sm" className="mr-2" />
                 Saving...
               </>
             ) : submission.status === SubmissionStatus.GRADED ? (
