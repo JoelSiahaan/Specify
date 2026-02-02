@@ -41,6 +41,9 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
+      - name: Clean npm cache (workaround for stale cache)
+        run: npm cache clean --force
+
       - name: Install backend dependencies
         working-directory: backend
         run: npm ci
@@ -104,6 +107,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
+
+      - name: Clean npm cache (workaround for stale cache)
+        run: npm cache clean --force
 
       - name: Install frontend dependencies
         working-directory: frontend
