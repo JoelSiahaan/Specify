@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the testing standards that ALL features must follow. Consistent testing ensures code quality, correctness, and maintainability across the entire codebase.
+This is a document defines the testing standards that ALL features must follow. Consistent testing ensures code quality, correctness, and maintainability across the entire codebase.
 
 ---
 
