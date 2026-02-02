@@ -10,6 +10,7 @@
     "start": "node dist/main.js",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
+    "lint:ci": "node scripts/lint-ci.js",
     "type-check": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",

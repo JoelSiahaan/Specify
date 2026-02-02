@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "lint:ci": "node scripts/lint-ci.js",
     "type-check": "tsc --noEmit",
     "test": "vitest --run",
     "test:watch": "vitest",
