@@ -73,7 +73,7 @@ jobs:
           JWT_ACCESS_SECRET: test_access_secret_minimum_32_characters_long
           JWT_REFRESH_SECRET: test_refresh_secret_minimum_32_characters_long
           NODE_ENV: test
-        run: npm test -- --coverage --testPathIgnorePatterns=".integration.test.ts"
+        run: npm test -- --testPathIgnorePatterns=".integration.test.ts"
 
       - name: Run integration tests
         working-directory: backend
@@ -83,14 +83,6 @@ jobs:
           JWT_REFRESH_SECRET: test_refresh_secret_minimum_32_characters_long
           NODE_ENV: test
         run: npm test -- --testPathPattern=".integration.test.ts"
-
-      - name: Upload backend coverage
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./backend/coverage/lcov.info
-          flags: backend
-          name: backend-coverage
-        continue-on-error: true
 
   # Frontend Testing
   frontend-test:
@@ -125,7 +117,7 @@ jobs:
 
       - name: Run frontend tests
         working-directory: frontend
-        run: npm test -- --coverage
+        run: npm test
 
       - name: Build frontend
         working-directory: frontend
@@ -133,14 +125,6 @@ jobs:
           VITE_API_URL: http://localhost:3000/api
         run: npm run build
         continue-on-error: false
-
-      - name: Upload frontend coverage
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./frontend/coverage/lcov.info
-          flags: frontend
-          name: frontend-coverage
-        continue-on-error: true
 
   # Security Audit
   security-audit:
