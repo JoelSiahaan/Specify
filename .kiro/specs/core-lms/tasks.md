@@ -2246,7 +2246,7 @@ Independent (Can run in parallel with ANY feature after Auth):
   - GET /api/courses/:id/grades/export - ExportGradesUseCase (teacher)
   - _Requirements: 14.1, 15.1_
 
-- [ ] 9.2.2 Write API integration tests for progress and export
+- [x] 9.2.2 Write API integration tests for progress and export
 
   - Priority: MEDIUM
   - Dependencies: 9.2.1, 1.5 (testing framework)
@@ -2518,15 +2518,20 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Push images to GitHub Container Registry
   - _Requirements: 17.1, 17.5_
 
-- [ ] 13.2 Configure production environment
+- [ ] 13.2 Configure production environment (AWS EC2)
   - Priority: HIGH
   - Dependencies: None (can start early)
   - Can be parallelized: Yes (with 13.1, 13.3)
-  - Set up production server (Ubuntu 22.04 LTS)
+  - Launch AWS EC2 instance (t3.medium, Ubuntu 22.04 LTS)
+  - Allocate and associate Elastic IP (IP tetap)
+  - Configure EBS volume (50-100 GB gp3)
+  - Configure Security Group (ports 22 SSH from your IP, 80 HTTP from all, 443 HTTPS from all)
   - Install Docker and Docker Compose
-  - Configure firewall (ports 80, 443, 22)
   - Set up SSH key-based authentication
+  - Purchase domain name ($10-15/year for .com/.id/.co.id)
+  - Configure DNS A record pointing to Elastic IP
   - _Requirements: 17.5_
+  - _Note: Domain required for Let's Encrypt SSL certificate (free, trusted, auto-renewal)_
 
 - [ ] 13.3 Configure Docker for production
   - Priority: HIGH
@@ -2538,26 +2543,31 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Configure Nginx with SSL/TLS
   - _Requirements: 17.5_
 
-- [ ] 13.4 Set up SSL certificates
+- [ ] 13.4 Install Certbot and generate Let's Encrypt SSL certificate
   - Priority: CRITICAL
-  - Dependencies: 13.2 (production server), 13.3 (Nginx configuration)
+  - Dependencies: 13.2 (production server with domain), 13.3 (Nginx configuration)
   - Can be parallelized: No
-  - Install Certbot
-  - Generate Let's Encrypt SSL certificate
-  - Configure Nginx with SSL
-  - Set up auto-renewal cron job
+  - Install Certbot (Let's Encrypt client)
+  - Stop Nginx temporarily for certificate generation
+  - Run certbot --nginx to generate SSL certificate
+  - Certbot automatically configures Nginx with SSL
+  - Verify certificate installation
+  - Set up auto-renewal cron job (certificates expire every 90 days)
+  - Test auto-renewal with dry-run
   - _Requirements: 18.1, 18.2_
+  - _Note: Let's Encrypt is 100% FREE but requires domain name. Provides trusted certificates (no browser warnings)_
 
 - [ ] 13.5 Configure environment variables
   - Priority: CRITICAL
-  - Dependencies: 13.2 (production server)
+  - Dependencies: 13.2 (production server with domain)
   - Can be parallelized: Yes (with 13.3, 13.4)
   - Create .env.production file
   - Generate JWT secrets (32+ characters)
   - Set database credentials
-  - Set CORS origin
-  - Set frontend URL
+  - Set CORS origin (https://yourdomain.com)
+  - Set frontend URL (https://yourdomain.com)
   - _Requirements: 18.1, 18.2, 18.3_
+  - _Note: Use HTTPS URLs with your actual domain name_
 
 - [ ] 13.6 Run database migrations
   - Priority: CRITICAL
@@ -2603,10 +2613,12 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Dependencies: 13.9
   - Can be parallelized: No
   - Test all features in production
-  - Verify SSL certificate
+  - Verify Let's Encrypt SSL certificate (no browser warnings)
+  - Verify HTTPS encryption is working
   - Verify backups are running
   - Verify logging is working
   - Monitor for errors
+  - Test certificate auto-renewal (dry-run)
   - _Requirements: All_
 
 

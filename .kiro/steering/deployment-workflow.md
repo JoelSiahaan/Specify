@@ -1,8 +1,8 @@
-# Deployment Workflow - AWS EC2 (IP-Only)
+# Deployment Workflow - AWS EC2 with Let's Encrypt SSL
 
 ## Purpose
 
-This document defines the deployment strategy and infrastructure setup for the production-grade LMS on **AWS EC2 using IP address only (no custom domain)**. The deployment is designed for **50+ concurrent users** with focus on reliability, security, and maintainability without unnecessary complexity.
+This document defines the deployment strategy and infrastructure setup for the production-grade LMS on **AWS EC2 with custom domain and Let's Encrypt SSL**. The deployment is designed for **50+ concurrent users** with focus on reliability, security, and maintainability without unnecessary complexity.
 
 ---
 
@@ -16,22 +16,24 @@ This document defines the deployment strategy and infrastructure setup for the p
 
 **Production-Grade Principles**:
 - ✅ Reliable (99% uptime)
-- ✅ Secure (authentication, backups, firewall)
+- ✅ Secure (HTTPS encryption, authentication, backups, firewall)
 - ✅ Monitored (logging, error tracking)
 - ✅ Maintainable (Docker, automated deployment)
 - ❌ NOT over-engineered (no Kubernetes, no multi-region, no CDN)
-- ⚠️ **HTTP only** (no HTTPS/SSL without domain)
+- ✅ **HTTPS with Let's Encrypt** (free, trusted SSL certificates)
 
 ---
 
 ## ⚠️ Configuration Checklist (Before Deployment)
 
 **REQUIRED - Must be configured:**
+- [ ] **Domain Name**: Purchase domain ($10-15/year for .com/.id/.co.id)
+- [ ] **DNS Configuration**: Point A record to Elastic IP
 - [ ] **AWS EC2 Instance**: Launch t3.medium with Ubuntu 22.04 LTS
 - [ ] **Elastic IP**: Allocate and associate to EC2 (IP tetap)
-- [ ] **Security Group**: Configure ports 22 (SSH), 80 (HTTP)
-- [ ] **Update nginx.conf**: Remove SSL configuration (HTTP only)
-- [ ] **Update .env.production**: Replace domain with EC2 IP address
+- [ ] **Security Group**: Configure ports 22 (SSH), 80 (HTTP), 443 (HTTPS)
+- [ ] **Let's Encrypt SSL**: Install Certbot and generate certificate
+- [ ] **Update .env.production**: Replace with your domain (https://yourdomain.com)
 - [ ] **GitHub Repository**: Already configured → `https://github.com/JoelSiahaan/Specify.git`
 - [ ] **File Storage**: Already configured → Local filesystem (`STORAGE_TYPE=local`)
 - [ ] **JWT Secrets**: Generate with `openssl rand -base64 32` (2 secrets needed)
@@ -42,12 +44,16 @@ This document defines the deployment strategy and infrastructure setup for the p
   - If YES: Sign up at sentry.io and add `SENTRY_DSN` to `.env.production`
   - If NO: Leave commented out (Winston logging will be used)
 
-**NOT NEEDED - Excluded from IP-only deployment:**
-- ❌ **Custom Domain**: Using EC2 IP address directly
-- ❌ **Route 53**: No DNS management needed
-- ❌ **SSL/HTTPS**: Let's Encrypt requires domain name
-- ❌ **Email/SMTP**: Not implemented in initial version
-- ❌ **AWS S3**: Using local filesystem instead
+**DOMAIN REQUIREMENTS:**
+- ✅ **Let's Encrypt is FREE** but requires domain name
+- ✅ **No browser warnings** with Let's Encrypt (trusted certificate)
+- ✅ **Auto-renewal** every 90 days with Certbot
+- ❌ **Cannot use Let's Encrypt with IP address only**
+
+**Domain Options:**
+- **Paid Domain** (.com, .net, .id, .co.id): $10-15/year
+- **Educational Domain** (.ac.id, .sch.id): FREE for Indonesian universities/schools
+- **Freenom** (.tk, .ml, .ga): NO LONGER AVAILABLE (shut down 2023)
 
 ---
 
@@ -69,24 +75,26 @@ This document defines the deployment strategy and infrastructure setup for the p
 
 ## 1. Deployment Architecture
 
-### AWS EC2 Architecture (IP-Only)
+### AWS EC2 Architecture with Let's Encrypt SSL
 
 ```
                     ┌─────────────────┐
                     │   Users (50+)   │
                     └────────┬────────┘
-                             │ HTTP (Port 80)
+                             │ HTTPS (Port 443)
                     ┌────────▼────────┐
                     │  AWS EC2        │
-                    │  Elastic IP:    │
-                    │  54.123.45.67   │
+                    │  Domain:        │
+                    │  lms.example.com│
+                    │  (Elastic IP)   │
                     └────────┬────────┘
                              │
                     ┌────────▼────────┐
-                    │  Nginx (80)     │
+                    │  Nginx (443)    │
+                    │  - SSL/TLS      │
                     │  - Static files │
                     │  - Reverse proxy│
-                    │  - NO SSL       │
+                    │  Let's Encrypt  │
                     └────────┬────────┘
                              │
                     ┌────────▼────────┐
@@ -120,16 +128,22 @@ This document defines the deployment strategy and infrastructure setup for the p
 - **Cost**: ~$30-35/month (with Reserved Instance discount available)
 
 **Components on Single EC2 Instance**:
-- Nginx (reverse proxy + static files) - Port 80
+- Nginx (reverse proxy + static files + SSL termination) - Port 443
 - Node.js backend (Express API) - Port 3000
 - PostgreSQL database (Docker container)
 - File storage (local EBS volume)
 - Docker containers for isolation
 
 **Access URL**:
-- Frontend: `http://54.123.45.67` (replace with your Elastic IP)
-- Backend API: `http://54.123.45.67/api`
-- Health Check: `http://54.123.45.67/health`
+- Frontend: `https://lms.example.com` (replace with your domain)
+- Backend API: `https://lms.example.com/api`
+- Health Check: `https://lms.example.com/health`
+
+**SSL/TLS Configuration**:
+- **Certificate Authority**: Let's Encrypt (free, trusted)
+- **Certificate Validity**: 90 days (auto-renewal with Certbot)
+- **TLS Protocols**: TLSv1.2, TLSv1.3
+- **No Browser Warnings**: Let's Encrypt certificates are trusted by all major browsers
 
 ---
 
@@ -323,7 +337,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-#### Docker Compose (Production - IP-Only)
+#### Docker Compose (Production with Let's Encrypt)
 
 ```yaml
 # docker-compose.prod.yml
@@ -386,9 +400,12 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ./frontend/dist:/usr/share/nginx/html
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/lib/letsencrypt:/var/lib/letsencrypt:ro
     depends_on:
       backend:
         condition: service_healthy
@@ -471,99 +488,34 @@ volumes:
 
 ---
 
-## 3. Reverse Proxy (HTTP-Only)
+## 3. Reverse Proxy with Let's Encrypt SSL
 
-### Nginx Configuration (No SSL)
+### Nginx Configuration (with Let's Encrypt)
 
-**IMPORTANT**: This configuration is for IP-only deployment without SSL/HTTPS.
+**IMPORTANT**: This configuration uses Let's Encrypt SSL certificates with custom domain.
 
-```nginx
-# nginx.conf (HTTP-Only for IP-based deployment)
-# Rate limiting
-limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
-limit_req_zone $binary_remote_addr zone=auth_limit:10m rate=5r/m;
+**Note**: The nginx.conf file in the repository root is already configured for Let's Encrypt. No changes needed to nginx.conf - it will automatically use your domain after Certbot setup.
 
-server {
-    listen 80;
-    server_name _;  # Accept any hostname/IP
+**Nginx Configuration Features**:
+- HTTP to HTTPS redirect (port 80 → 443)
+- Let's Encrypt SSL certificates (auto-configured by Certbot)
+- TLS 1.2 and 1.3 support
+- Security headers (HSTS, CSP, X-Frame-Options, etc.)
+- Rate limiting (10 req/s API, 5 req/m auth)
+- Gzip compression
+- Static file caching
 
-    # Security Headers (HTTP-only)
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
-
-    # Gzip Compression
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_comp_level 6;
-    gzip_types text/plain text/css text/xml text/javascript application/json application/javascript application/xml+rss application/x-javascript;
-
-    # Frontend (Static Files)
-    location / {
-        root /usr/share/nginx/html;
-        try_files $uri $uri/ /index.html;
-        
-        # Cache static assets
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-            expires 1y;
-            add_header Cache-Control "public, immutable";
-        }
-    }
-
-    # Backend API
-    location /api {
-        limit_req zone=api_limit burst=20 nodelay;
-        
-        proxy_pass http://backend:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        
-        # Timeouts
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-        
-        # Buffer settings
-        proxy_buffering on;
-        proxy_buffer_size 4k;
-        proxy_buffers 8 4k;
-        proxy_busy_buffers_size 8k;
-    }
-
-    # Auth endpoints (stricter rate limiting)
-    location /api/auth {
-        limit_req zone=auth_limit burst=5 nodelay;
-        
-        proxy_pass http://backend:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Health check endpoint
-    location /health {
-        access_log off;
-        proxy_pass http://backend:3000/health;
-    }
-}
+**Certificate Paths** (auto-configured by Certbot):
+```
+ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
 ```
 
-**Note**: 
-- No HTTPS/SSL configuration (requires domain name)
-- No redirect from HTTP to HTTPS
-- Security headers adjusted for HTTP-only deployment
-- Rate limiting still active for API protection
+**Certbot Auto-Configuration**:
+- Certbot automatically updates nginx.conf with your domain
+- Certbot automatically configures SSL certificate paths
+- Certbot automatically sets up HTTP to HTTPS redirect
+- No manual nginx.conf editing required
 
 ---
 
@@ -741,15 +693,15 @@ DB_PASSWORD=<paste_database_password_here>
 - Store secrets securely (password manager, vault)
 - Rotate secrets regularly (every 90 days recommended)
 
-### Environment Variables (IP-Only Deployment)
+### Environment Variables (Production with Domain)
 
 ```bash
 # .env.production
 # ========================================
 # Production Environment Configuration
-# AWS EC2 IP-Only Deployment
+# AWS EC2 with Let's Encrypt SSL
 # ========================================
-# IMPORTANT: Replace 54.123.45.67 with your actual Elastic IP
+# IMPORTANT: Replace yourdomain.com with your actual domain
 # ========================================
 
 # Database
@@ -776,11 +728,11 @@ MAX_FILE_SIZE=10485760  # 10MB in bytes
 NODE_ENV=production
 PORT=3000
 
-# Frontend URL (HTTP-only, replace with your Elastic IP)
-FRONTEND_URL=http://54.123.45.67
+# Frontend URL (HTTPS with your domain)
+FRONTEND_URL=https://yourdomain.com
 
-# CORS (replace with your Elastic IP)
-CORS_ORIGIN=http://54.123.45.67
+# CORS (HTTPS with your domain)
+CORS_ORIGIN=https://yourdomain.com
 
 # Logging
 LOG_LEVEL=info
@@ -796,8 +748,8 @@ LOG_FORMAT=json
 
 ```bash
 # frontend/.env.production
-# Replace with your Elastic IP
-VITE_API_URL=http://54.123.45.67/api
+# Replace with your actual domain
+VITE_API_URL=https://yourdomain.com/api
 ```
 
 ---
@@ -1016,7 +968,7 @@ docker-compose down
 docker-compose up -d
 
 # 5. Verify health
-curl https://lms.example.com/health
+curl https://yourdomain.com/health
 ```
 
 ### Horizontal Scaling (Future Enhancement)
@@ -1031,23 +983,26 @@ curl https://lms.example.com/health
 
 ---
 
-## 9. Security Hardening (IP-Only Deployment)
+## 9. Security Hardening (Let's Encrypt SSL)
 
 ### AWS Security Group Configuration
 
 ```bash
 # Inbound Rules
 Port 22 (SSH):    Your IP only (e.g., 203.0.113.0/32)
-Port 80 (HTTP):   0.0.0.0/0 (all traffic)
+Port 80 (HTTP):   0.0.0.0/0 (all traffic - for Let's Encrypt validation & HTTP redirect)
+Port 443 (HTTPS): 0.0.0.0/0 (all traffic - for HTTPS connections)
 
 # Outbound Rules
 All traffic:      0.0.0.0/0 (default)
 ```
 
-### Security Checklist (IP-Only)
+### Security Checklist (Let's Encrypt SSL)
 
-- [ ] HTTP-only deployment (no HTTPS without domain)
-- [ ] Security headers configured (X-Frame-Options, CSP, etc.)
+- [ ] HTTPS enforced (TLS 1.2+) with Let's Encrypt
+- [ ] HTTP to HTTPS redirect configured
+- [ ] SSL certificate auto-renewal configured
+- [ ] Security headers configured (X-Frame-Options, CSP, HSTS, etc.)
 - [ ] Rate limiting enabled (Nginx)
 - [ ] SQL injection prevention (Prisma parameterized queries)
 - [ ] XSS prevention (DOMPurify + sanitize-html)
@@ -1060,17 +1015,18 @@ All traffic:      0.0.0.0/0 (default)
 - [ ] Authorization checks on all protected endpoints
 - [ ] Audit logging for sensitive operations
 - [ ] Regular security updates (npm audit, dependabot)
-- [ ] AWS Security Group configured (only ports 22, 80 open)
+- [ ] AWS Security Group configured (ports 22, 80, 443 open)
 - [ ] SSH key-based authentication (disable password login)
 - [ ] Elastic IP allocated (IP doesn't change on restart)
+- [ ] Domain configured with DNS A record
+- [ ] Let's Encrypt certificate installed and verified
 
-**⚠️ Security Limitations without HTTPS:**
-- Data transmitted in plain text (not encrypted)
-- Vulnerable to man-in-the-middle attacks
-- Browsers may show "Not Secure" warning
-- Not recommended for production with sensitive data
-
-**Recommendation**: Consider using a free domain (e.g., from Freenom) + Let's Encrypt SSL for better security.
+**✅ Security Benefits with HTTPS:**
+- Data encrypted in transit (TLS 1.2/1.3)
+- Protection against man-in-the-middle attacks
+- No browser "Not Secure" warnings
+- Trusted certificate from Let's Encrypt (free)
+- Auto-renewal every 90 days
 
 ---
 
@@ -1121,7 +1077,7 @@ cp -r /backups/uploads /app/uploads
 docker-compose restart
 
 # 4. Verify health
-curl https://lms.example.com/health
+curl https://yourdomain.com/health
 ```
 
 ---
@@ -1188,7 +1144,7 @@ Click "Associate"
 chmod 400 your-key.pem
 
 # SSH to EC2 (replace with your Elastic IP)
-ssh -i your-key.pem ubuntu@54.123.45.67
+ssh -i your-key.pem ubuntu@<your-elastic-ip>
 ```
 
 ### Initial Deployment
@@ -1215,30 +1171,50 @@ cd Specify
 # 6. Create .env.production
 nano .env.production
 # Paste configuration (see Environment Configuration section)
-# IMPORTANT: Replace 54.123.45.67 with your actual Elastic IP
+# IMPORTANT: Replace yourdomain.com with your actual domain
 
-# 7. Update nginx.conf
-# Already configured for IP-only deployment (no changes needed)
-
-# 8. Generate JWT secrets
+# 7. Generate JWT secrets
 openssl rand -base64 32  # Copy to JWT_ACCESS_SECRET
 openssl rand -base64 32  # Copy to JWT_REFRESH_SECRET
 openssl rand -base64 24  # Copy to DB_PASSWORD
 
 # Update .env.production with generated secrets
 
-# 9. Build and start services
+# 8. Build and start services (without SSL first)
 docker-compose -f docker-compose.prod.yml build
 docker-compose -f docker-compose.prod.yml up -d
 
-# 10. Run database migrations
+# 9. Install Certbot and generate SSL certificate
+sudo apt-get update
+sudo apt-get install certbot python3-certbot-nginx -y
+
+# 10. Stop Nginx temporarily for certificate generation
+docker-compose -f docker-compose.prod.yml stop nginx
+
+# 11. Generate SSL certificate with Certbot (automatically configures Nginx)
+sudo certbot --nginx -d yourdomain.com  # Use your actual domain
+# Certbot will:
+# - Generate SSL certificate at /etc/letsencrypt/live/yourdomain.com/
+# - Automatically update nginx.conf with SSL configuration
+# - Set up HTTP to HTTPS redirect
+
+# 12. Restart Nginx with SSL
+docker-compose -f docker-compose.prod.yml start nginx
+
+# 13. Set up auto-renewal cron job (certificates expire every 90 days)
+echo "0 0 * * * certbot renew --quiet" | sudo crontab -
+
+# 14. Test auto-renewal (dry-run)
+sudo certbot renew --dry-run
+
+# 15. Run database migrations
 docker-compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
 
-# 11. Verify deployment
-curl http://54.123.45.67/health
+# 16. Verify deployment
+curl https://yourdomain.com/health  # Use your actual domain
 # Should return: {"status":"healthy","timestamp":"...","database":"connected"}
 
-# 12. Check logs
+# 17. Check logs
 docker-compose -f docker-compose.prod.yml logs -f
 ```
 
@@ -1246,13 +1222,13 @@ docker-compose -f docker-compose.prod.yml logs -f
 
 ```bash
 # 1. Check health endpoint
-curl http://54.123.45.67/health
+curl https://yourdomain.com/health
 
 # 2. Check frontend (open in browser)
-http://54.123.45.67
+https://yourdomain.com
 
 # 3. Check backend API
-curl http://54.123.45.67/api/health
+curl https://yourdomain.com/api/health
 
 # 4. Check Docker containers
 docker ps
@@ -1261,13 +1237,17 @@ docker ps
 # - lms-nginx
 # - lms-backend
 # - lms-postgres
+
+# 5. Verify SSL certificate (no browser warnings)
+# Open https://yourdomain.com in browser
+# Check for green padlock icon (secure connection)
 ```
 
 ### Rolling Update
 
 ```bash
 # 1. SSH to EC2
-ssh -i your-key.pem ubuntu@54.123.45.67
+ssh -i your-key.pem ubuntu@<your-elastic-ip>
 
 # 2. Navigate to project directory
 cd Specify
@@ -1285,7 +1265,7 @@ docker-compose -f docker-compose.prod.yml up -d
 docker-compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
 
 # 7. Verify health
-curl http://54.123.45.67/health
+curl https://yourdomain.com/health
 
 # 8. Check logs
 docker-compose -f docker-compose.prod.yml logs -f backend
@@ -1308,7 +1288,7 @@ docker-compose -f docker-compose.prod.yml up -d
 gunzip < /backups/lms_<date>.sql.gz | docker-compose -f docker-compose.prod.yml exec -T postgres psql -U lms_user lms_prod
 
 # 5. Verify health
-curl http://54.123.45.67/health
+curl https://yourdomain.com/health
 ```
 
 ### Maintenance Mode
@@ -1401,22 +1381,23 @@ docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload
 This deployment workflow provides:
 
 ✅ **AWS EC2 Deployment**: Single t3.medium instance with Elastic IP
-✅ **IP-Only Access**: No domain required (HTTP-only)
+✅ **Let's Encrypt SSL**: Free, trusted HTTPS certificates with auto-renewal
+✅ **Domain Required**: Custom domain for SSL (e.g., lms.example.com)
 ✅ **Simple Architecture**: Docker Compose (no Kubernetes)
 ✅ **Containerization**: Docker for consistent environments
-✅ **Reverse Proxy**: Nginx for HTTP, static files, and rate limiting
+✅ **Reverse Proxy**: Nginx for HTTPS, static files, and rate limiting
 ✅ **CI/CD**: Automated testing and deployment with GitHub Actions
 ✅ **Monitoring**: Structured logging with Winston, health checks
-✅ **Security**: Rate limiting, input validation, authentication (⚠️ no HTTPS)
+✅ **Security**: HTTPS encryption, rate limiting, input validation, authentication
 ✅ **Backup**: Automated daily database backups
 ✅ **Scalability**: Vertical scaling path for growth
-✅ **Cost-Effective**: ~$35-40/month for 50 concurrent users
+✅ **Cost-Effective**: ~$35-40/month for 50 concurrent users + domain ($10-15/year)
 
-**Production-Grade for 50 Users**: Reliable, monitored, and maintainable without over-engineering.
+**Production-Grade for 50 Users**: Reliable, secure, monitored, and maintainable without over-engineering.
 
-**⚠️ Security Note**: HTTP-only deployment is less secure than HTTPS. Consider using a free domain + Let's Encrypt SSL for production with sensitive data.
+**✅ Security**: HTTPS deployment with Let's Encrypt provides production-grade security for sensitive data.
 
-**Access URLs** (replace with your Elastic IP):
-- Frontend: `http://54.123.45.67`
-- Backend API: `http://54.123.45.67/api`
-- Health Check: `http://54.123.45.67/health`
+**Access URLs** (replace with your domain):
+- Frontend: `https://yourdomain.com`
+- Backend API: `https://yourdomain.com/api`
+- Health Check: `https://yourdomain.com/health`
