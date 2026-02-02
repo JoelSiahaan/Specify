@@ -1,93 +1,99 @@
-version: 2
-updates:
-  # Backend npm dependencies
-  - package-ecosystem: "npm"
-    directory: "/backend"
-    schedule:
-      interval: "monthly"
-      day: "monday"
-      time: "02:00"
-    open-pull-requests-limit: 5
-    reviewers:
-      - "JoelSiahaan"
-    labels:
-      - "dependencies"
-      - "backend"
-    commit-message:
-      prefix: "chore(backend)"
-      include: "scope"
-    ignore:
-      # Ignore major version updates for stable dependencies
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+# ========================================
+# Dependabot Configuration (DISABLED)
+# ========================================
+# Uncomment to re-enable automated dependency updates
+# ========================================
 
-  # Frontend npm dependencies
-  - package-ecosystem: "npm"
-    directory: "/frontend"
-    schedule:
-      interval: "monthly"
-      day: "monday"
-      time: "02:00"
-    open-pull-requests-limit: 5
-    reviewers:
-      - "JoelSiahaan"
-    labels:
-      - "dependencies"
-      - "frontend"
-    commit-message:
-      prefix: "chore(frontend)"
-      include: "scope"
-    ignore:
-      # Ignore major version updates for stable dependencies
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-
-  # GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-      day: "monday"
-      time: "02:00"
-    open-pull-requests-limit: 3
-    reviewers:
-      - "JoelSiahaan"
-    labels:
-      - "dependencies"
-      - "github-actions"
-    commit-message:
-      prefix: "chore(ci)"
-      include: "scope"
-
-  # Docker
-  - package-ecosystem: "docker"
-    directory: "/backend"
-    schedule:
-      interval: "monthly"
-      day: "monday"
-      time: "02:00"
-    open-pull-requests-limit: 3
-    reviewers:
-      - "JoelSiahaan"
-    labels:
-      - "dependencies"
-      - "docker"
-    commit-message:
-      prefix: "chore(docker)"
-      include: "scope"
-
-  - package-ecosystem: "docker"
-    directory: "/frontend"
-    schedule:
-      interval: "monthly"
-      day: "monday"
-      time: "02:00"
-    open-pull-requests-limit: 3
-    reviewers:
-      - "JoelSiahaan"
-    labels:
-      - "dependencies"
-      - "docker"
-    commit-message:
-      prefix: "chore(docker)"
-      include: "scope"
+# version: 2
+# updates:
+#   # Backend npm dependencies
+#   - package-ecosystem: "npm"
+#     directory: "/backend"
+#     schedule:
+#       interval: "monthly"
+#       day: "monday"
+#       time: "02:00"
+#     open-pull-requests-limit: 5
+#     reviewers:
+#       - "JoelSiahaan"
+#     labels:
+#       - "dependencies"
+#       - "backend"
+#     commit-message:
+#       prefix: "chore(backend)"
+#       include: "scope"
+#     ignore:
+#       # Ignore major version updates for stable dependencies
+#       - dependency-name: "*"
+#         update-types: ["version-update:semver-major"]
+# 
+#   # Frontend npm dependencies
+#   - package-ecosystem: "npm"
+#     directory: "/frontend"
+#     schedule:
+#       interval: "monthly"
+#       day: "monday"
+#       time: "02:00"
+#     open-pull-requests-limit: 5
+#     reviewers:
+#       - "JoelSiahaan"
+#     labels:
+#       - "dependencies"
+#       - "frontend"
+#     commit-message:
+#       prefix: "chore(frontend)"
+#       include: "scope"
+#     ignore:
+#       # Ignore major version updates for stable dependencies
+#       - dependency-name: "*"
+#         update-types: ["version-update:semver-major"]
+# 
+#   # GitHub Actions
+#   - package-ecosystem: "github-actions"
+#     directory: "/"
+#     schedule:
+#       interval: "monthly"
+#       day: "monday"
+#       time: "02:00"
+#     open-pull-requests-limit: 3
+#     reviewers:
+#       - "JoelSiahaan"
+#     labels:
+#       - "dependencies"
+#       - "github-actions"
+#     commit-message:
+#       prefix: "chore(ci)"
+#       include: "scope"
+# 
+#   # Docker
+#   - package-ecosystem: "docker"
+#     directory: "/backend"
+#     schedule:
+#       interval: "monthly"
+#       day: "monday"
+#       time: "02:00"
+#     open-pull-requests-limit: 3
+#     reviewers:
+#       - "JoelSiahaan"
+#     labels:
+#       - "dependencies"
+#       - "docker"
+#     commit-message:
+#       prefix: "chore(docker)"
+#       include: "scope"
+# 
+#   - package-ecosystem: "docker"
+#     directory: "/frontend"
+#     schedule:
+#       interval: "monthly"
+#       day: "monday"
+#       time: "02:00"
+#     open-pull-requests-limit: 3
+#     reviewers:
+#       - "JoelSiahaan"
+#     labels:
+#       - "dependencies"
+#       - "docker"
+#     commit-message:
+#       prefix: "chore(docker)"
+#       include: "scope"
