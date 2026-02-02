@@ -1,8 +1,8 @@
-# Deployment Workflow
+# Deployment Workflow - AWS EC2 (IP-Only)
 
 ## Purpose
 
-This document defines the deployment strategy and infrastructure setup for the production-grade LMS. The deployment is designed for **50+ concurrent users** with focus on reliability, security, and maintainability without unnecessary complexity.
+This document defines the deployment strategy and infrastructure setup for the production-grade LMS on **AWS EC2 using IP address only (no custom domain)**. The deployment is designed for **50+ concurrent users** with focus on reliability, security, and maintainability without unnecessary complexity.
 
 ---
 
@@ -11,24 +11,27 @@ This document defines the deployment strategy and infrastructure setup for the p
 **Target Scale**:
 - 50+ concurrent users
 - API response time < 500ms
-- Single region deployment
+- Single region deployment (AWS)
 - Small to medium educational institution
 
 **Production-Grade Principles**:
 - ✅ Reliable (99% uptime)
-- ✅ Secure (HTTPS, authentication, backups)
+- ✅ Secure (authentication, backups, firewall)
 - ✅ Monitored (logging, error tracking)
 - ✅ Maintainable (Docker, automated deployment)
 - ❌ NOT over-engineered (no Kubernetes, no multi-region, no CDN)
+- ⚠️ **HTTP only** (no HTTPS/SSL without domain)
 
 ---
 
 ## ⚠️ Configuration Checklist (Before Deployment)
 
 **REQUIRED - Must be configured:**
-- [ ] **Domain Name**: Replace `lms.example.com` with your actual domain in:
-  - `nginx.conf` (2 locations)
-  - `.env.production` (FRONTEND_URL, CORS_ORIGIN)
+- [ ] **AWS EC2 Instance**: Launch t3.medium with Ubuntu 22.04 LTS
+- [ ] **Elastic IP**: Allocate and associate to EC2 (IP tetap)
+- [ ] **Security Group**: Configure ports 22 (SSH), 80 (HTTP)
+- [ ] **Update nginx.conf**: Remove SSL configuration (HTTP only)
+- [ ] **Update .env.production**: Replace domain with EC2 IP address
 - [ ] **GitHub Repository**: Already configured → `https://github.com/JoelSiahaan/Specify.git`
 - [ ] **File Storage**: Already configured → Local filesystem (`STORAGE_TYPE=local`)
 - [ ] **JWT Secrets**: Generate with `openssl rand -base64 32` (2 secrets needed)
@@ -39,7 +42,10 @@ This document defines the deployment strategy and infrastructure setup for the p
   - If YES: Sign up at sentry.io and add `SENTRY_DSN` to `.env.production`
   - If NO: Leave commented out (Winston logging will be used)
 
-**NOT NEEDED - Excluded from initial deployment:**
+**NOT NEEDED - Excluded from IP-only deployment:**
+- ❌ **Custom Domain**: Using EC2 IP address directly
+- ❌ **Route 53**: No DNS management needed
+- ❌ **SSL/HTTPS**: Let's Encrypt requires domain name
 - ❌ **Email/SMTP**: Not implemented in initial version
 - ❌ **AWS S3**: Using local filesystem instead
 
@@ -63,18 +69,24 @@ This document defines the deployment strategy and infrastructure setup for the p
 
 ## 1. Deployment Architecture
 
-### Simple Production Architecture
+### AWS EC2 Architecture (IP-Only)
 
 ```
                     ┌─────────────────┐
                     │   Users (50+)   │
                     └────────┬────────┘
-                             │ HTTPS
+                             │ HTTP (Port 80)
                     ┌────────▼────────┐
-                    │  Nginx (443)    │
-                    │  - SSL/TLS      │
+                    │  AWS EC2        │
+                    │  Elastic IP:    │
+                    │  54.123.45.67   │
+                    └────────┬────────┘
+                             │
+                    ┌────────▼────────┐
+                    │  Nginx (80)     │
                     │  - Static files │
                     │  - Reverse proxy│
+                    │  - NO SSL       │
                     └────────┬────────┘
                              │
                     ┌────────▼────────┐
@@ -86,31 +98,38 @@ This document defines the deployment strategy and infrastructure setup for the p
               │              │              │
      ┌────────▼────────┐ ┌──▼───────────┐ ┌▼──────────┐
      │   PostgreSQL    │ │ File Storage │ │  (Future) │
-     │   (5432)        │ │ Local/S3     │ │   Redis   │
+     │   (5432)        │ │ Local (EBS)  │ │   Redis   │
      └─────────────────┘ └──────────────┘ └───────────┘
 ```
 
-### Single Server Deployment
+### AWS EC2 Single Instance Deployment
 
-**Why Single Server?**
-- 50 concurrent users easily handled by single server
-- Simpler to manage and debug
-- Lower cost
-- Can scale vertically if needed (upgrade server specs)
+**Why AWS EC2?**
+- 50 concurrent users easily handled by single EC2 instance
+- Elastic IP ensures IP address doesn't change
+- Simpler to manage and debug than multi-server setup
+- Lower cost than managed services
+- Can scale vertically if needed (upgrade instance type)
 
-**Server Specifications** (Recommended):
-- **CPU**: 2-4 cores
-- **RAM**: 4-8 GB
-- **Storage**: 50-100 GB SSD
-- **Network**: 100 Mbps
-- **Cost**: ~$20-40/month (DigitalOcean, Linode, Hetzner)
+**AWS EC2 Specifications** (Recommended):
+- **Instance Type**: t3.medium or t3a.medium
+- **vCPUs**: 2 cores
+- **RAM**: 4 GB
+- **Storage**: 50-100 GB gp3 EBS
+- **Network**: Enhanced networking
+- **Cost**: ~$30-35/month (with Reserved Instance discount available)
 
-**Components on Single Server**:
-- Nginx (reverse proxy + static files)
-- Node.js backend (Express API)
-- PostgreSQL database
-- File storage (local or S3)
+**Components on Single EC2 Instance**:
+- Nginx (reverse proxy + static files) - Port 80
+- Node.js backend (Express API) - Port 3000
+- PostgreSQL database (Docker container)
+- File storage (local EBS volume)
 - Docker containers for isolation
+
+**Access URL**:
+- Frontend: `http://54.123.45.67` (replace with your Elastic IP)
+- Backend API: `http://54.123.45.67/api`
+- Health Check: `http://54.123.45.67/health`
 
 ---
 
@@ -127,7 +146,7 @@ This document defines the deployment strategy and infrastructure setup for the p
 # Node.js TypeScript Backend
 # ========================================
 
-ARG NODE_VERSION=18.20.5-alpine
+ARG NODE_VERSION=20.19.0-alpine
 FROM node:${NODE_VERSION} AS base
 
 WORKDIR /app
@@ -191,7 +210,7 @@ RUN npm run build
 # ========================================
 # Production Stage
 # ========================================
-ARG NODE_VERSION=18.20.5-alpine
+ARG NODE_VERSION=20.19.0-alpine
 FROM node:${NODE_VERSION} AS production
 
 WORKDIR /app
@@ -237,7 +256,7 @@ CMD ["node", "dist/main.js"]
 # React TypeScript Frontend
 # ========================================
 
-ARG NODE_VERSION=18.20.5-alpine
+ARG NODE_VERSION=20.19.0-alpine
 FROM node:${NODE_VERSION} AS base
 
 WORKDIR /app
@@ -304,7 +323,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-#### Docker Compose (Production)
+#### Docker Compose (Production - IP-Only)
 
 ```yaml
 # docker-compose.prod.yml
@@ -336,7 +355,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       args:
-        NODE_VERSION: 18.20.5-alpine
+        NODE_VERSION: 20.19.0-alpine
     container_name: lms-backend
     restart: on-failure:3
     environment:
@@ -345,6 +364,8 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       NODE_ENV: production
       PORT: 3000
+      FRONTEND_URL: ${FRONTEND_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
     depends_on:
       postgres:
         condition: service_healthy
@@ -365,11 +386,9 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ./frontend/dist:/usr/share/nginx/html
-      - ./ssl:/etc/letsencrypt
     depends_on:
       backend:
         condition: service_healthy
@@ -452,103 +471,26 @@ volumes:
 
 ---
 
-## 3. Reverse Proxy
+## 3. Reverse Proxy (HTTP-Only)
 
-### Domain Configuration
+### Nginx Configuration (No SSL)
 
-**Before Deployment**: You must configure your domain name in the Nginx configuration.
-
-**Steps:**
-
-1. **Choose Your Domain**: Decide on your domain name (e.g., `lms.myschool.edu`, `belajar.sekolahku.id`)
-
-2. **Update nginx.conf**: Replace all occurrences of `lms.example.com` with your actual domain:
-   ```bash
-   # Find and replace in nginx.conf
-   sed -i 's/lms.example.com/your-actual-domain.com/g' nginx.conf
-   ```
-
-3. **DNS Configuration**: Point your domain to your server's IP address:
-   ```
-   Type: A Record
-   Name: @ (or subdomain like 'lms')
-   Value: Your server IP (e.g., 192.168.1.100)
-   TTL: 3600
-   ```
-
-4. **Verify DNS**: Wait for DNS propagation (5-60 minutes), then verify:
-   ```bash
-   nslookup your-domain.com
-   # Should return your server IP
-   ```
-
-5. **Generate SSL Certificate**: After DNS is configured:
-   ```bash
-   sudo certbot certonly --standalone -d your-domain.com
-   ```
-   
-   Certbot will automatically create certificates at:
-   - `/etc/letsencrypt/live/your-domain.com/fullchain.pem`
-   - `/etc/letsencrypt/live/your-domain.com/privkey.pem`
-
-6. **Update nginx.conf SSL Paths** (if you used a different domain):
-   ```nginx
-   ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
-   ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
-   ```
-
-**Alternative: Using Environment Variables** (Advanced):
-
-You can use environment variables in nginx.conf with `envsubst`:
-
-```bash
-# Create nginx.conf.template
-server_name ${DOMAIN_NAME};
-ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
-
-# Generate actual config
-export DOMAIN_NAME=your-domain.com
-envsubst < nginx.conf.template > nginx.conf
-```
-
-### Nginx Configuration
-
-**IMPORTANT**: Replace `lms.example.com` with your actual domain name before deployment.
+**IMPORTANT**: This configuration is for IP-only deployment without SSL/HTTPS.
 
 ```nginx
-# nginx.conf
+# nginx.conf (HTTP-Only for IP-based deployment)
 # Rate limiting
 limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
 limit_req_zone $binary_remote_addr zone=auth_limit:10m rate=5r/m;
 
 server {
     listen 80;
-    server_name lms.example.com;  # ← REPLACE with your domain (e.g., belajar.sekolahku.id)
-    
-    # Redirect HTTP to HTTPS
-    return 301 https://$server_name$request_uri;
-}
+    server_name _;  # Accept any hostname/IP
 
-server {
-    listen 443 ssl http2;
-    server_name lms.example.com;  # ← REPLACE with your domain (e.g., belajar.sekolahku.id)
-
-    # SSL Configuration (Let's Encrypt)
-    # After running certbot, these paths will automatically use your domain
-    ssl_certificate /etc/letsencrypt/live/lms.example.com/fullchain.pem;  # ← Auto-updated by certbot
-    ssl_certificate_key /etc/letsencrypt/live/lms.example.com/privkey.pem;  # ← Auto-updated by certbot
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers HIGH:!aNULL:!MD5;
-    ssl_prefer_server_ciphers on;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
-
-    # Security Headers
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    # Security Headers (HTTP-only)
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
 
@@ -616,6 +558,12 @@ server {
     }
 }
 ```
+
+**Note**: 
+- No HTTPS/SSL configuration (requires domain name)
+- No redirect from HTTP to HTTPS
+- Security headers adjusted for HTTP-only deployment
+- Rate limiting still active for API protection
 
 ---
 
@@ -793,38 +741,15 @@ DB_PASSWORD=<paste_database_password_here>
 - Store secrets securely (password manager, vault)
 - Rotate secrets regularly (every 90 days recommended)
 
-### Domain Configuration
-
-**IMPORTANT**: Update these values with your actual domain before deployment.
-
-```bash
-# .env.production
-# ========================================
-# CONFIGURATION REMINDERS
-# ========================================
-# TODO: Set your domain name before deployment
-# TODO: Generate JWT secrets (see instructions below)
-# TODO: Decide on Sentry monitoring (optional)
-# ========================================
-
-# Domain Configuration
-DOMAIN_NAME=lms.example.com  # ⚠️ TODO: REPLACE with your actual domain
-
-# Application
-NODE_ENV=production
-PORT=3000
-FRONTEND_URL=https://lms.example.com  # ⚠️ TODO: REPLACE with your actual domain
-
-# CORS
-CORS_ORIGIN=https://lms.example.com  # ⚠️ TODO: REPLACE with your actual domain
-```
-
-### Environment Variables
+### Environment Variables (IP-Only Deployment)
 
 ```bash
 # .env.production
 # ========================================
 # Production Environment Configuration
+# AWS EC2 IP-Only Deployment
+# ========================================
+# IMPORTANT: Replace 54.123.45.67 with your actual Elastic IP
 # ========================================
 
 # Database
@@ -832,14 +757,17 @@ DATABASE_URL=postgresql://lms_user:${DB_PASSWORD}@postgres:5432/lms_prod?connect
 DATABASE_POOL_MIN=2
 DATABASE_POOL_MAX=10
 
+# Database Password (generate with: openssl rand -base64 24)
+DB_PASSWORD=<generate_with_openssl_rand_base64_24>
+
 # JWT Secrets (minimum 32 characters, cryptographically random)
-# ⚠️ TODO: Generate secrets with: openssl rand -base64 32
+# Generate with: openssl rand -base64 32
 JWT_ACCESS_SECRET=<generate_with_openssl_rand_base64_32>
 JWT_REFRESH_SECRET=<generate_with_openssl_rand_base64_32>
 JWT_ACCESS_EXPIRY=15m
 JWT_REFRESH_EXPIRY=7d
 
-# File Storage (Local Filesystem)
+# File Storage (Local Filesystem on EBS)
 STORAGE_TYPE=local
 UPLOAD_DIR=/app/uploads
 MAX_FILE_SIZE=10485760  # 10MB in bytes
@@ -847,19 +775,29 @@ MAX_FILE_SIZE=10485760  # 10MB in bytes
 # Application
 NODE_ENV=production
 PORT=3000
-FRONTEND_URL=https://lms.example.com  # ⚠️ TODO: REPLACE with your domain
 
-# CORS
-CORS_ORIGIN=https://lms.example.com  # ⚠️ TODO: REPLACE with your domain
+# Frontend URL (HTTP-only, replace with your Elastic IP)
+FRONTEND_URL=http://54.123.45.67
+
+# CORS (replace with your Elastic IP)
+CORS_ORIGIN=http://54.123.45.67
 
 # Logging
 LOG_LEVEL=info
 LOG_FORMAT=json
 
 # Monitoring (Optional - Sentry for error tracking)
-# ⚠️ TODO: Decide if you want to use Sentry (free tier available)
+# Decide if you want to use Sentry (free tier available)
 # SENTRY_DSN=<your_sentry_dsn>
 # SENTRY_ENVIRONMENT=production
+```
+
+### Frontend Environment Variables
+
+```bash
+# frontend/.env.production
+# Replace with your Elastic IP
+VITE_API_URL=http://54.123.45.67/api
 ```
 
 ---
@@ -1093,30 +1031,23 @@ curl https://lms.example.com/health
 
 ---
 
-## 10. Security Hardening
+## 9. Security Hardening (IP-Only Deployment)
 
-### SSL/TLS Setup (Let's Encrypt)
+### AWS Security Group Configuration
 
 ```bash
-# Install Certbot
-sudo apt-get update
-sudo apt-get install certbot
+# Inbound Rules
+Port 22 (SSH):    Your IP only (e.g., 203.0.113.0/32)
+Port 80 (HTTP):   0.0.0.0/0 (all traffic)
 
-# Generate SSL certificate
-sudo certbot certonly --standalone -d lms.example.com
-
-# Certificates will be at:
-# /etc/letsencrypt/live/lms.example.com/fullchain.pem
-# /etc/letsencrypt/live/lms.example.com/privkey.pem
-
-# Auto-renewal (cron job)
-0 0 * * * certbot renew --quiet
+# Outbound Rules
+All traffic:      0.0.0.0/0 (default)
 ```
 
-### Security Checklist
+### Security Checklist (IP-Only)
 
-- [ ] HTTPS enforced (TLS 1.2+) with Let's Encrypt
-- [ ] Security headers configured (HSTS, CSP, X-Frame-Options)
+- [ ] HTTP-only deployment (no HTTPS without domain)
+- [ ] Security headers configured (X-Frame-Options, CSP, etc.)
 - [ ] Rate limiting enabled (Nginx)
 - [ ] SQL injection prevention (Prisma parameterized queries)
 - [ ] XSS prevention (DOMPurify + sanitize-html)
@@ -1129,8 +1060,17 @@ sudo certbot certonly --standalone -d lms.example.com
 - [ ] Authorization checks on all protected endpoints
 - [ ] Audit logging for sensitive operations
 - [ ] Regular security updates (npm audit, dependabot)
-- [ ] Firewall configured (only ports 80, 443, 22 open)
+- [ ] AWS Security Group configured (only ports 22, 80 open)
 - [ ] SSH key-based authentication (disable password login)
+- [ ] Elastic IP allocated (IP doesn't change on restart)
+
+**⚠️ Security Limitations without HTTPS:**
+- Data transmitted in plain text (not encrypted)
+- Vulnerable to man-in-the-middle attacks
+- Browsers may show "Not Secure" warning
+- Not recommended for production with sensitive data
+
+**Recommendation**: Consider using a free domain (e.g., from Freenom) + Let's Encrypt SSL for better security.
 
 ---
 
@@ -1188,69 +1128,167 @@ curl https://lms.example.com/health
 
 ## 12. Deployment Procedures
 
+### AWS EC2 Setup
+
+#### Step 1: Launch EC2 Instance
+
+```bash
+# AWS Console → EC2 → Launch Instance
+
+# 1. Choose AMI
+AMI: Ubuntu Server 22.04 LTS (HVM), SSD Volume Type
+
+# 2. Choose Instance Type
+Instance Type: t3.medium (2 vCPU, 4 GB RAM)
+
+# 3. Configure Instance
+Network: Default VPC
+Auto-assign Public IP: Enable
+
+# 4. Add Storage
+Size: 50 GB
+Volume Type: gp3 (General Purpose SSD)
+
+# 5. Add Tags
+Key: Name
+Value: LMS-Production
+
+# 6. Configure Security Group
+Create new security group:
+  - SSH (22): Your IP only
+  - HTTP (80): 0.0.0.0/0
+
+# 7. Review and Launch
+Select existing key pair or create new one
+Download .pem file (keep it safe!)
+```
+
+#### Step 2: Allocate Elastic IP
+
+```bash
+# AWS Console → EC2 → Elastic IPs
+
+# 1. Allocate Elastic IP address
+Click "Allocate Elastic IP address"
+Click "Allocate"
+
+# 2. Associate with EC2 instance
+Select the Elastic IP
+Actions → Associate Elastic IP address
+Select your EC2 instance
+Click "Associate"
+
+# Note your Elastic IP (e.g., 54.123.45.67)
+```
+
+#### Step 3: Connect to EC2
+
+```bash
+# Change key permissions
+chmod 400 your-key.pem
+
+# SSH to EC2 (replace with your Elastic IP)
+ssh -i your-key.pem ubuntu@54.123.45.67
+```
+
 ### Initial Deployment
 
 ```bash
-# 1. Provision server (DigitalOcean, Linode, Hetzner)
-# - Ubuntu 22.04 LTS
-# - 2-4 cores, 4-8 GB RAM, 50-100 GB SSD
-# - SSH key-based authentication
+# 1. Update system
+sudo apt update && sudo apt upgrade -y
 
-# 2. Install Docker and Docker Compose
+# 2. Install Docker
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
-sudo apt-get install docker-compose-plugin
 
-# 3. Clone repository
+# 3. Install Docker Compose
+sudo apt install docker-compose-plugin -y
+
+# 4. Add user to docker group
+sudo usermod -aG docker ubuntu
+newgrp docker
+
+# 5. Clone repository
 git clone https://github.com/JoelSiahaan/Specify.git
 cd Specify
 
-# 4. Configure environment variables
-cp .env.example .env.production
-nano .env.production  # Edit with production values
+# 6. Create .env.production
+nano .env.production
+# Paste configuration (see Environment Configuration section)
+# IMPORTANT: Replace 54.123.45.67 with your actual Elastic IP
 
-# 5. Update nginx.conf with your domain
-nano nginx.conf  # Replace lms.example.com with your actual domain
+# 7. Update nginx.conf
+# Already configured for IP-only deployment (no changes needed)
 
-# 6. Generate SSL certificate (Let's Encrypt)
-sudo apt-get install certbot
-sudo certbot certonly --standalone -d your-domain.com  # Use your actual domain
+# 8. Generate JWT secrets
+openssl rand -base64 32  # Copy to JWT_ACCESS_SECRET
+openssl rand -base64 32  # Copy to JWT_REFRESH_SECRET
+openssl rand -base64 24  # Copy to DB_PASSWORD
 
-# 7. Update nginx.conf SSL paths (if domain changed)
-# Certbot creates certificates at: /etc/letsencrypt/live/your-domain.com/
-nano nginx.conf  # Update SSL certificate paths if needed
+# Update .env.production with generated secrets
 
-# 8. Build and start services
+# 9. Build and start services
+docker-compose -f docker-compose.prod.yml build
 docker-compose -f docker-compose.prod.yml up -d
 
-# 7. Run database migrations
-docker-compose exec backend npx prisma migrate deploy
+# 10. Run database migrations
+docker-compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
 
-# 8. Verify deployment
-curl https://your-domain.com/health  # Use your actual domain
+# 11. Verify deployment
+curl http://54.123.45.67/health
+# Should return: {"status":"healthy","timestamp":"...","database":"connected"}
+
+# 12. Check logs
+docker-compose -f docker-compose.prod.yml logs -f
+```
+
+### Verify Deployment
+
+```bash
+# 1. Check health endpoint
+curl http://54.123.45.67/health
+
+# 2. Check frontend (open in browser)
+http://54.123.45.67
+
+# 3. Check backend API
+curl http://54.123.45.67/api/health
+
+# 4. Check Docker containers
+docker ps
+
+# Should see 3 containers running:
+# - lms-nginx
+# - lms-backend
+# - lms-postgres
 ```
 
 ### Rolling Update
 
 ```bash
-# 1. Pull latest code
-cd /opt/lms
+# 1. SSH to EC2
+ssh -i your-key.pem ubuntu@54.123.45.67
+
+# 2. Navigate to project directory
+cd Specify
+
+# 3. Pull latest code
 git pull origin main
 
-# 2. Build new images
+# 4. Rebuild images
 docker-compose -f docker-compose.prod.yml build
 
-# 3. Update services (zero-downtime)
+# 5. Update services (zero-downtime)
 docker-compose -f docker-compose.prod.yml up -d
 
-# 4. Run migrations (if any)
-docker-compose exec backend npx prisma migrate deploy
+# 6. Run migrations (if any)
+docker-compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
 
-# 5. Verify health
-curl https://lms.example.com/health
+# 7. Verify health
+curl http://54.123.45.67/health
 
-# 6. Check logs
-docker-compose logs -f backend
+# 8. Check logs
+docker-compose -f docker-compose.prod.yml logs -f backend
 ```
 
 ### Rollback Procedure
@@ -1267,20 +1305,26 @@ docker-compose -f docker-compose.prod.yml build
 docker-compose -f docker-compose.prod.yml up -d
 
 # 4. Rollback database (if needed)
-gunzip < /backups/lms_<date>.sql.gz | docker-compose exec -T postgres psql -U lms_user lms_prod
+gunzip < /backups/lms_<date>.sql.gz | docker-compose -f docker-compose.prod.yml exec -T postgres psql -U lms_user lms_prod
 
 # 5. Verify health
-curl https://lms.example.com/health
+curl http://54.123.45.67/health
 ```
 
 ### Maintenance Mode
 
 ```bash
 # 1. Create maintenance page
-cat > /usr/share/nginx/html/maintenance.html << 'EOF'
+cat > /tmp/maintenance.html << 'EOF'
 <!DOCTYPE html>
 <html>
-<head><title>Maintenance</title></head>
+<head>
+  <title>Maintenance</title>
+  <style>
+    body { font-family: Arial; text-align: center; padding: 50px; }
+    h1 { color: #333; }
+  </style>
+</head>
 <body>
   <h1>System Maintenance</h1>
   <p>We'll be back shortly. Thank you for your patience.</p>
@@ -1288,21 +1332,67 @@ cat > /usr/share/nginx/html/maintenance.html << 'EOF'
 </html>
 EOF
 
-# 2. Update Nginx config to serve maintenance page
+# 2. Copy to nginx html directory
+docker cp /tmp/maintenance.html lms-nginx:/usr/share/nginx/html/maintenance.html
+
+# 3. Update nginx config to serve maintenance page
 # Add to nginx.conf before other locations:
 # location / {
 #   return 503;
 # }
 # error_page 503 /maintenance.html;
 
-# 3. Reload Nginx
-docker-compose exec nginx nginx -s reload
+# 4. Reload nginx
+docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload
 
-# 4. Perform maintenance
+# 5. Perform maintenance
 
-# 5. Remove maintenance mode (revert Nginx config)
-docker-compose exec nginx nginx -s reload
+# 6. Remove maintenance mode (revert nginx config)
+docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload
 ```
+
+---
+
+## Cost Estimation (AWS EC2 IP-Only)
+
+### Monthly Costs
+
+| Item | Specification | Cost (USD) |
+|------|---------------|------------|
+| EC2 t3.medium | 2 vCPU, 4 GB RAM, On-Demand | $30.37 |
+| EBS gp3 | 50 GB storage | $4.00 |
+| Elastic IP | 1 IP (attached to running instance) | $0.00 |
+| Data Transfer Out | ~10 GB/month | $0.90 |
+| **Total** | | **~$35-40/month** |
+
+### Cost Optimization Options
+
+**1. Reserved Instances** (1-year commitment):
+- EC2 t3.medium: ~$18/month (40% savings)
+- Total: ~$23-28/month
+
+**2. Savings Plans** (flexible commitment):
+- EC2 Compute Savings Plan: ~20-30% savings
+- Total: ~$25-32/month
+
+**3. Spot Instances** (not recommended for production):
+- Up to 70% savings but can be terminated
+- Only for non-critical workloads
+
+### Comparison with Other Hosting
+
+| Provider | Specs | Cost/Month |
+|----------|-------|------------|
+| AWS EC2 (On-Demand) | 2 vCPU, 4 GB | $35-40 |
+| AWS EC2 (Reserved) | 2 vCPU, 4 GB | $23-28 |
+| DigitalOcean | 2 vCPU, 4 GB | $24 |
+| Linode | 2 vCPU, 4 GB | $24 |
+| Hetzner | 2 vCPU, 4 GB | $12-15 |
+
+**Recommendation**: 
+- Start with On-Demand for flexibility
+- Switch to Reserved Instance after 3-6 months if usage is stable
+- Consider DigitalOcean/Linode for simpler management at similar cost
 
 ---
 
@@ -1310,14 +1400,23 @@ docker-compose exec nginx nginx -s reload
 
 This deployment workflow provides:
 
-✅ **Simple Architecture**: Single server with Docker Compose (no Kubernetes)
+✅ **AWS EC2 Deployment**: Single t3.medium instance with Elastic IP
+✅ **IP-Only Access**: No domain required (HTTP-only)
+✅ **Simple Architecture**: Docker Compose (no Kubernetes)
 ✅ **Containerization**: Docker for consistent environments
-✅ **Reverse Proxy**: Nginx for HTTPS, static files, and rate limiting
+✅ **Reverse Proxy**: Nginx for HTTP, static files, and rate limiting
 ✅ **CI/CD**: Automated testing and deployment with GitHub Actions
 ✅ **Monitoring**: Structured logging with Winston, health checks
-✅ **Security**: HTTPS (Let's Encrypt), security headers, rate limiting
+✅ **Security**: Rate limiting, input validation, authentication (⚠️ no HTTPS)
 ✅ **Backup**: Automated daily database backups
 ✅ **Scalability**: Vertical scaling path for growth
-✅ **Cost-Effective**: ~$20-40/month for 50 concurrent users
+✅ **Cost-Effective**: ~$35-40/month for 50 concurrent users
 
-**Production-Grade for 50 Users**: Reliable, secure, monitored, and maintainable without over-engineering.
+**Production-Grade for 50 Users**: Reliable, monitored, and maintainable without over-engineering.
+
+**⚠️ Security Note**: HTTP-only deployment is less secure than HTTPS. Consider using a free domain + Let's Encrypt SSL for production with sensitive data.
+
+**Access URLs** (replace with your Elastic IP):
+- Frontend: `http://54.123.45.67`
+- Backend API: `http://54.123.45.67/api`
+- Health Check: `http://54.123.45.67/health`
