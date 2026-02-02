@@ -1,50 +1,62 @@
-# Automatic PR labeling based on changed files
+# Auto-labeling configuration for pull requests
+# Labels are applied based on which files are changed
 
+# Backend changes
 backend:
   - changed-files:
     - any-glob-to-any-file: 'backend/**/*'
 
+# Frontend changes
 frontend:
   - changed-files:
     - any-glob-to-any-file: 'frontend/**/*'
 
-database:
-  - changed-files:
-    - any-glob-to-any-file: 'backend/prisma/**/*'
-
-docker:
-  - changed-files:
-    - any-glob-to-any-file:
-      - '**/Dockerfile*'
-      - 'docker-compose*.yml'
-
-ci:
-  - changed-files:
-    - any-glob-to-any-file: '.github/**/*'
-
+# Documentation changes
 documentation:
   - changed-files:
-    - any-glob-to-any-file:
+    - any-glob-to-any-file: 
       - '**/*.md'
       - 'docs/**/*'
 
+# CI/CD changes
+ci-cd:
+  - changed-files:
+    - any-glob-to-any-file: 
+      - '.github/**/*'
+      - 'docker-compose*.yml'
+      - '**/Dockerfile*'
+      - 'nginx.conf'
+
+# Database changes
+database:
+  - changed-files:
+    - any-glob-to-any-file: 
+      - 'backend/prisma/**/*'
+      - '**/migrations/**/*'
+
+# Tests
 tests:
   - changed-files:
-    - any-glob-to-any-file:
+    - any-glob-to-any-file: 
       - '**/__tests__/**/*'
       - '**/*.test.ts'
       - '**/*.test.tsx'
-      - '**/*.spec.ts'
+      - '**/*.properties.test.ts'
 
+# Configuration
+config:
+  - changed-files:
+    - any-glob-to-any-file: 
+      - '**/*.config.js'
+      - '**/*.config.ts'
+      - '**/tsconfig*.json'
+      - '**/.eslintrc*'
+      - '**/.prettierrc*'
+      - '.env.example'
+
+# Dependencies
 dependencies:
   - changed-files:
-    - any-glob-to-any-file:
+    - any-glob-to-any-file: 
       - '**/package.json'
       - '**/package-lock.json'
-
-security:
-  - changed-files:
-    - any-glob-to-any-file:
-      - '**/auth/**/*'
-      - '**/security/**/*'
-      - '**/middleware/AuthenticationMiddleware.ts'

@@ -24,7 +24,7 @@ import { User, Role } from '../../../domain/entities/User';
 @injectable()
 export class PrismaUserRepository implements IUserRepository {
   constructor(@inject('PrismaClient') private readonly prisma: PrismaClient) {
-    console.log('[PrismaUserRepository] Constructor called with prisma:', prisma ? 'OK' : 'UNDEFINED');
+    // Prisma client injected via DI
   }
 
   /**
@@ -88,10 +88,6 @@ export class PrismaUserRepository implements IUserRepository {
    * @returns Promise resolving to User entity or null if not found
    */
   async findByEmail(email: string): Promise<User | null> {
-    console.log('[PrismaUserRepository] findByEmail called with:', email);
-    console.log('[PrismaUserRepository] this.prisma:', this.prisma ? 'OK' : 'UNDEFINED');
-    console.log('[PrismaUserRepository] this.prisma.user:', this.prisma?.user ? 'OK' : 'UNDEFINED');
-    
     const dbUser = await this.prisma.user.findUnique({
       where: { email }
     });

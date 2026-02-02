@@ -59,12 +59,27 @@ jobs:
 
       - name: Check for console.log in backend
         run: |
-          if grep -r "console\.log" backend/src --exclude-dir=node_modules --exclude-dir=dist; then
-            echo "❌ Found console.log statements in backend code"
+          if grep -r "console\.log" backend/src \
+            --exclude-dir=node_modules \
+            --exclude-dir=dist \
+            --exclude-dir=__tests__ \
+            --exclude="*.test.ts" \
+            --exclude="examples.ts" \
+            --exclude="test-utils.ts" \
+            --exclude="container.ts" \
+            --exclude="main.ts"; then
+            echo "❌ Found console.log statements in backend production code"
             echo "Please use the logger instead of console.log"
+            echo ""
+            echo "Note: console.log is allowed in:"
+            echo "  - Test files (__tests__/, *.test.ts)"
+            echo "  - Example files (examples.ts)"
+            echo "  - Test utilities (test-utils.ts)"
+            echo "  - DI container setup (container.ts)"
+            echo "  - Server startup (main.ts)"
             exit 1
           else
-            echo "✅ No console.log statements found"
+            echo "✅ No console.log statements found in production code"
           fi
 
       - name: Check for console.log in frontend
@@ -101,11 +116,12 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Build frontend
+      - name: Build frontend (production only, excludes tests)
         working-directory: frontend
         env:
           VITE_API_URL: http://localhost:3000/api
         run: npm run build
+        continue-on-error: false
 
       - name: Check bundle size
         working-directory: frontend
@@ -172,7 +188,8 @@ jobs:
           JWT_ACCESS_SECRET: test_access_secret_minimum_32_characters_long
           JWT_REFRESH_SECRET: test_refresh_secret_minimum_32_characters_long
           NODE_ENV: test
-        run: npm test -- --coverage
+        run: npm test -- --coverage --forceExit --detectOpenHandles
+        timeout-minutes: 10
 
       - name: Check backend coverage thresholds
         working-directory: backend
@@ -232,10 +249,15 @@ jobs:
   label-pr:
     name: Label PR
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Label PR based on files changed
         uses: actions/labeler@v5
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          configuration-path: .github/labeler.yml

@@ -64,7 +64,7 @@ describe('LoggingMiddleware', () => {
     });
 
     it('should log request with authenticated user', () => {
-      mockRequest.user = { id: 'user-123', email: 'test@example.com', role: 'STUDENT' };
+      mockRequest.user = { userId: 'user-123', email: 'test@example.com', role: 'STUDENT' };
 
       requestLogger(mockRequest as Request, mockResponse as Response, nextFunction);
 
@@ -197,7 +197,7 @@ describe('LoggingMiddleware', () => {
     });
 
     it('should log error with authenticated user context', () => {
-      mockRequest.user = { id: 'user-123', email: 'test@example.com', role: 'TEACHER' };
+      mockRequest.user = { userId: 'user-123', email: 'test@example.com', role: 'TEACHER' };
       const error = new Error('Unauthorized');
 
       errorLogger(error, mockRequest as Request, mockResponse as Response, nextFunction);

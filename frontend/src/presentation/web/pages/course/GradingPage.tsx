@@ -94,19 +94,19 @@ export const GradingPage: React.FC = () => {
       
       // Fetch quizzes
       const quizzesData = await quizService.listQuizzes(courseId);
-      const quizzesList = Array.isArray(quizzesData) ? quizzesData : (quizzesData?.data || []);
+      const quizzesList = (Array.isArray(quizzesData) ? quizzesData : ((quizzesData as { data?: unknown[] })?.data || [])) as Quiz[];
       
       // Fetch submission stats for each quiz
-      const quizzesWithStats = await Promise.all(
+      const quizzesWithStats: QuizWithStats[] = await Promise.all(
         quizzesList.map(async (quiz) => {
           try {
             const submissions = await quizService.listQuizSubmissions(quiz.id);
-            const submissionsList = Array.isArray(submissions) ? submissions : (submissions?.data || []);
-            const submittedCount = submissionsList.filter(s => 
+            const submissionsList = (Array.isArray(submissions) ? submissions : ((submissions as { data?: { status: string }[] })?.data || [])) as { status: string }[];
+            const submittedCount = submissionsList.filter((s) => 
               s.status === 'SUBMITTED' || s.status === 'GRADED'
             ).length;
-            const gradedCount = submissionsList.filter(s => s.status === 'GRADED').length;
-            const notSubmittedCount = submissionsList.filter(s => s.status === 'NOT_STARTED').length;
+            const gradedCount = submissionsList.filter((s) => s.status === 'GRADED').length;
+            const notSubmittedCount = submissionsList.filter((s) => s.status === 'NOT_STARTED').length;
             
             return {
               ...quiz,

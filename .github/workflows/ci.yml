@@ -133,6 +133,7 @@ jobs:
         env:
           VITE_API_URL: http://localhost:3000/api
         run: npm run build
+        continue-on-error: false
 
       - name: Upload frontend coverage
         uses: codecov/codecov-action@v4

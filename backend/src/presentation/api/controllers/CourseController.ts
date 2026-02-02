@@ -79,21 +79,12 @@ export class CourseController {
       // Get enrolledOnly filter from query parameters (for students)
       const enrolledOnly = req.query.enrolledOnly === 'true';
       
-      console.log('[CourseController] List courses request:', {
-        userId: authenticatedReq.user.userId,
-        status,
-        enrolledOnly,
-        rawEnrolledOnly: req.query.enrolledOnly
-      });
-      
       // Execute use case
       const listCoursesUseCase = container.resolve(ListCoursesUseCase);
       const courses = await listCoursesUseCase.execute(
         authenticatedReq.user.userId,
         { status, enrolledOnly }
       );
-      
-      console.log('[CourseController] Returning courses count:', courses.length);
       
       // Return courses wrapped in data object (200 OK)
       res.status(200).json({ data: courses });

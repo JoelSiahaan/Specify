@@ -101,11 +101,8 @@ export class ListAssignmentsUseCase {
     studentId: string
   ): Promise<AssignmentListDTO[]> {
     try {
-      console.log('[ListAssignmentsUseCase] Building student assignment list for student:', studentId);
-      
       // Get all submissions for this student
       const submissions = await this.assignmentSubmissionRepository.findByStudentId(studentId);
-      console.log('[ListAssignmentsUseCase] Found submissions:', submissions.length);
       
       // Create maps for quick lookup
       const submissionStatusMap = new Map<string, AssignmentSubmissionStatus>();
