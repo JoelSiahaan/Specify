@@ -2518,10 +2518,24 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Push images to GitHub Container Registry
   - _Requirements: 17.1, 17.5_
 
-- [ ] 13.2 Configure production environment (AWS EC2)
+- [ ] 13.2 Configure Docker for production (LOCAL)
   - Priority: HIGH
-  - Dependencies: None (can start early)
-  - Can be parallelized: Yes (with 13.1, 13.3)
+  - Dependencies: 1.2 (Docker setup)
+  - Can be parallelized: Yes (with 13.1)
+  - **IMPORTANT: Do this LOCALLY first, then commit to Git**
+  - Create docker-compose.prod.yml with production settings
+  - Configure PostgreSQL with persistent volumes
+  - Configure backend with production environment
+  - Configure Nginx with SSL/TLS placeholders
+  - Test locally with production-like settings
+  - Commit all Docker configs to Git
+  - _Requirements: 17.5_
+  - _Note: Testing locally reduces deployment errors_
+
+- [ ] 13.3 Configure production environment (AWS EC2)
+  - Priority: HIGH
+  - Dependencies: 13.2 (Docker configs ready in Git)
+  - Can be parallelized: No (needs 13.2 configs)
   - Launch AWS EC2 instance (t3.medium, Ubuntu 22.04 LTS)
   - Allocate and associate Elastic IP (IP tetap)
   - Configure EBS volume (50-100 GB gp3)
@@ -2530,22 +2544,13 @@ Independent (Can run in parallel with ANY feature after Auth):
   - Set up SSH key-based authentication
   - Purchase domain name ($10-15/year for .com/.id/.co.id)
   - Configure DNS A record pointing to Elastic IP
+  - Clone repository (Docker configs already ready!)
   - _Requirements: 17.5_
   - _Note: Domain required for Let's Encrypt SSL certificate (free, trusted, auto-renewal)_
 
-- [ ] 13.3 Configure Docker for production
-  - Priority: HIGH
-  - Dependencies: 1.2 (Docker setup), 13.2 (production server)
-  - Can be parallelized: Yes (with 13.1)
-  - Create docker-compose.prod.yml
-  - Configure PostgreSQL with persistent volumes
-  - Configure backend with production settings
-  - Configure Nginx with SSL/TLS
-  - _Requirements: 17.5_
-
 - [ ] 13.4 Install Certbot and generate Let's Encrypt SSL certificate
   - Priority: CRITICAL
-  - Dependencies: 13.2 (production server with domain), 13.3 (Nginx configuration)
+  - Dependencies: 13.3 (production server with domain), 13.2 (Nginx configuration)
   - Can be parallelized: No
   - Install Certbot (Let's Encrypt client)
   - Stop Nginx temporarily for certificate generation
@@ -2559,9 +2564,9 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 - [ ] 13.5 Configure environment variables
   - Priority: CRITICAL
-  - Dependencies: 13.2 (production server with domain)
-  - Can be parallelized: Yes (with 13.3, 13.4)
-  - Create .env.production file
+  - Dependencies: 13.3 (production server with domain)
+  - Can be parallelized: Yes (with 13.4)
+  - Create .env.production file on server
   - Generate JWT secrets (32+ characters)
   - Set database credentials
   - Set CORS origin (https://yourdomain.com)
@@ -2571,7 +2576,7 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 - [ ] 13.6 Run database migrations
   - Priority: CRITICAL
-  - Dependencies: 13.3 (Docker setup), 13.5 (environment variables), all Prisma migrations (2.2.1, 3.2.1, 4.2.1, 5.2.1, 6.2.1, 7.2.1)
+  - Dependencies: 13.2 (Docker setup), 13.5 (environment variables), all Prisma migrations (2.2.1, 3.2.1, 4.2.1, 5.2.1, 6.2.1, 7.2.1)
   - Can be parallelized: No
   - Deploy Prisma migrations to production
   - Verify database schema
@@ -2579,7 +2584,7 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 - [ ] 13.7 Set up automated backups
   - Priority: VERY HIGH
-  - Dependencies: 13.3 (Docker setup), 13.6 (database migrations)
+  - Dependencies: 13.2 (Docker setup), 13.6 (database migrations)
   - Can be parallelized: Yes (with 13.8)
   - Create backup script for PostgreSQL
   - Set up daily backup cron job
@@ -2589,7 +2594,7 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 - [ ] 13.8 Configure monitoring
   - Priority: VERY HIGH
-  - Dependencies: 11.2 (Winston logging), 13.3 (Docker setup)
+  - Dependencies: 11.2 (Winston logging), 13.2 (Docker setup)
   - Can be parallelized: Yes (with 13.7)
   - Set up Winston logging in production
   - Configure log rotation
@@ -2599,9 +2604,9 @@ Independent (Can run in parallel with ANY feature after Auth):
 
 - [ ] 13.9 Deploy to production
   - Priority: CRITICAL
-  - Dependencies: 13.1, 13.3, 13.4, 13.5, 13.6, 13.7, 13.8
+  - Dependencies: 13.1, 13.2, 13.4, 13.5, 13.6, 13.7, 13.8
   - Can be parallelized: No
-  - Pull latest code from GitHub
+  - Pull latest code from GitHub (Docker configs already in repo)
   - Build Docker images
   - Start services with docker-compose
   - Run database migrations
