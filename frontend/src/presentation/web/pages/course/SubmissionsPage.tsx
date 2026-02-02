@@ -12,19 +12,17 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { CourseLayout } from '../../components/layout';
 import { Button, Spinner, ErrorMessage } from '../../components/shared';
 import { GradeSubmission } from '../../components/grading';
 import * as assignmentService from '../../services/assignmentService';
 import { formatDueDate } from '../../utils/dateFormatter';
-import { buildRoute, ROUTES } from '../../constants/routes';
 import type { Assignment, Submission, ApiError } from '../../types';
 import { SubmissionStatus } from '../../types/common.types';
 
 export const SubmissionsPage: React.FC = () => {
   const { courseId, assignmentId } = useParams<{ courseId: string; assignmentId: string }>();
-  const navigate = useNavigate();
   
   // State
   const [assignment, setAssignment] = useState<Assignment | null>(null);

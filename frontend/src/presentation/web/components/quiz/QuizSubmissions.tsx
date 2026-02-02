@@ -13,7 +13,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Button, Spinner, ErrorMessage } from '../shared';
 import { CourseLayout } from '../layout';
 import { GradeQuizSubmission } from '../grading';
@@ -25,7 +25,6 @@ type FilterStatus = 'all' | QuizSubmissionStatus;
 
 export const QuizSubmissions: React.FC = () => {
   const { courseId, quizId } = useParams<{ courseId: string; quizId: string }>();
-  const navigate = useNavigate();
 
   // State
   const [quiz, setQuiz] = useState<Quiz | null>(null);
