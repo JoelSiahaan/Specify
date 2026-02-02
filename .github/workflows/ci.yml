@@ -66,23 +66,14 @@ jobs:
         working-directory: backend
         run: npx tsc --noEmit
 
-      - name: Run unit tests
+      - name: Run all tests
         working-directory: backend
         env:
           DATABASE_URL: postgresql://lms_test_user:test_password@localhost:5433/lms_test
           JWT_ACCESS_SECRET: test_access_secret_minimum_32_characters_long
           JWT_REFRESH_SECRET: test_refresh_secret_minimum_32_characters_long
           NODE_ENV: test
-        run: npm test -- --testPathIgnorePatterns=".integration.test.ts"
-
-      - name: Run integration tests
-        working-directory: backend
-        env:
-          DATABASE_URL: postgresql://lms_test_user:test_password@localhost:5433/lms_test
-          JWT_ACCESS_SECRET: test_access_secret_minimum_32_characters_long
-          JWT_REFRESH_SECRET: test_refresh_secret_minimum_32_characters_long
-          NODE_ENV: test
-        run: npm test -- --testPathPattern=".integration.test.ts"
+        run: npm test -- --verbose --forceExit
 
   # Frontend Testing
   frontend-test:
