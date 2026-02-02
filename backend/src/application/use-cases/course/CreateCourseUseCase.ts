@@ -128,10 +128,10 @@ export class CreateCourseUseCase {
   private async generateUniqueCourseCode(): Promise<CourseCode> {
     const codeChecker = new CourseCodeChecker(this.courseRepository);
     const generator = new CourseCodeGenerator(codeChecker);
-
+    
     try {
       return await generator.generate();
-    } catch (error) {
+    } catch (_) {
       throw new ApplicationError(
         'INTERNAL_ERROR',
         'Failed to generate unique course code. Please try again.',

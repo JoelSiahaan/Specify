@@ -56,7 +56,7 @@ export class DeleteCourseUseCase {
       // Return 400 if course is not archived
       try {
         course.validateCanDelete();
-      } catch (error) {
+      } catch (_) {
         throw new ApplicationError(
           'RESOURCE_ACTIVE',
           'Cannot delete active course. Archive the course first',

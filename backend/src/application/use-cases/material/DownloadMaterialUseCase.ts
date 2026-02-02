@@ -128,7 +128,7 @@ export class DownloadMaterialUseCase {
         mimeType: material.getMimeType() || 'application/octet-stream',
         fileSize: material.getFileSize() || buffer.length
       };
-    } catch (error) {
+    } catch (_) {
       throw new ApplicationError(
         'FILE_NOT_FOUND',
         'File not found in storage',
