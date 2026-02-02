@@ -112,6 +112,7 @@ jobs:
       - name: Run ESLint
         working-directory: frontend
         run: npm run lint
+        continue-on-error: false
 
       - name: Run TypeScript type check
         working-directory: frontend
