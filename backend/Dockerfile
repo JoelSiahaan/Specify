@@ -20,12 +20,12 @@ RUN addgroup -g 1001 -S nodejs && \
 FROM base AS deps
 
 # Copy package files
-COPY package.json ./
+COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install production dependencies with cache mounting
 RUN --mount=type=cache,target=/root/.npm,sharing=locked \
-    npm install --omit=dev --no-package-lock && \
+    npm ci --omit=dev && \
     npm cache clean --force
 
 # Generate Prisma client
@@ -40,12 +40,12 @@ RUN chown -R nodejs:nodejs /app
 FROM base AS build-deps
 
 # Copy package files
-COPY package.json ./
+COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install all dependencies with cache mounting
 RUN --mount=type=cache,target=/root/.npm,sharing=locked \
-    npm install --no-package-lock --no-audit --no-fund && \
+    npm ci --no-audit --no-fund && \
     npm cache clean --force
 
 # Generate Prisma client
