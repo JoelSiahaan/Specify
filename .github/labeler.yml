@@ -1,0 +1,50 @@
+# Automatic PR labeling based on changed files
+
+backend:
+  - changed-files:
+    - any-glob-to-any-file: 'backend/**/*'
+
+frontend:
+  - changed-files:
+    - any-glob-to-any-file: 'frontend/**/*'
+
+database:
+  - changed-files:
+    - any-glob-to-any-file: 'backend/prisma/**/*'
+
+docker:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/Dockerfile*'
+      - 'docker-compose*.yml'
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file: '.github/**/*'
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'
+      - 'docs/**/*'
+
+tests:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/__tests__/**/*'
+      - '**/*.test.ts'
+      - '**/*.test.tsx'
+      - '**/*.spec.ts'
+
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/package.json'
+      - '**/package-lock.json'
+
+security:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/auth/**/*'
+      - '**/security/**/*'
+      - '**/middleware/AuthenticationMiddleware.ts'

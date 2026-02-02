@@ -1,10 +1,17 @@
 # Learning Management System (LMS)
 
+[![CI Status](https://github.com/JoelSiahaan/Specify/workflows/CI%20-%20Test%20and%20Build/badge.svg)](https://github.com/JoelSiahaan/Specify/actions/workflows/ci.yml)
+[![Build and Deploy](https://github.com/JoelSiahaan/Specify/workflows/Build%20and%20Deploy/badge.svg)](https://github.com/JoelSiahaan/Specify/actions/workflows/build-deploy.yml)
+[![Security Scanning](https://github.com/JoelSiahaan/Specify/workflows/Security%20Scanning/badge.svg)](https://github.com/JoelSiahaan/Specify/actions/workflows/security.yml)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+
 A production-grade Learning Management System built with React 19.2, Node.js, Express, TypeScript, Prisma ORM, and PostgreSQL. The system supports course management, learning materials, assignments, quizzes, and grading workflows for 50+ concurrent users.
 
 **Key Features**: Course management, enrollment, materials (files/text/video links), assignments with late submissions, timed quizzes, manual grading, progress tracking, and grade export.
 
 **Architecture**: Clean Architecture with Domain-Driven Design principles, ensuring maintainability, testability, and scalability.
+
+**CI/CD**: Automated testing, building, and deployment with GitHub Actions. Docker images automatically built and pushed to GitHub Container Registry on every commit to main branch.
 
 ## Table of Contents
 
@@ -999,6 +1006,121 @@ gunzip < /backups/lms_20250113.sql.gz | docker-compose -f docker-compose.prod.ym
 - Retention: 7 days (daily), 4 weeks (weekly), 12 months (monthly)
 
 For complete deployment documentation, see `.kiro/steering/deployment-workflow.md`.
+
+---
+
+## CI/CD Pipeline
+
+### GitHub Actions Workflows
+
+The project uses GitHub Actions for automated testing, building, and deployment.
+
+#### 1. CI - Test and Build
+
+**Triggers**: Push or PR to `main` or `develop` branches
+
+**Jobs**:
+- **backend-test**: Runs backend tests with PostgreSQL
+  - ESLint code quality checks
+  - TypeScript type checking
+  - Unit tests with coverage
+  - Integration tests
+  - Uploads coverage to Codecov
+
+- **frontend-test**: Runs frontend tests
+  - ESLint code quality checks
+  - TypeScript type checking
+  - Component tests with coverage
+  - Production build verification
+  - Uploads coverage to Codecov
+
+- **security-audit**: Scans dependencies for vulnerabilities
+
+#### 2. Build and Deploy
+
+**Triggers**: Push to `main` branch or manual dispatch
+
+**Jobs**:
+- **build**: Builds and pushes Docker images
+  - Builds backend Docker image
+  - Builds frontend Docker image
+  - Pushes to GitHub Container Registry (ghcr.io)
+  - Uses Docker layer caching for faster builds
+
+- **deploy**: Deploys to production (placeholder)
+  - Shows deployment instructions
+  - Uncomment SSH deployment steps when server is ready
+
+**Container Registry**:
+- Backend: `ghcr.io/joelsiahaan/specify/backend:latest`
+- Frontend: `ghcr.io/joelsiahaan/specify/frontend:latest`
+
+#### 3. Security Scanning
+
+**Triggers**: Daily at 2 AM UTC or manual dispatch
+
+**Jobs**:
+- **dependency-scan**: Scans npm dependencies
+- **docker-scan**: Scans Docker images with Trivy (manual only)
+
+#### 4. Pull Request Checks
+
+**Triggers**: Pull request opened, synchronized, or reopened
+
+**Jobs**:
+- **pr-title**: Validates PR title format (Conventional Commits)
+- **code-quality**: Checks for console.log, TODO comments
+- **size-check**: Checks frontend bundle size
+- **coverage-check**: Verifies test coverage thresholds
+- **dependency-check**: Checks for outdated dependencies
+- **label-pr**: Auto-labels PR based on changed files
+
+#### 5. Release
+
+**Triggers**: Push tag matching `v*.*.*` (e.g., `v1.0.0`)
+
+**Jobs**:
+- **create-release**: Creates GitHub release with changelog
+- **build-release**: Builds and pushes versioned Docker images
+
+### Dependabot Configuration
+
+Automated dependency updates:
+- Backend npm dependencies (weekly, Monday 2 AM)
+- Frontend npm dependencies (weekly, Monday 2 AM)
+- GitHub Actions (weekly, Monday 2 AM)
+- Docker base images (weekly, Monday 2 AM)
+
+### Setting Up CI/CD
+
+**Required GitHub Secrets** (for production deployment):
+```
+PROD_HOST: EC2 Elastic IP or domain
+PROD_USER: SSH username (e.g., ubuntu)
+PROD_SSH_KEY: Private SSH key
+PROD_SSH_PORT: SSH port (default: 22)
+```
+
+**Optional Secrets** (for notifications):
+```
+SLACK_WEBHOOK_URL: Slack webhook
+DISCORD_WEBHOOK: Discord webhook
+```
+
+**Enable Production Deployment**:
+1. Set up production server (see Deployment section)
+2. Add GitHub secrets in repository settings
+3. Uncomment deployment steps in `.github/workflows/build-deploy.yml`
+4. Push to `main` branch to trigger deployment
+
+### Workflow Status
+
+View workflow status:
+- GitHub repository → Actions tab
+- View logs for each workflow run
+- Download artifacts (coverage, audit results)
+
+For complete CI/CD documentation, see `.github/workflows/README.md`.
 
 ---
 

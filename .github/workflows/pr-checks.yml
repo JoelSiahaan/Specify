@@ -1,0 +1,241 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # PR Title Check
+  pr-title:
+    name: Check PR Title
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check PR title format
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            chore
+            ci
+          requireScope: false
+          subjectPattern: ^[A-Z].+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            didn't match the configured pattern. Please ensure that the subject
+            starts with an uppercase character.
+
+  # Code Quality Checks
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.0'
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Check for console.log in backend
+        run: |
+          if grep -r "console\.log" backend/src --exclude-dir=node_modules --exclude-dir=dist; then
+            echo "❌ Found console.log statements in backend code"
+            echo "Please use the logger instead of console.log"
+            exit 1
+          else
+            echo "✅ No console.log statements found"
+          fi
+
+      - name: Check for console.log in frontend
+        run: |
+          if grep -r "console\.log" frontend/src --exclude-dir=node_modules --exclude-dir=dist; then
+            echo "⚠️ Found console.log statements in frontend code"
+            echo "Consider using a proper logging solution"
+          else
+            echo "✅ No console.log statements found"
+          fi
+        continue-on-error: true
+
+      - name: Check for TODO comments
+        run: |
+          echo "📝 Checking for TODO comments..."
+          grep -r "TODO" backend/src frontend/src --exclude-dir=node_modules --exclude-dir=dist || echo "✅ No TODO comments found"
+        continue-on-error: true
+
+  # Size Check
+  size-check:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.0'
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          VITE_API_URL: http://localhost:3000/api
+        run: npm run build
+
+      - name: Check bundle size
+        working-directory: frontend
+        run: |
+          echo "📦 Frontend bundle size:"
+          du -sh dist/
+          
+          # Check if bundle is too large (> 5MB)
+          size=$(du -sm dist/ | cut -f1)
+          if [ $size -gt 5 ]; then
+            echo "⚠️ Bundle size is larger than 5MB ($size MB)"
+            echo "Consider code splitting or lazy loading"
+          else
+            echo "✅ Bundle size is acceptable ($size MB)"
+          fi
+
+  # Test Coverage Check
+  coverage-check:
+    name: Test Coverage Check
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: lms_test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: lms_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.0'
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: backend
+        run: npx prisma generate
+
+      - name: Run database migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://lms_test_user:test_password@localhost:5433/lms_test
+        run: npx prisma migrate deploy
+
+      - name: Run backend tests with coverage
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://lms_test_user:test_password@localhost:5433/lms_test
+          JWT_ACCESS_SECRET: test_access_secret_minimum_32_characters_long
+          JWT_REFRESH_SECRET: test_refresh_secret_minimum_32_characters_long
+          NODE_ENV: test
+        run: npm test -- --coverage
+
+      - name: Check backend coverage thresholds
+        working-directory: backend
+        run: |
+          echo "📊 Backend test coverage:"
+          npx nyc report --reporter=text-summary
+          
+          # Extract coverage percentage
+          coverage=$(npx nyc report --reporter=json-summary | grep -o '"lines":{"total":[0-9]*,"covered":[0-9]*' | awk -F'[:,]' '{print int($4/$2*100)}')
+          echo "Coverage: $coverage%"
+          
+          if [ $coverage -lt 70 ]; then
+            echo "⚠️ Coverage is below 70% ($coverage%)"
+            echo "Please add more tests"
+          else
+            echo "✅ Coverage meets threshold ($coverage%)"
+          fi
+        continue-on-error: true
+
+  # Dependency Check
+  dependency-check:
+    name: Dependency Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.0'
+
+      - name: Check for outdated dependencies
+        run: |
+          echo "📦 Checking backend dependencies..."
+          cd backend
+          npm outdated || true
+          
+          echo ""
+          echo "📦 Checking frontend dependencies..."
+          cd ../frontend
+          npm outdated || true
+        continue-on-error: true
+
+      - name: Check for duplicate dependencies
+        run: |
+          echo "🔍 Checking for duplicate dependencies..."
+          cd backend
+          npx npm-check-duplicates || true
+          
+          cd ../frontend
+          npx npm-check-duplicates || true
+        continue-on-error: true
+
+  # Label PR
+  label-pr:
+    name: Label PR
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Label PR based on files changed
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
