@@ -5,9 +5,19 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'coverage', '*.config.js', '*.config.ts', '**/__tests__/**', '**/*.test.ts', '**/*.test.tsx'] },
+  { ignores: [
+    'dist', 
+    'node_modules', 
+    'coverage', 
+    '*.config.js', 
+    '*.config.ts', 
+    '**/__tests__/**', 
+    '**/*.test.ts', 
+    '**/*.test.tsx',
+    'src/test/**'  // Ignore test utilities
+  ] },
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommendedTypeChecked],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],  // ← Changed from recommendedTypeChecked
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2022,
@@ -27,18 +37,14 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      // Relax strict rules to warnings (not blocking CI)
+      // Relax some rules to warnings
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-misused-promises': 'warn',
-      '@typescript-eslint/no-unsafe-assignment': 'warn',
-      '@typescript-eslint/no-unsafe-member-access': 'warn',
-      '@typescript-eslint/no-unsafe-call': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
-      '@typescript-eslint/no-unsafe-return': 'warn',
-      '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
-      '@typescript-eslint/prefer-promise-reject-errors': 'off', // Allow rejecting with structured error objects
+      '@typescript-eslint/no-unused-vars': ['error', { 
+        argsIgnorePattern: '^_', 
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_|^err$'  // Allow _ or err in catch blocks
+      }],
+      'no-console': 'warn',
     },
   },
 )

@@ -60,7 +60,7 @@ jobs:
 
       - name: Run ESLint
         working-directory: backend
-        run: npm run lint
+        run: npm run lint -- --max-warnings -1
 
       - name: Run TypeScript type check
         working-directory: backend
@@ -117,8 +117,7 @@ jobs:
 
       - name: Run ESLint
         working-directory: frontend
-        run: npm run lint
-        continue-on-error: false
+        run: npm run lint -- --max-warnings -1
 
       - name: Run TypeScript type check
         working-directory: frontend
