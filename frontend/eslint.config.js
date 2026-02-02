@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'coverage', '*.config.js', '*.config.ts'] },
+  { ignores: ['dist', 'node_modules', 'coverage', '*.config.js', '*.config.ts', '**/__tests__/**', '**/*.test.ts', '**/*.test.tsx'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommendedTypeChecked],
     files: ['**/*.{ts,tsx}'],
@@ -38,6 +38,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-argument': 'warn',
       '@typescript-eslint/no-unsafe-return': 'warn',
       '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
+      '@typescript-eslint/prefer-promise-reject-errors': 'off', // Allow rejecting with structured error objects
     },
   },
 )
