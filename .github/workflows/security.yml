@@ -21,6 +21,9 @@ jobs:
         with:
           node-version: '20.19.0'
 
+      - name: Install root dependencies (for frontend Rollup native module)
+        run: npm ci
+
       - name: Scan backend dependencies
         working-directory: backend
         run: |

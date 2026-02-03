@@ -53,6 +53,9 @@ jobs:
         working-directory: backend
         run: npm ci
 
+      - name: Install root dependencies (for frontend Rollup native module)
+        run: npm ci
+
       - name: Install frontend dependencies (with optional deps)
         working-directory: frontend
         run: npm ci --include=optional
@@ -111,6 +114,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.19.0'
+
+      - name: Install root dependencies (for frontend Rollup native module)
+        run: npm ci
 
       - name: Install frontend dependencies (with optional deps)
         working-directory: frontend
