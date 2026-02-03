@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: '20.19.0'
 
-      - name: Install root dependencies (for frontend Rollup native module)
+      - name: Install all dependencies (workspace mode)
         run: npm ci
 
       - name: Scan backend dependencies
@@ -30,10 +30,9 @@ jobs:
           npm audit --json > backend-audit.json || true
           npm audit --audit-level=high
 
-      - name: Scan frontend dependencies (with optional deps)
+      - name: Scan frontend dependencies
         working-directory: frontend
         run: |
-          npm ci --include=optional
           npm audit --json > frontend-audit.json || true
           npm audit --audit-level=high
 
