@@ -44,8 +44,7 @@ RUN npm run build
 # ========================================
 # Production Stage with Nginx
 # ========================================
-ARG NGINX_VERSION=1.27-alpine
-FROM nginx:${NGINX_VERSION} AS production
+FROM nginx:1.27-alpine AS production
 
 # Copy built files from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
