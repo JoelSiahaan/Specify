@@ -10,7 +10,7 @@
  * - 5.7: Cascade deletion of related data
  */
 
-import { Course, CourseStatus, type CourseProps } from '../Course';
+import { Course, CourseStatus, type CourseProps } from '../Course.js';
 
 describe('Course Entity', () => {
   const validCourseProps: CourseProps = {

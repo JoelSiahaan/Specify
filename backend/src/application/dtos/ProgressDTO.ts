@@ -15,8 +15,8 @@
  * - 16.7: Calculate and display average grade
  */
 
-import { AssignmentSubmissionStatus } from '../../domain/entities/AssignmentSubmission';
-import { SubmissionType } from '../../domain/entities/Assignment';
+import { AssignmentSubmissionStatus } from '../../domain/entities/AssignmentSubmission.js';
+import { SubmissionType } from '../../domain/entities/Assignment.js';
 
 /**
  * Assignment Progress Item DTO

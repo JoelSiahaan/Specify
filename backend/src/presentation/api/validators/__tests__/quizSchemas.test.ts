@@ -17,7 +17,7 @@ import {
   SubmitQuizRequestSchema,
   QuestionGradeSchema,
   GradeQuizSubmissionRequestSchema
-} from '../quizSchemas';
+} from '../quizSchemas.js';
 
 describe('Quiz Validation Schemas', () => {
   describe('QuestionTypeSchema', () => {

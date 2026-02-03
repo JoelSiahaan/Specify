@@ -5,4 +5,4 @@
  * Security Requirement 20.2
  */
 
-export { HtmlSanitizer, htmlSanitizer } from './HtmlSanitizer';
+export { HtmlSanitizer, htmlSanitizer } from './HtmlSanitizer.js';

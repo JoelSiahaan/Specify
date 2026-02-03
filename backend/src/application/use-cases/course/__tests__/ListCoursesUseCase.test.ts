@@ -9,13 +9,13 @@
  * - 6.1: Students view only active courses
  */
 
-import { ListCoursesUseCase, ListCoursesFilter } from '../ListCoursesUseCase';
-import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { IEnrollmentRepository } from '../../../../domain/repositories/IEnrollmentRepository';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { User, Role } from '../../../../domain/entities/User';
-import { ApplicationError } from '../../../errors/ApplicationErrors';
+import { ListCoursesUseCase, ListCoursesFilter } from '../ListCoursesUseCase.js';
+import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { IEnrollmentRepository } from '../../../../domain/repositories/IEnrollmentRepository.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { ApplicationError } from '../../../errors/ApplicationErrors.js';
 
 // Mock dependencies
 const mockCourseRepository: jest.Mocked<ICourseRepository> = {

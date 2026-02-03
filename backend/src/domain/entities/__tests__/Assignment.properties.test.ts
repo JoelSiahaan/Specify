@@ -11,13 +11,13 @@
  */
 
 import * as fc from 'fast-check';
-import { Assignment, SubmissionType, type AssignmentProps } from '../Assignment';
+import { Assignment, SubmissionType, type AssignmentProps } from '../Assignment.js';
 import { 
   uuidArbitrary,
   futureDateArbitrary,
   submissionTypeArbitrary,
   propertyTestConfig 
-} from '../../../test/property-test-utils';
+} from '../../../test/property-test-utils.js';
 
 describe('Assignment Entity Properties', () => {
   /**

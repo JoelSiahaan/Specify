@@ -11,11 +11,11 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { PrismaCourseRepository } from '../PrismaCourseRepository';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { User, Role } from '../../../../domain/entities/User';
+import { PrismaCourseRepository } from '../PrismaCourseRepository.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { User, Role } from '../../../../domain/entities/User.js';
 import { randomUUID } from 'crypto';
-import { getTestPrismaClient } from '../../../../test/test-utils';
+import { getTestPrismaClient } from '../../../../test/test-utils.js';
 
 describe('PrismaCourseRepository Integration Tests', () => {
   let prisma: PrismaClient;

@@ -18,8 +18,8 @@
 
 import { PrismaClient, CourseStatus as PrismaCourseStatus } from '@prisma/client';
 import { injectable, inject } from 'tsyringe';
-import { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import { Course, CourseStatus } from '../../../domain/entities/Course';
+import { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import { Course, CourseStatus } from '../../../domain/entities/Course.js';
 
 @injectable()
 export class PrismaCourseRepository implements ICourseRepository {

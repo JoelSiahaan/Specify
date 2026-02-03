@@ -9,13 +9,13 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { User } from '../../../domain/entities/User';
-import { UpdateCourseDTO, CourseDTO } from '../../dtos/CourseDTO';
-import { CourseMapper } from '../../mappers/CourseMapper';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { User } from '../../../domain/entities/User.js';
+import { UpdateCourseDTO, CourseDTO } from '../../dtos/CourseDTO.js';
+import { CourseMapper } from '../../mappers/CourseMapper.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 @injectable()
 export class UpdateCourseUseCase {

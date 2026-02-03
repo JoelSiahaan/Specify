@@ -6,7 +6,7 @@
  */
 
 import { container } from 'tsyringe';
-import { configureContainer, resetContainer, resolve, getContainer } from '../container';
+import { configureContainer, resetContainer, resolve, getContainer } from '../container.js';
 
 describe('DI Container Configuration', () => {
   beforeEach(() => {

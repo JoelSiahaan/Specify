@@ -11,14 +11,14 @@
  */
 
 import { inject, injectable } from 'tsyringe';
-import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository';
-import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { AssignmentSubmissionMapper } from '../../mappers/AssignmentSubmissionMapper';
-import { ForbiddenError, NotFoundError } from '../../errors/ApplicationErrors';
-import type { AssignmentSubmissionDTO } from '../../dtos';
+import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository.js';
+import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository.js';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { AssignmentSubmissionMapper } from '../../mappers/AssignmentSubmissionMapper.js';
+import { ForbiddenError, NotFoundError } from '../../errors/ApplicationErrors.js';
+import type { AssignmentSubmissionDTO } from '../../dtos/index.js';
 
 /**
  * List Submissions Response

@@ -10,11 +10,11 @@
  */
 
 import * as fc from 'fast-check';
-import { Enrollment, type EnrollmentProps } from '../Enrollment';
+import { Enrollment, type EnrollmentProps } from '../Enrollment.js';
 import { 
   uuidArbitrary,
   propertyTestConfig 
-} from '../../../test/property-test-utils';
+} from '../../../test/property-test-utils.js';
 
 describe('Enrollment Entity Properties', () => {
   /**

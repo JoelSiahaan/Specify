@@ -10,12 +10,12 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import { PasswordService } from '../../../infrastructure/auth/PasswordService';
-import { Email } from '../../../domain/value-objects/Email';
-import { CreateUserDTO, UserDTO } from '../../dtos/UserDTO';
-import { UserMapper } from '../../mappers/UserMapper';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PasswordService } from '../../../infrastructure/auth/PasswordService.js';
+import { Email } from '../../../domain/value-objects/Email.js';
+import { CreateUserDTO, UserDTO } from '../../dtos/UserDTO.js';
+import { UserMapper } from '../../mappers/UserMapper.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 @injectable()
 export class RegisterUserUseCase {

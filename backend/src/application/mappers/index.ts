@@ -4,11 +4,11 @@
  * Central export point for all entity-DTO mappers
  */
 
-export * from './UserMapper';
-export * from './CourseMapper';
-export * from './MaterialMapper';
-export * from './EnrollmentMapper';
-export * from './QuizMapper';
-export * from './QuizSubmissionMapper';
-export * from './AssignmentMapper';
-export * from './AssignmentSubmissionMapper';
+export * from './UserMapper.js';
+export * from './CourseMapper.js';
+export * from './MaterialMapper.js';
+export * from './EnrollmentMapper.js';
+export * from './QuizMapper.js';
+export * from './QuizSubmissionMapper.js';
+export * from './AssignmentMapper.js';
+export * from './AssignmentSubmissionMapper.js';

@@ -18,8 +18,8 @@
 
 import { PrismaClient, MaterialType as PrismaMaterialType } from '@prisma/client';
 import { injectable, inject } from 'tsyringe';
-import { IMaterialRepository } from '../../../domain/repositories/IMaterialRepository';
-import { Material, MaterialType } from '../../../domain/entities/Material';
+import { IMaterialRepository } from '../../../domain/repositories/IMaterialRepository.js';
+import { Material, MaterialType } from '../../../domain/entities/Material.js';
 
 @injectable()
 export class PrismaMaterialRepository implements IMaterialRepository {

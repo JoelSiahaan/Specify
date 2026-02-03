@@ -8,8 +8,8 @@
  * - 18.4: Data transformation between layers
  */
 
-import { Course, CourseStatus } from '../../domain/entities/Course';
-import { CourseDTO, CreateCourseDTO, UpdateCourseDTO, CourseListDTO } from '../dtos/CourseDTO';
+import { Course, CourseStatus } from '../../domain/entities/Course.js';
+import { CourseDTO, CreateCourseDTO, UpdateCourseDTO, CourseListDTO } from '../dtos/CourseDTO.js';
 import { randomUUID } from 'crypto';
 
 export class CourseMapper {

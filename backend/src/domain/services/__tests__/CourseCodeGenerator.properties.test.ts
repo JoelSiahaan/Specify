@@ -9,8 +9,8 @@
  */
 
 import fc from 'fast-check';
-import { CourseCodeGenerator, ICourseCodeChecker } from '../CourseCodeGenerator';
-import { CourseCode } from '../../value-objects/CourseCode';
+import { CourseCodeGenerator, ICourseCodeChecker } from '../CourseCodeGenerator.js';
+import { CourseCode } from '../../value-objects/CourseCode.js';
 
 describe('CourseCodeGenerator Property Tests', () => {
   /**

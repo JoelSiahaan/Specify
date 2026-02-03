@@ -16,14 +16,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { container } from 'tsyringe';
 import multer from 'multer';
-import { CreateAssignmentUseCase } from '../../../application/use-cases/assignment/CreateAssignmentUseCase';
-import { UpdateAssignmentUseCase } from '../../../application/use-cases/assignment/UpdateAssignmentUseCase';
-import { DeleteAssignmentUseCase } from '../../../application/use-cases/assignment/DeleteAssignmentUseCase';
-import { ListAssignmentsUseCase } from '../../../application/use-cases/assignment/ListAssignmentsUseCase';
-import { SubmitAssignmentUseCase } from '../../../application/use-cases/assignment/SubmitAssignmentUseCase';
-import { GetSubmissionUseCase } from '../../../application/use-cases/assignment/GetSubmissionUseCase';
-import { GetMySubmissionUseCase } from '../../../application/use-cases/assignment/GetMySubmissionUseCase';
-import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware';
+import { CreateAssignmentUseCase } from '../../../application/use-cases/assignment/CreateAssignmentUseCase.js';
+import { UpdateAssignmentUseCase } from '../../../application/use-cases/assignment/UpdateAssignmentUseCase.js';
+import { DeleteAssignmentUseCase } from '../../../application/use-cases/assignment/DeleteAssignmentUseCase.js';
+import { ListAssignmentsUseCase } from '../../../application/use-cases/assignment/ListAssignmentsUseCase.js';
+import { SubmitAssignmentUseCase } from '../../../application/use-cases/assignment/SubmitAssignmentUseCase.js';
+import { GetSubmissionUseCase } from '../../../application/use-cases/assignment/GetSubmissionUseCase.js';
+import { GetMySubmissionUseCase } from '../../../application/use-cases/assignment/GetMySubmissionUseCase.js';
+import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware.js';
 
 /**
  * Configure Multer for file uploads
@@ -172,7 +172,7 @@ export class AssignmentController {
       }
 
       // Convert to DTO
-      const { AssignmentMapper } = await import('../../../application/mappers/AssignmentMapper');
+      const { AssignmentMapper } = await import('../../../application/mappers/AssignmentMapper.js');
       const assignmentDTO = AssignmentMapper.toDTO(assignment);
       
       // Return assignment (200 OK)
@@ -643,7 +643,7 @@ export class AssignmentController {
       }
       
       // Execute use case
-      const { ListSubmissionsUseCase } = await import('../../../application/use-cases/assignment/ListSubmissionsUseCase');
+      const { ListSubmissionsUseCase } = await import('../../../application/use-cases/assignment/ListSubmissionsUseCase.js');
       const listSubmissionsUseCase = container.resolve(ListSubmissionsUseCase);
       const result = await listSubmissionsUseCase.execute(
         assignmentId,

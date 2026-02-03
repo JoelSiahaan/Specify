@@ -4,5 +4,5 @@
  * Central export point for all authorization policies
  */
 
-export * from './IAuthorizationPolicy';
-export * from './AuthorizationPolicy';
+export * from './IAuthorizationPolicy.js';
+export * from './AuthorizationPolicy.js';

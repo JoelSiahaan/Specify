@@ -8,17 +8,17 @@
  * - 14.2: Show submission status (not submitted, submitted, graded, late)
  */
 
-import { ListSubmissionsUseCase } from '../ListSubmissionsUseCase';
-import type { IAssignmentSubmissionRepository } from '../../../../domain/repositories/IAssignmentSubmissionRepository';
-import type { IAssignmentRepository } from '../../../../domain/repositories/IAssignmentRepository';
-import type { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import type { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import type { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { Assignment, SubmissionType } from '../../../../domain/entities/Assignment';
-import { AssignmentSubmission, AssignmentSubmissionStatus } from '../../../../domain/entities/AssignmentSubmission';
-import { ForbiddenError, NotFoundError } from '../../../errors/ApplicationErrors';
+import { ListSubmissionsUseCase } from '../ListSubmissionsUseCase.js';
+import type { IAssignmentSubmissionRepository } from '../../../../domain/repositories/IAssignmentSubmissionRepository.js';
+import type { IAssignmentRepository } from '../../../../domain/repositories/IAssignmentRepository.js';
+import type { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import type { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import type { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { Assignment, SubmissionType } from '../../../../domain/entities/Assignment.js';
+import { AssignmentSubmission, AssignmentSubmissionStatus } from '../../../../domain/entities/AssignmentSubmission.js';
+import { ForbiddenError, NotFoundError } from '../../../errors/ApplicationErrors.js';
 import { randomUUID } from 'crypto';
 
 describe('ListSubmissionsUseCase', () => {

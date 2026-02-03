@@ -15,7 +15,7 @@
  * - Domain layer depends only on this interface (Dependency Inversion)
  */
 
-import { User } from '../entities/User';
+import { User } from '../entities/User.js';
 
 export interface IUserRepository {
   /**

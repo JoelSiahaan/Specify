@@ -14,13 +14,13 @@
  */
 
 import { Router } from 'express';
-import { AuthController } from '../controllers/AuthController';
-import { validateBody } from '../middleware/ValidationMiddleware';
-import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware';
+import { AuthController } from '../controllers/AuthController.js';
+import { validateBody } from '../middleware/ValidationMiddleware.js';
+import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware.js';
 import {
   RegisterRequestSchema,
   LoginRequestSchema
-} from '../validators/authSchemas';
+} from '../validators/authSchemas.js';
 
 const router = Router();
 const authController = new AuthController();

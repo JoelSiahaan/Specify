@@ -18,17 +18,17 @@
  */
 
 import { inject, injectable } from 'tsyringe';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
-import { CreateEnrollmentDTO, EnrollmentDTO } from '../../dtos/EnrollmentDTO';
-import { EnrollmentMapper } from '../../mappers/EnrollmentMapper';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import { CreateEnrollmentDTO, EnrollmentDTO } from '../../dtos/EnrollmentDTO.js';
+import { EnrollmentMapper } from '../../mappers/EnrollmentMapper.js';
 import { 
   UnauthorizedError, 
   ForbiddenError, 
   NotFoundError, 
   ConflictError 
-} from '../../errors/ApplicationErrors';
+} from '../../errors/ApplicationErrors.js';
 
 @injectable()
 export class EnrollStudentUseCase {

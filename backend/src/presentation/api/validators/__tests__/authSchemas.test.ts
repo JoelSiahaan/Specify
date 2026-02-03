@@ -13,7 +13,7 @@ import {
   EmailSchema,
   PasswordSchema,
   NameSchema
-} from '../authSchemas';
+} from '../authSchemas.js';
 
 describe('Authentication Validation Schemas', () => {
   describe('RoleSchema', () => {

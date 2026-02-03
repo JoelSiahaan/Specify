@@ -10,7 +10,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { getTestPrismaClient } from '../test/test-utils';
+import { getTestPrismaClient } from '../test/test-utils.js';
 
 describe('Concurrent Request Handling', () => {
   let prisma: PrismaClient;

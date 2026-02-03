@@ -9,15 +9,15 @@
  * - SubmittedAt timestamp set
  */
 
-import { SubmitQuizUseCase } from '../SubmitQuizUseCase';
-import { IQuizRepository } from '../../../../domain/repositories/IQuizRepository';
-import { IQuizSubmissionRepository } from '../../../../domain/repositories/IQuizSubmissionRepository';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { User, Role } from '../../../../domain/entities/User';
-import { Quiz, QuestionType } from '../../../../domain/entities/Quiz';
-import { QuizSubmission, QuizSubmissionStatus } from '../../../../domain/entities/QuizSubmission';
-import { SubmitQuizDTO } from '../../../dtos/QuizSubmissionDTO';
-import { ApplicationError } from '../../../errors/ApplicationErrors';
+import { SubmitQuizUseCase } from '../SubmitQuizUseCase.js';
+import { IQuizRepository } from '../../../../domain/repositories/IQuizRepository.js';
+import { IQuizSubmissionRepository } from '../../../../domain/repositories/IQuizSubmissionRepository.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Quiz, QuestionType } from '../../../../domain/entities/Quiz.js';
+import { QuizSubmission, QuizSubmissionStatus } from '../../../../domain/entities/QuizSubmission.js';
+import { SubmitQuizDTO } from '../../../dtos/QuizSubmissionDTO.js';
+import { ApplicationError } from '../../../errors/ApplicationErrors.js';
 import { randomUUID } from 'crypto';
 
 describe('SubmitQuizUseCase', () => {

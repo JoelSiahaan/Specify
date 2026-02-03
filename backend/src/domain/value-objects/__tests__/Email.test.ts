@@ -4,7 +4,7 @@
  * Tests for RFC 5322 email validation and value object behavior
  */
 
-import { Email } from '../Email';
+import { Email } from '../Email.js';
 
 describe('Email Value Object', () => {
   describe('create', () => {

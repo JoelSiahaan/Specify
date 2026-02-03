@@ -9,14 +9,14 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { User } from '../../../domain/entities/User';
-import { Course } from '../../../domain/entities/Course';
-import { Assignment } from '../../../domain/entities/Assignment';
-import { ApplicationError, NotFoundError } from '../../errors/ApplicationErrors';
+import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository.js';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { User } from '../../../domain/entities/User.js';
+import { Course } from '../../../domain/entities/Course.js';
+import { Assignment } from '../../../domain/entities/Assignment.js';
+import { ApplicationError, NotFoundError } from '../../errors/ApplicationErrors.js';
 
 @injectable()
 export class DeleteAssignmentUseCase {

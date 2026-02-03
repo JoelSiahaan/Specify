@@ -11,13 +11,13 @@
  */
 
 import * as fc from 'fast-check';
-import { RefreshTokenUseCase } from '../RefreshTokenUseCase';
-import { JWTService } from '../../../../infrastructure/auth/JWTService';
+import { RefreshTokenUseCase } from '../RefreshTokenUseCase.js';
+import { JWTService } from '../../../../infrastructure/auth/JWTService.js';
 import { 
   emailArbitrary, 
   roleArbitrary,
   propertyTestConfig 
-} from '../../../../test/property-test-utils';
+} from '../../../../test/property-test-utils.js';
 
 // Helper to generate UUID
 function generateUUID(): string {

@@ -11,7 +11,7 @@
  * - 7.3: Video link support
  */
 
-import { MaterialType } from '../../domain/entities/Material';
+import { MaterialType } from '../../domain/entities/Material.js';
 
 /**
  * Material DTO for API responses

@@ -10,14 +10,14 @@
  * - 6.4: Indicate which courses the student is already enrolled in
  */
 
-import { SearchCoursesUseCase } from '../SearchCoursesUseCase';
-import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import { IEnrollmentRepository } from '../../../../domain/repositories/IEnrollmentRepository';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { Enrollment } from '../../../../domain/entities/Enrollment';
-import { User, Role } from '../../../../domain/entities/User';
-import { ApplicationError } from '../../../errors/ApplicationErrors';
+import { SearchCoursesUseCase } from '../SearchCoursesUseCase.js';
+import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import { IEnrollmentRepository } from '../../../../domain/repositories/IEnrollmentRepository.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { Enrollment } from '../../../../domain/entities/Enrollment.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { ApplicationError } from '../../../errors/ApplicationErrors.js';
 
 describe('SearchCoursesUseCase', () => {
   let useCase: SearchCoursesUseCase;

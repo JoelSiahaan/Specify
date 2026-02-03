@@ -8,12 +8,12 @@
  * - 18.4: Data transformation between layers
  */
 
-import { Enrollment } from '../../domain/entities/Enrollment';
+import { Enrollment } from '../../domain/entities/Enrollment.js';
 import { 
   EnrollmentDTO, 
   EnrollmentWithCourseDTO, 
   EnrollmentWithStudentDTO 
-} from '../dtos/EnrollmentDTO';
+} from '../dtos/EnrollmentDTO.js';
 import { randomUUID } from 'crypto';
 
 export class EnrollmentMapper {

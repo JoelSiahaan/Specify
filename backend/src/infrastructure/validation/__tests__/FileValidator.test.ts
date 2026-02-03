@@ -12,8 +12,8 @@
  * - 20.5: Enforce file size limits on all uploads
  */
 
-import { FileValidator, MAX_FILE_SIZE } from '../FileValidator';
-import { ApplicationError } from '../../../application/errors/ApplicationErrors';
+import { FileValidator, MAX_FILE_SIZE } from '../FileValidator.js';
+import { ApplicationError } from '../../../application/errors/ApplicationErrors.js';
 
 describe('FileValidator', () => {
   describe('File Size Validation', () => {

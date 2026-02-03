@@ -9,4 +9,4 @@ export {
   NotFoundError,
   ValidationError,
   ConflictError
-} from './ApplicationErrors';
+} from './ApplicationErrors.js';

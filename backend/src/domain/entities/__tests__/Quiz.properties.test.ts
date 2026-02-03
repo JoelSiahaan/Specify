@@ -17,14 +17,14 @@
  */
 
 import * as fc from 'fast-check';
-import { Quiz, QuestionType } from '../Quiz';
-import { QuizSubmission, QuizSubmissionStatus } from '../QuizSubmission';
+import { Quiz, QuestionType } from '../Quiz.js';
+import { QuizSubmission, QuizSubmissionStatus } from '../QuizSubmission.js';
 import { 
   uuidArbitrary,
   futureDateArbitrary,
   timeLimitArbitrary,
   propertyTestConfig 
-} from '../../../test/property-test-utils';
+} from '../../../test/property-test-utils.js';
 
 /**
  * Generator for valid quiz titles

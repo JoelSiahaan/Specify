@@ -15,16 +15,16 @@
  */
 
 import { Router } from 'express';
-import { CourseController } from '../controllers/CourseController';
-import { validateBody, validateQuery } from '../middleware/ValidationMiddleware';
-import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware';
+import { CourseController } from '../controllers/CourseController.js';
+import { validateBody, validateQuery } from '../middleware/ValidationMiddleware.js';
+import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware.js';
 import {
   CreateCourseRequestSchema,
   UpdateCourseRequestSchema,
   CourseQuerySchema,
   CourseSearchQuerySchema
-} from '../validators/courseSchemas';
-import { EnrollCourseRequestSchema } from '../validators/enrollmentSchemas';
+} from '../validators/courseSchemas.js';
+import { EnrollCourseRequestSchema } from '../validators/enrollmentSchemas.js';
 
 const router = Router();
 const courseController = new CourseController();

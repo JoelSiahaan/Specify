@@ -17,14 +17,14 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { container } from 'tsyringe';
-import { CreateMaterialUseCase } from '../../../application/use-cases/material/CreateMaterialUseCase';
-import { UpdateMaterialUseCase } from '../../../application/use-cases/material/UpdateMaterialUseCase';
-import { DeleteMaterialUseCase } from '../../../application/use-cases/material/DeleteMaterialUseCase';
-import { ListMaterialsUseCase } from '../../../application/use-cases/material/ListMaterialsUseCase';
-import { DownloadMaterialUseCase } from '../../../application/use-cases/material/DownloadMaterialUseCase';
-import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware';
-import type { CreateMaterialDTO } from '../../../application/dtos/MaterialDTO';
-import { MaterialType } from '../../../domain/entities/Material';
+import { CreateMaterialUseCase } from '../../../application/use-cases/material/CreateMaterialUseCase.js';
+import { UpdateMaterialUseCase } from '../../../application/use-cases/material/UpdateMaterialUseCase.js';
+import { DeleteMaterialUseCase } from '../../../application/use-cases/material/DeleteMaterialUseCase.js';
+import { ListMaterialsUseCase } from '../../../application/use-cases/material/ListMaterialsUseCase.js';
+import { DownloadMaterialUseCase } from '../../../application/use-cases/material/DownloadMaterialUseCase.js';
+import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware.js';
+import type { CreateMaterialDTO } from '../../../application/dtos/MaterialDTO.js';
+import { MaterialType } from '../../../domain/entities/Material.js';
 
 /**
  * Material Controller
@@ -153,7 +153,7 @@ export class MaterialController {
       }
 
       // Convert to DTO
-      const { MaterialMapper } = await import('../../../application/mappers/MaterialMapper');
+      const { MaterialMapper } = await import('../../../application/mappers/MaterialMapper.js');
       const materialDTO = MaterialMapper.toDTO(material);
       
       // Return material (200 OK)

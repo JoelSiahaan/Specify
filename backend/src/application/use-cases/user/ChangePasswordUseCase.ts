@@ -12,10 +12,10 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import { PasswordService } from '../../../infrastructure/auth/PasswordService';
-import { ChangePasswordDTO, ChangePasswordResultDTO } from '../../dtos/UserDTO';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PasswordService } from '../../../infrastructure/auth/PasswordService.js';
+import { ChangePasswordDTO, ChangePasswordResultDTO } from '../../dtos/UserDTO.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 @injectable()
 export class ChangePasswordUseCase {

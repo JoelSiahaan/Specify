@@ -11,10 +11,10 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { PrismaUserRepository } from '../PrismaUserRepository';
-import { User, Role } from '../../../../domain/entities/User';
+import { PrismaUserRepository } from '../PrismaUserRepository.js';
+import { User, Role } from '../../../../domain/entities/User.js';
 import { randomUUID } from 'crypto';
-import { getTestPrismaClient } from '../../../../test/test-utils';
+import { getTestPrismaClient } from '../../../../test/test-utils.js';
 
 describe('PrismaUserRepository Integration Tests', () => {
   let prisma: PrismaClient;

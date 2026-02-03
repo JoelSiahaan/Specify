@@ -12,15 +12,15 @@
 
 import { injectable, inject } from 'tsyringe';
 import sanitizeHtml from 'sanitize-html';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IMaterialRepository } from '../../../domain/repositories/IMaterialRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { User } from '../../../domain/entities/User';
-import { MaterialType } from '../../../domain/entities/Material';
-import { UpdateMaterialDTO, MaterialDTO } from '../../dtos/MaterialDTO';
-import { MaterialMapper } from '../../mappers/MaterialMapper';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IMaterialRepository } from '../../../domain/repositories/IMaterialRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { User } from '../../../domain/entities/User.js';
+import { MaterialType } from '../../../domain/entities/Material.js';
+import { UpdateMaterialDTO, MaterialDTO } from '../../dtos/MaterialDTO.js';
+import { MaterialMapper } from '../../mappers/MaterialMapper.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 /**
  * Allowed file MIME types

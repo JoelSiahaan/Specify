@@ -10,14 +10,14 @@
  */
 
 import * as fc from 'fast-check';
-import { User, Role, type UserProps } from '../User';
+import { User, Role, type UserProps } from '../User.js';
 import { 
   emailArbitrary, 
   nameArbitrary, 
   roleArbitrary, 
   uuidArbitrary,
   propertyTestConfig 
-} from '../../../test/property-test-utils';
+} from '../../../test/property-test-utils.js';
 
 describe('User Entity Properties', () => {
   /**

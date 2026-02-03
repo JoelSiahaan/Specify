@@ -7,19 +7,19 @@
  * - 11.14: View all quizzes for a course
  */
 
-import { ListQuizzesUseCase } from '../ListQuizzesUseCase';
-import type { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import type { IQuizRepository } from '../../../../domain/repositories/IQuizRepository';
-import type { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import type { IEnrollmentRepository } from '../../../../domain/repositories/IEnrollmentRepository';
-import type { IQuizSubmissionRepository } from '../../../../domain/repositories/IQuizSubmissionRepository';
-import type { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { Quiz, QuestionType } from '../../../../domain/entities/Quiz';
-import { Enrollment } from '../../../../domain/entities/Enrollment';
-import { QuizSubmission, QuizSubmissionStatus } from '../../../../domain/entities/QuizSubmission';
-import { ApplicationError } from '../../../errors/ApplicationErrors';
+import { ListQuizzesUseCase } from '../ListQuizzesUseCase.js';
+import type { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import type { IQuizRepository } from '../../../../domain/repositories/IQuizRepository.js';
+import type { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import type { IEnrollmentRepository } from '../../../../domain/repositories/IEnrollmentRepository.js';
+import type { IQuizSubmissionRepository } from '../../../../domain/repositories/IQuizSubmissionRepository.js';
+import type { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { Quiz, QuestionType } from '../../../../domain/entities/Quiz.js';
+import { Enrollment } from '../../../../domain/entities/Enrollment.js';
+import { QuizSubmission, QuizSubmissionStatus } from '../../../../domain/entities/QuizSubmission.js';
+import { ApplicationError } from '../../../errors/ApplicationErrors.js';
 import { randomUUID } from 'crypto';
 
 describe('ListQuizzesUseCase', () => {

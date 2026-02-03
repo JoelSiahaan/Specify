@@ -19,8 +19,8 @@
 
 import { PrismaClient } from '@prisma/client';
 import { injectable, inject } from 'tsyringe';
-import { IQuizRepository } from '../../../domain/repositories/IQuizRepository';
-import { Quiz, Question } from '../../../domain/entities/Quiz';
+import { IQuizRepository } from '../../../domain/repositories/IQuizRepository.js';
+import { Quiz, Question } from '../../../domain/entities/Quiz.js';
 
 @injectable()
 export class PrismaQuizRepository implements IQuizRepository {

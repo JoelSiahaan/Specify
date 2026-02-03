@@ -11,13 +11,13 @@
  * - 7.3: Video link support
  */
 
-import { Material, MaterialType } from '../../domain/entities/Material';
+import { Material, MaterialType } from '../../domain/entities/Material.js';
 import { 
   MaterialDTO, 
   CreateMaterialDTO, 
   UpdateMaterialDTO, 
   MaterialListDTO 
-} from '../dtos/MaterialDTO';
+} from '../dtos/MaterialDTO.js';
 import { randomUUID } from 'crypto';
 
 export class MaterialMapper {

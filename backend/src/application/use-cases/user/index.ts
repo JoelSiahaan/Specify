@@ -4,6 +4,6 @@
  * Exports all user profile management-related use cases.
  */
 
-export { GetCurrentUserProfileUseCase } from './GetCurrentUserProfileUseCase';
-export { UpdateUserProfileUseCase } from './UpdateUserProfileUseCase';
-export { ChangePasswordUseCase } from './ChangePasswordUseCase';
+export { GetCurrentUserProfileUseCase } from './GetCurrentUserProfileUseCase.js';
+export { UpdateUserProfileUseCase } from './UpdateUserProfileUseCase.js';
+export { ChangePasswordUseCase } from './ChangePasswordUseCase.js';

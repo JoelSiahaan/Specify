@@ -18,8 +18,8 @@
 
 import { PrismaClient } from '@prisma/client';
 import { injectable, inject } from 'tsyringe';
-import { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
-import { Enrollment } from '../../../domain/entities/Enrollment';
+import { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import { Enrollment } from '../../../domain/entities/Enrollment.js';
 
 @injectable()
 export class PrismaEnrollmentRepository implements IEnrollmentRepository {

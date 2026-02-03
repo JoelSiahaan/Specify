@@ -10,15 +10,15 @@
  * - 2.2: Resource ownership validation
  */
 
-import { DeleteQuizUseCase } from '../DeleteQuizUseCase';
-import { IQuizRepository } from '../../../../domain/repositories/IQuizRepository';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { Quiz, QuestionType } from '../../../../domain/entities/Quiz';
-import { ApplicationError } from '../../../errors/ApplicationErrors';
+import { DeleteQuizUseCase } from '../DeleteQuizUseCase.js';
+import { IQuizRepository } from '../../../../domain/repositories/IQuizRepository.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { Quiz, QuestionType } from '../../../../domain/entities/Quiz.js';
+import { ApplicationError } from '../../../errors/ApplicationErrors.js';
 import { randomUUID } from 'crypto';
 
 describe('DeleteQuizUseCase', () => {

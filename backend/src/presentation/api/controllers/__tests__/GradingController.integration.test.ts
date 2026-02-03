@@ -26,9 +26,9 @@ import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import gradingRoutes from '../../routes/gradingRoutes';
-import { errorHandler } from '../../middleware/ErrorHandlerMiddleware';
-import { cleanupDatabase, generateTestToken } from '../../../../test/test-utils';
+import gradingRoutes from '../../routes/gradingRoutes.js';
+import { errorHandler } from '../../middleware/ErrorHandlerMiddleware.js';
+import { cleanupDatabase, generateTestToken } from '../../../../test/test-utils.js';
 import {
   assertErrorResponse,
   assertSuccessResponse,
@@ -36,18 +36,18 @@ import {
   assertAuthenticationError,
   assertAuthorizationError,
   assertNotFoundError
-} from '../../../../test/api-test-utils';
+} from '../../../../test/api-test-utils.js';
 import { container } from 'tsyringe';
-import { PrismaUserRepository } from '../../../../infrastructure/persistence/repositories/PrismaUserRepository';
-import { PrismaCourseRepository } from '../../../../infrastructure/persistence/repositories/PrismaCourseRepository';
-import { PrismaAssignmentRepository } from '../../../../infrastructure/persistence/repositories/PrismaAssignmentRepository';
-import { PrismaEnrollmentRepository } from '../../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository';
-import { PrismaAssignmentSubmissionRepository } from '../../../../infrastructure/persistence/repositories/PrismaAssignmentSubmissionRepository';
-import { PrismaQuizRepository } from '../../../../infrastructure/persistence/repositories/PrismaQuizRepository';
-import { PrismaQuizSubmissionRepository } from '../../../../infrastructure/persistence/repositories/PrismaQuizSubmissionRepository';
-import { PasswordService } from '../../../../infrastructure/auth/PasswordService';
-import { JWTService } from '../../../../infrastructure/auth/JWTService';
-import { LocalFileStorage } from '../../../../infrastructure/storage/LocalFileStorage';
+import { PrismaUserRepository } from '../../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
+import { PrismaCourseRepository } from '../../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
+import { PrismaAssignmentRepository } from '../../../../infrastructure/persistence/repositories/PrismaAssignmentRepository.js';
+import { PrismaEnrollmentRepository } from '../../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository.js';
+import { PrismaAssignmentSubmissionRepository } from '../../../../infrastructure/persistence/repositories/PrismaAssignmentSubmissionRepository.js';
+import { PrismaQuizRepository } from '../../../../infrastructure/persistence/repositories/PrismaQuizRepository.js';
+import { PrismaQuizSubmissionRepository } from '../../../../infrastructure/persistence/repositories/PrismaQuizSubmissionRepository.js';
+import { PasswordService } from '../../../../infrastructure/auth/PasswordService.js';
+import { JWTService } from '../../../../infrastructure/auth/JWTService.js';
+import { LocalFileStorage } from '../../../../infrastructure/storage/LocalFileStorage.js';
 
 describe('GradingController Integration Tests', () => {
   let app: Express;

@@ -4,11 +4,11 @@
  * Exports all repository implementations for easy importing.
  */
 
-export { PrismaUserRepository } from './PrismaUserRepository';
-export { PrismaCourseRepository } from './PrismaCourseRepository';
-export { PrismaMaterialRepository } from './PrismaMaterialRepository';
-export { PrismaEnrollmentRepository } from './PrismaEnrollmentRepository';
-export { PrismaQuizRepository } from './PrismaQuizRepository';
-export { PrismaQuizSubmissionRepository } from './PrismaQuizSubmissionRepository';
-export { PrismaAssignmentRepository } from './PrismaAssignmentRepository';
-export { PrismaAssignmentSubmissionRepository } from './PrismaAssignmentSubmissionRepository';
+export { PrismaUserRepository } from './PrismaUserRepository.js';
+export { PrismaCourseRepository } from './PrismaCourseRepository.js';
+export { PrismaMaterialRepository } from './PrismaMaterialRepository.js';
+export { PrismaEnrollmentRepository } from './PrismaEnrollmentRepository.js';
+export { PrismaQuizRepository } from './PrismaQuizRepository.js';
+export { PrismaQuizSubmissionRepository } from './PrismaQuizSubmissionRepository.js';
+export { PrismaAssignmentRepository } from './PrismaAssignmentRepository.js';
+export { PrismaAssignmentSubmissionRepository } from './PrismaAssignmentSubmissionRepository.js';

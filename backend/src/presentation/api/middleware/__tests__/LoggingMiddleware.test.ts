@@ -6,8 +6,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { requestLogger, errorLogger } from '../LoggingMiddleware';
-import { logger } from '../../../../infrastructure/logging/logger';
+import { requestLogger, errorLogger } from '../LoggingMiddleware.js';
+import { logger } from '../../../../infrastructure/logging/logger.js';
 
 // Mock logger
 jest.mock('../../../../infrastructure/logging/logger', () => ({

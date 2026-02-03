@@ -10,15 +10,15 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { IQuizRepository } from '../../../domain/repositories/IQuizRepository';
-import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import { User } from '../../../domain/entities/User';
-import { Quiz } from '../../../domain/entities/Quiz';
-import { QuizSubmission } from '../../../domain/entities/QuizSubmission';
-import { AutoSaveQuizDTO, QuizSubmissionDTO } from '../../dtos/QuizSubmissionDTO';
-import { QuizSubmissionMapper } from '../../mappers/QuizSubmissionMapper';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import type { IQuizRepository } from '../../../domain/repositories/IQuizRepository.js';
+import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { User } from '../../../domain/entities/User.js';
+import { Quiz } from '../../../domain/entities/Quiz.js';
+import { QuizSubmission } from '../../../domain/entities/QuizSubmission.js';
+import { AutoSaveQuizDTO, QuizSubmissionDTO } from '../../dtos/QuizSubmissionDTO.js';
+import { QuizSubmissionMapper } from '../../mappers/QuizSubmissionMapper.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 @injectable()
 export class AutoSaveQuizAnswersUseCase {

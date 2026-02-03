@@ -14,12 +14,12 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { container } from 'tsyringe';
-import { RegisterUserUseCase } from '../../../application/use-cases/auth/RegisterUserUseCase';
-import { LoginUserUseCase } from '../../../application/use-cases/auth/LoginUserUseCase';
-import { RefreshTokenUseCase } from '../../../application/use-cases/auth/RefreshTokenUseCase';
-import { LogoutUserUseCase } from '../../../application/use-cases/auth/LogoutUserUseCase';
-import { GetCurrentUserUseCase } from '../../../application/use-cases/auth/GetCurrentUserUseCase';
-import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware';
+import { RegisterUserUseCase } from '../../../application/use-cases/auth/RegisterUserUseCase.js';
+import { LoginUserUseCase } from '../../../application/use-cases/auth/LoginUserUseCase.js';
+import { RefreshTokenUseCase } from '../../../application/use-cases/auth/RefreshTokenUseCase.js';
+import { LogoutUserUseCase } from '../../../application/use-cases/auth/LogoutUserUseCase.js';
+import { GetCurrentUserUseCase } from '../../../application/use-cases/auth/GetCurrentUserUseCase.js';
+import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware.js';
 
 /**
  * Cookie configuration for JWT tokens

@@ -6,7 +6,7 @@
  * Requirements: 13.3 (Grade validation between 0 and 100)
  */
 
-import { Grade } from '../Grade';
+import { Grade } from '../Grade.js';
 
 describe('Grade Value Object', () => {
   describe('create', () => {

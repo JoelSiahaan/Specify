@@ -9,13 +9,13 @@
  */
 
 import { inject, injectable } from 'tsyringe';
-import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { EnrollmentWithStudentDTO } from '../../dtos/EnrollmentDTO';
-import { EnrollmentMapper } from '../../mappers/EnrollmentMapper';
-import { UnauthorizedError, ForbiddenError, NotFoundError } from '../../errors/ApplicationErrors';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { EnrollmentWithStudentDTO } from '../../dtos/EnrollmentDTO.js';
+import { EnrollmentMapper } from '../../mappers/EnrollmentMapper.js';
+import { UnauthorizedError, ForbiddenError, NotFoundError } from '../../errors/ApplicationErrors.js';
 
 @injectable()
 export class ListCourseEnrollmentsUseCase {

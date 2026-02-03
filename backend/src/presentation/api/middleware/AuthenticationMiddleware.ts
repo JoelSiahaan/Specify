@@ -11,7 +11,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { container } from 'tsyringe';
-import { JWTService, TokenPayload } from '../../../infrastructure/auth/JWTService';
+import { JWTService, TokenPayload } from '../../../infrastructure/auth/JWTService.js';
 
 /**
  * Extend Express Request to include user information

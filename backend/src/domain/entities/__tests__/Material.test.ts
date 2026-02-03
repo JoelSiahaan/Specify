@@ -4,7 +4,7 @@
  * Tests for Material domain entity business logic and validation.
  */
 
-import { Material, MaterialType } from '../Material';
+import { Material, MaterialType } from '../Material.js';
 import { randomUUID } from 'crypto';
 
 describe('Material Entity', () => {

@@ -20,8 +20,8 @@
 
 import { PrismaClient, AssignmentSubmissionStatus as PrismaAssignmentSubmissionStatus } from '@prisma/client';
 import { injectable, inject } from 'tsyringe';
-import { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository';
-import { AssignmentSubmission, AssignmentSubmissionStatus } from '../../../domain/entities/AssignmentSubmission';
+import { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository.js';
+import { AssignmentSubmission, AssignmentSubmissionStatus } from '../../../domain/entities/AssignmentSubmission.js';
 
 @injectable()
 export class PrismaAssignmentSubmissionRepository implements IAssignmentSubmissionRepository {

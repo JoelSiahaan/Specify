@@ -11,7 +11,7 @@
  */
 
 import { z } from 'zod';
-import { NameSchema, PasswordSchema } from './authSchemas';
+import { NameSchema, PasswordSchema } from './authSchemas.js';
 
 /**
  * Update profile request schema

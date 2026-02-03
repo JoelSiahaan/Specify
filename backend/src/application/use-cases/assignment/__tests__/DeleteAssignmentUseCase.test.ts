@@ -7,15 +7,15 @@
  * - 9.10: Allow teachers to delete assignments at any time
  */
 
-import { DeleteAssignmentUseCase } from '../DeleteAssignmentUseCase';
-import { IAssignmentRepository } from '../../../../domain/repositories/IAssignmentRepository';
-import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { Assignment, SubmissionType } from '../../../../domain/entities/Assignment';
-import { ApplicationError, NotFoundError } from '../../../errors/ApplicationErrors';
+import { DeleteAssignmentUseCase } from '../DeleteAssignmentUseCase.js';
+import { IAssignmentRepository } from '../../../../domain/repositories/IAssignmentRepository.js';
+import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { Assignment, SubmissionType } from '../../../../domain/entities/Assignment.js';
+import { ApplicationError, NotFoundError } from '../../../errors/ApplicationErrors.js';
 import { randomUUID } from 'crypto';
 
 describe('DeleteAssignmentUseCase', () => {

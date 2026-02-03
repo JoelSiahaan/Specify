@@ -10,14 +10,14 @@
  * - 5.9: Validate that course name is provided
  */
 
-import { CreateCourseUseCase } from '../CreateCourseUseCase';
-import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { CreateCourseDTO } from '../../../dtos/CourseDTO';
-import { ApplicationError } from '../../../errors/ApplicationErrors';
+import { CreateCourseUseCase } from '../CreateCourseUseCase.js';
+import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { CreateCourseDTO } from '../../../dtos/CourseDTO.js';
+import { ApplicationError } from '../../../errors/ApplicationErrors.js';
 
 describe('CreateCourseUseCase', () => {
   let createCourseUseCase: CreateCourseUseCase;

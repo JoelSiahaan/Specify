@@ -10,7 +10,7 @@
  * - 12.5: Accept submission before time limit
  */
 
-import { QuizSubmissionStatus } from '../../domain/entities/QuizSubmission';
+import { QuizSubmissionStatus } from '../../domain/entities/QuizSubmission.js';
 
 /**
  * Answer DTO for quiz answers

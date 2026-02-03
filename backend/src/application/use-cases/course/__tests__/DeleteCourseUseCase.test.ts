@@ -9,13 +9,13 @@
  * - 5.7: Cascade delete all related data
  */
 
-import { DeleteCourseUseCase } from '../DeleteCourseUseCase';
-import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { User, Role } from '../../../../domain/entities/User';
-import { ApplicationError } from '../../../errors/ApplicationErrors';
+import { DeleteCourseUseCase } from '../DeleteCourseUseCase.js';
+import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { ApplicationError } from '../../../errors/ApplicationErrors.js';
 
 // Mock dependencies
 const mockCourseRepository: jest.Mocked<ICourseRepository> = {

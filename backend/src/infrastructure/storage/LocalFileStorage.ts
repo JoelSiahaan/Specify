@@ -24,8 +24,8 @@ import {
   IFileStorage,
   FileMetadata,
   UploadOptions,
-} from '../../domain/storage/IFileStorage';
-import { FileValidator } from '../validation/FileValidator';
+} from '../../domain/storage/IFileStorage.js';
+import { FileValidator } from '../validation/FileValidator.js';
 
 /**
  * LocalFileStorage

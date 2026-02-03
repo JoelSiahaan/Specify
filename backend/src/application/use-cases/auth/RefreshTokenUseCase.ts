@@ -9,9 +9,9 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import { JWTService } from '../../../infrastructure/auth/JWTService';
-import { RefreshTokenResponseDTO } from '../../dtos/UserDTO';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import { JWTService } from '../../../infrastructure/auth/JWTService.js';
+import { RefreshTokenResponseDTO } from '../../dtos/UserDTO.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 @injectable()
 export class RefreshTokenUseCase {

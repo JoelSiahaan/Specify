@@ -4,9 +4,9 @@
  * Tests for Course entity to DTO mapping
  */
 
-import { CourseMapper } from '../CourseMapper';
-import { Course, CourseStatus } from '../../../domain/entities/Course';
-import { CreateCourseDTO, UpdateCourseDTO } from '../../dtos/CourseDTO';
+import { CourseMapper } from '../CourseMapper.js';
+import { Course, CourseStatus } from '../../../domain/entities/Course.js';
+import { CreateCourseDTO, UpdateCourseDTO } from '../../dtos/CourseDTO.js';
 
 describe('CourseMapper', () => {
   describe('toDTO', () => {

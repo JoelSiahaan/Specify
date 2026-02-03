@@ -17,12 +17,12 @@ import { PrismaClient } from '@prisma/client';
 import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import { randomUUID } from 'crypto';
-import { HtmlSanitizer } from '../infrastructure/sanitization/HtmlSanitizer';
-import { FileValidator } from '../infrastructure/validation/FileValidator';
-import { LocalFileStorage } from '../infrastructure/storage/LocalFileStorage';
-import { PrismaCourseRepository } from '../infrastructure/persistence/repositories/PrismaCourseRepository';
-import { PasswordService } from '../infrastructure/auth/PasswordService';
-import { generateTestToken, getTestPrismaClient } from '../test/test-utils';
+import { HtmlSanitizer } from '../infrastructure/sanitization/HtmlSanitizer.js';
+import { FileValidator } from '../infrastructure/validation/FileValidator.js';
+import { LocalFileStorage } from '../infrastructure/storage/LocalFileStorage.js';
+import { PrismaCourseRepository } from '../infrastructure/persistence/repositories/PrismaCourseRepository.js';
+import { PasswordService } from '../infrastructure/auth/PasswordService.js';
+import { generateTestToken, getTestPrismaClient } from '../test/test-utils.js';
 
 describe('Security Tests', () => {
   let app: Express;

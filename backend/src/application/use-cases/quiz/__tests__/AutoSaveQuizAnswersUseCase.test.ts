@@ -8,16 +8,16 @@
  * - 12.5: Display remaining time
  */
 
-import { AutoSaveQuizAnswersUseCase } from '../AutoSaveQuizAnswersUseCase';
-import type { IQuizRepository } from '../../../../domain/repositories/IQuizRepository';
-import type { IQuizSubmissionRepository } from '../../../../domain/repositories/IQuizSubmissionRepository';
-import type { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { User, Role } from '../../../../domain/entities/User';
-import { Quiz } from '../../../../domain/entities/Quiz';
-import { QuizSubmission, QuizSubmissionStatus } from '../../../../domain/entities/QuizSubmission';
-import { MCQQuestion } from '../../../../domain/value-objects/MCQQuestion';
-import { AutoSaveQuizDTO } from '../../../dtos/QuizSubmissionDTO';
-import { ApplicationError } from '../../../errors/ApplicationErrors';
+import { AutoSaveQuizAnswersUseCase } from '../AutoSaveQuizAnswersUseCase.js';
+import type { IQuizRepository } from '../../../../domain/repositories/IQuizRepository.js';
+import type { IQuizSubmissionRepository } from '../../../../domain/repositories/IQuizSubmissionRepository.js';
+import type { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Quiz } from '../../../../domain/entities/Quiz.js';
+import { QuizSubmission, QuizSubmissionStatus } from '../../../../domain/entities/QuizSubmission.js';
+import { MCQQuestion } from '../../../../domain/value-objects/MCQQuestion.js';
+import { AutoSaveQuizDTO } from '../../../dtos/QuizSubmissionDTO.js';
+import { ApplicationError } from '../../../errors/ApplicationErrors.js';
 import { randomUUID } from 'crypto';
 
 describe('AutoSaveQuizAnswersUseCase', () => {

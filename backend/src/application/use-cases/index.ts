@@ -12,7 +12,7 @@ export {
   LogoutUserUseCase,
   RefreshTokenUseCase,
   GetCurrentUserUseCase,
-} from './auth';
+} from './auth/index.js';
 
 // Course use cases
 export {
@@ -21,18 +21,18 @@ export {
   ArchiveCourseUseCase,
   DeleteCourseUseCase,
   ListCoursesUseCase,
-} from './course';
+} from './course/index.js';
 
 // Material use cases
 export {
   CreateMaterialUseCase,
-} from './material';
+} from './material/index.js';
 // Enrollment use cases
 export {
   EnrollStudentUseCase,
-} from './enrollment';
+} from './enrollment/index.js';
 
 // Assignment use cases
 export {
   CreateAssignmentUseCase,
-} from './assignment';
+} from './assignment/index.js';

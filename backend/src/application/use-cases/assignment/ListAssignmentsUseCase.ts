@@ -11,18 +11,18 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
-import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { User } from '../../../domain/entities/User';
-import { Course } from '../../../domain/entities/Course';
-import { AssignmentListDTO } from '../../dtos/AssignmentDTO';
-import { AssignmentMapper } from '../../mappers/AssignmentMapper';
-import { ApplicationError } from '../../errors/ApplicationErrors';
-import { AssignmentSubmissionStatus } from '../../../domain/entities/AssignmentSubmission';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { User } from '../../../domain/entities/User.js';
+import { Course } from '../../../domain/entities/Course.js';
+import { AssignmentListDTO } from '../../dtos/AssignmentDTO.js';
+import { AssignmentMapper } from '../../mappers/AssignmentMapper.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
+import { AssignmentSubmissionStatus } from '../../../domain/entities/AssignmentSubmission.js';
 
 @injectable()
 export class ListAssignmentsUseCase {

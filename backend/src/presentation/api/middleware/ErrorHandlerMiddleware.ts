@@ -12,11 +12,11 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { ApplicationError, ValidationError } from '../../../application/errors/ApplicationErrors';
-import { DomainError } from '../../../domain/errors/DomainErrors';
-import { DatabaseError, FileSystemError } from '../../../infrastructure/errors/InfrastructureErrors';
-import { logger, logError } from '../../../infrastructure/logging/logger';
-import { AuthenticatedRequest } from './AuthenticationMiddleware';
+import { ApplicationError, ValidationError } from '../../../application/errors/ApplicationErrors.js';
+import { DomainError } from '../../../domain/errors/DomainErrors.js';
+import { DatabaseError, FileSystemError } from '../../../infrastructure/errors/InfrastructureErrors.js';
+import { logger, logError } from '../../../infrastructure/logging/logger.js';
+import { AuthenticatedRequest } from './AuthenticationMiddleware.js';
 
 /**
  * Error response interface

@@ -9,13 +9,13 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IMaterialRepository } from '../../../domain/repositories/IMaterialRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { IFileStorage } from '../../../domain/storage/IFileStorage';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { User } from '../../../domain/entities/User';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IMaterialRepository } from '../../../domain/repositories/IMaterialRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IFileStorage } from '../../../domain/storage/IFileStorage.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { User } from '../../../domain/entities/User.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 @injectable()
 export class DeleteMaterialUseCase {

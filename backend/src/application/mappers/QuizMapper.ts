@@ -10,7 +10,7 @@
  * - 11.4: Questions (MCQ and Essay)
  */
 
-import { Quiz, Question, QuestionType } from '../../domain/entities/Quiz';
+import { Quiz, Question, QuestionType } from '../../domain/entities/Quiz.js';
 import { 
   QuizDTO, 
   CreateQuizDTO, 
@@ -18,7 +18,7 @@ import {
   QuizListDTO,
   QuizPreviewDTO,
   QuestionDTO
-} from '../dtos/QuizDTO';
+} from '../dtos/QuizDTO.js';
 import { randomUUID } from 'crypto';
 
 export class QuizMapper {

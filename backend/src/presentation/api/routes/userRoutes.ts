@@ -13,13 +13,13 @@
  */
 
 import { Router } from 'express';
-import { UserController } from '../controllers/UserController';
-import { validateBody } from '../middleware/ValidationMiddleware';
-import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware';
+import { UserController } from '../controllers/UserController.js';
+import { validateBody } from '../middleware/ValidationMiddleware.js';
+import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware.js';
 import {
   UpdateProfileRequestSchema,
   ChangePasswordRequestSchema
-} from '../validators/userSchemas';
+} from '../validators/userSchemas.js';
 
 const router = Router();
 const userController = new UserController();

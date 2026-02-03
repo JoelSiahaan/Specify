@@ -8,8 +8,8 @@
  * - 18.4: Structured data transfer between layers
  */
 
-import { AssignmentSubmission } from '../../domain/entities/AssignmentSubmission';
-import { AssignmentSubmissionDTO } from '../dtos/AssignmentDTO';
+import { AssignmentSubmission } from '../../domain/entities/AssignmentSubmission.js';
+import { AssignmentSubmissionDTO } from '../dtos/AssignmentDTO.js';
 
 export class AssignmentSubmissionMapper {
   /**

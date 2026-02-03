@@ -17,8 +17,8 @@
  * - 2.4: Authorization enforcement on all protected routes
  */
 
-import { User } from '../../domain/entities/User';
-import { Course } from '../../domain/entities/Course';
+import { User } from '../../domain/entities/User.js';
+import { Course } from '../../domain/entities/Course.js';
 
 /**
  * Context for authorization decisions

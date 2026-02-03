@@ -10,18 +10,18 @@
 
 import fc from 'fast-check';
 import { randomUUID } from 'crypto';
-import { GradeSubmissionUseCase } from '../GradeSubmissionUseCase';
-import { IAssignmentRepository } from '../../../../domain/repositories/IAssignmentRepository';
-import { IAssignmentSubmissionRepository } from '../../../../domain/repositories/IAssignmentSubmissionRepository';
-import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { Assignment, SubmissionType } from '../../../../domain/entities/Assignment';
-import { AssignmentSubmission, AssignmentSubmissionStatus } from '../../../../domain/entities/AssignmentSubmission';
-import { GradeAssignmentSubmissionDTO } from '../../../dtos/AssignmentDTO';
-import { ApplicationError } from '../../../errors/ApplicationErrors';
+import { GradeSubmissionUseCase } from '../GradeSubmissionUseCase.js';
+import { IAssignmentRepository } from '../../../../domain/repositories/IAssignmentRepository.js';
+import { IAssignmentSubmissionRepository } from '../../../../domain/repositories/IAssignmentSubmissionRepository.js';
+import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { Assignment, SubmissionType } from '../../../../domain/entities/Assignment.js';
+import { AssignmentSubmission, AssignmentSubmissionStatus } from '../../../../domain/entities/AssignmentSubmission.js';
+import { GradeAssignmentSubmissionDTO } from '../../../dtos/AssignmentDTO.js';
+import { ApplicationError } from '../../../errors/ApplicationErrors.js';
 
 describe('GradeSubmissionUseCase - Property-Based Tests', () => {
   /**

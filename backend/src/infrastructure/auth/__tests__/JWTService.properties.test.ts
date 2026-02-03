@@ -10,7 +10,7 @@
  */
 
 import fc from 'fast-check';
-import { JWTService, TokenPayload } from '../JWTService';
+import { JWTService, TokenPayload } from '../JWTService.js';
 
 describe('JWTService Property Tests', () => {
   let jwtService: JWTService;

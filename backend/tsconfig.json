@@ -7,8 +7,8 @@
     "emitDecoratorMetadata": true,
 
     /* Modules */
-    "module": "ESNext",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -23,8 +23,6 @@
 
     /* Interop Constraints */
     "isolatedModules": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
 
     /* Type Checking - STRICT MODE */

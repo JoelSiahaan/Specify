@@ -23,24 +23,24 @@ import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import quizRoutes from '../../routes/quizRoutes';
-import { errorHandler } from '../../middleware/ErrorHandlerMiddleware';
-import { cleanupDatabase, generateTestToken } from '../../../../test/test-utils';
+import quizRoutes from '../../routes/quizRoutes.js';
+import { errorHandler } from '../../middleware/ErrorHandlerMiddleware.js';
+import { cleanupDatabase, generateTestToken } from '../../../../test/test-utils.js';
 import {
   assertSuccessResponse,
   assertAuthenticationError,
   assertAuthorizationError,
   assertNotFoundError
-} from '../../../../test/api-test-utils';
+} from '../../../../test/api-test-utils.js';
 import { container } from 'tsyringe';
-import { PrismaUserRepository } from '../../../../infrastructure/persistence/repositories/PrismaUserRepository';
-import { PrismaCourseRepository } from '../../../../infrastructure/persistence/repositories/PrismaCourseRepository';
-import { PrismaQuizRepository } from '../../../../infrastructure/persistence/repositories/PrismaQuizRepository';
-import { PrismaQuizSubmissionRepository } from '../../../../infrastructure/persistence/repositories/PrismaQuizSubmissionRepository';
-import { PrismaEnrollmentRepository } from '../../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository';
-import { PasswordService } from '../../../../infrastructure/auth/PasswordService';
-import { JWTService } from '../../../../infrastructure/auth/JWTService';
-import { QuizTimingService } from '../../../../domain/services/QuizTimingService';
+import { PrismaUserRepository } from '../../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
+import { PrismaCourseRepository } from '../../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
+import { PrismaQuizRepository } from '../../../../infrastructure/persistence/repositories/PrismaQuizRepository.js';
+import { PrismaQuizSubmissionRepository } from '../../../../infrastructure/persistence/repositories/PrismaQuizSubmissionRepository.js';
+import { PrismaEnrollmentRepository } from '../../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository.js';
+import { PasswordService } from '../../../../infrastructure/auth/PasswordService.js';
+import { JWTService } from '../../../../infrastructure/auth/JWTService.js';
+import { QuizTimingService } from '../../../../domain/services/QuizTimingService.js';
 
 describe('QuizController Integration Tests', () => {
   let app: Express;

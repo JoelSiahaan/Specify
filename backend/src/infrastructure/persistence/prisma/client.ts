@@ -2,7 +2,7 @@
 // Prisma Client singleton instance for database access with retry logic
 
 import { PrismaClient } from '@prisma/client';
-import { logger } from '../../logging/logger';
+import { logger } from '../../logging/logger.js';
 
 /**
  * Database connection retry configuration

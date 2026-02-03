@@ -18,8 +18,8 @@
 
 import { PrismaClient, SubmissionType as PrismaSubmissionType } from '@prisma/client';
 import { injectable, inject } from 'tsyringe';
-import { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository';
-import { Assignment, SubmissionType } from '../../../domain/entities/Assignment';
+import { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository.js';
+import { Assignment, SubmissionType } from '../../../domain/entities/Assignment.js';
 
 @injectable()
 export class PrismaAssignmentRepository implements IAssignmentRepository {

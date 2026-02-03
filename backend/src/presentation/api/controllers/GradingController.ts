@@ -13,12 +13,12 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { container } from 'tsyringe';
-import { ListSubmissionsUseCase } from '../../../application/use-cases/assignment/ListSubmissionsUseCase';
-import { GetSubmissionUseCase } from '../../../application/use-cases/assignment/GetSubmissionUseCase';
-import { GradeSubmissionUseCase } from '../../../application/use-cases/assignment/GradeSubmissionUseCase';
-import { UpdateGradeUseCase } from '../../../application/use-cases/assignment/UpdateGradeUseCase';
-import { GradeQuizSubmissionUseCase } from '../../../application/use-cases/quiz/GradeQuizSubmissionUseCase';
-import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware';
+import { ListSubmissionsUseCase } from '../../../application/use-cases/assignment/ListSubmissionsUseCase.js';
+import { GetSubmissionUseCase } from '../../../application/use-cases/assignment/GetSubmissionUseCase.js';
+import { GradeSubmissionUseCase } from '../../../application/use-cases/assignment/GradeSubmissionUseCase.js';
+import { UpdateGradeUseCase } from '../../../application/use-cases/assignment/UpdateGradeUseCase.js';
+import { GradeQuizSubmissionUseCase } from '../../../application/use-cases/quiz/GradeQuizSubmissionUseCase.js';
+import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware.js';
 
 /**
  * Grading Controller

@@ -10,15 +10,15 @@
  * - 12.5: Accept submission before time limit
  */
 
-import { QuizSubmission, QuizAnswer, QuizSubmissionStatus } from '../../domain/entities/QuizSubmission';
-import { Quiz, Question, QuestionType } from '../../domain/entities/Quiz';
+import { QuizSubmission, QuizAnswer, QuizSubmissionStatus } from '../../domain/entities/QuizSubmission.js';
+import { Quiz, Question, QuestionType } from '../../domain/entities/Quiz.js';
 import { 
   QuizSubmissionDTO,
   QuizSubmissionListDTO,
   QuizAttemptDTO,
   QuizQuestionDTO,
   AnswerDTO
-} from '../dtos/QuizSubmissionDTO';
+} from '../dtos/QuizSubmissionDTO.js';
 
 export class QuizSubmissionMapper {
   /**

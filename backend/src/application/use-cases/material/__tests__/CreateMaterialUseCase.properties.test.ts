@@ -12,16 +12,16 @@
  */
 
 import * as fc from 'fast-check';
-import { CreateMaterialUseCase } from '../CreateMaterialUseCase';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { Material, MaterialType } from '../../../../domain/entities/Material';
-import type { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import type { IMaterialRepository } from '../../../../domain/repositories/IMaterialRepository';
-import type { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import type { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { CreateMaterialDTO } from '../../../dtos/MaterialDTO';
-import { propertyTestConfig } from '../../../../test/property-test-utils';
+import { CreateMaterialUseCase } from '../CreateMaterialUseCase.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { Material, MaterialType } from '../../../../domain/entities/Material.js';
+import type { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import type { IMaterialRepository } from '../../../../domain/repositories/IMaterialRepository.js';
+import type { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import type { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { CreateMaterialDTO } from '../../../dtos/MaterialDTO.js';
+import { propertyTestConfig } from '../../../../test/property-test-utils.js';
 import { randomUUID } from 'crypto';
 
 // Constants

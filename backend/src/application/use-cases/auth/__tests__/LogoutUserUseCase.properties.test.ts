@@ -10,8 +10,8 @@
  */
 
 import * as fc from 'fast-check';
-import { LogoutUserUseCase } from '../LogoutUserUseCase';
-import { propertyTestConfig } from '../../../../test/property-test-utils';
+import { LogoutUserUseCase } from '../LogoutUserUseCase.js';
+import { propertyTestConfig } from '../../../../test/property-test-utils.js';
 
 describe('LogoutUserUseCase Properties', () => {
   /**

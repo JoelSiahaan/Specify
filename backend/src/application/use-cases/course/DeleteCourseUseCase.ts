@@ -10,11 +10,11 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { User } from '../../../domain/entities/User';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { User } from '../../../domain/entities/User.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 @injectable()
 export class DeleteCourseUseCase {

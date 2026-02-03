@@ -21,8 +21,8 @@
 
 import { PrismaClient, QuizSubmissionStatus as PrismaQuizSubmissionStatus } from '@prisma/client';
 import { injectable, inject } from 'tsyringe';
-import { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository';
-import { QuizSubmission, QuizSubmissionStatus, QuizAnswer } from '../../../domain/entities/QuizSubmission';
+import { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository.js';
+import { QuizSubmission, QuizSubmissionStatus, QuizAnswer } from '../../../domain/entities/QuizSubmission.js';
 
 @injectable()
 export class PrismaQuizSubmissionRepository implements IQuizSubmissionRepository {

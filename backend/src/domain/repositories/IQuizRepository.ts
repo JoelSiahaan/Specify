@@ -15,7 +15,7 @@
  * - Domain layer depends only on this interface (Dependency Inversion)
  */
 
-import { Quiz } from '../entities/Quiz';
+import { Quiz } from '../entities/Quiz.js';
 
 export interface IQuizRepository {
   /**

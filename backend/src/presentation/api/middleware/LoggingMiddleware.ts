@@ -8,8 +8,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../../../infrastructure/logging/logger';
-import type { AuthenticatedRequest } from './AuthenticationMiddleware';
+import { logger } from '../../../infrastructure/logging/logger.js';
+import type { AuthenticatedRequest } from './AuthenticationMiddleware.js';
 
 /**
  * Extract user ID from authenticated request

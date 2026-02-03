@@ -4,8 +4,8 @@
  * Tests for Enrollment entity to DTO mapping
  */
 
-import { EnrollmentMapper } from '../EnrollmentMapper';
-import { Enrollment } from '../../../domain/entities/Enrollment';
+import { EnrollmentMapper } from '../EnrollmentMapper.js';
+import { Enrollment } from '../../../domain/entities/Enrollment.js';
 
 describe('EnrollmentMapper', () => {
   describe('toDTO', () => {

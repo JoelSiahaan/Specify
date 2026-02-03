@@ -8,7 +8,7 @@
  * - 18.4: Structured data transfer between layers
  */
 
-import { Role } from '../../domain/entities/User';
+import { Role } from '../../domain/entities/User.js';
 
 /**
  * User DTO for API responses

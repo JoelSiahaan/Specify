@@ -6,8 +6,8 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { connectWithRetry } from '../client';
-import { logger } from '../../../logging/logger';
+import { connectWithRetry } from '../client.js';
+import { logger } from '../../../logging/logger.js';
 
 // Mock logger to prevent console output during tests
 jest.mock('../../../logging/logger', () => ({

@@ -8,8 +8,8 @@
  * - 18.4: Structured data transfer between layers
  */
 
-import { SubmissionType } from '../../domain/entities/Assignment';
-import { AssignmentSubmissionStatus } from '../../domain/entities/AssignmentSubmission';
+import { SubmissionType } from '../../domain/entities/Assignment.js';
+import { AssignmentSubmissionStatus } from '../../domain/entities/AssignmentSubmission.js';
 
 /**
  * Assignment DTO for API responses

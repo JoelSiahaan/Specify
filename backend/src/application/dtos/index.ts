@@ -4,12 +4,12 @@
  * Central export point for all Data Transfer Objects
  */
 
-export * from './UserDTO';
-export * from './CourseDTO';
-export * from './MaterialDTO';
-export * from './EnrollmentDTO';
-export * from './QuizDTO';
-export * from './QuizSubmissionDTO';
-export * from './AssignmentDTO';
-export * from './ProgressDTO';
-export * from './ExportDTO';
+export * from './UserDTO.js';
+export * from './CourseDTO.js';
+export * from './MaterialDTO.js';
+export * from './EnrollmentDTO.js';
+export * from './QuizDTO.js';
+export * from './QuizSubmissionDTO.js';
+export * from './AssignmentDTO.js';
+export * from './ProgressDTO.js';
+export * from './ExportDTO.js';

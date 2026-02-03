@@ -16,15 +16,15 @@
  */
 
 import { Router } from 'express';
-import { QuizController } from '../controllers/QuizController';
-import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware';
-import { validate } from '../middleware/ValidationMiddleware';
+import { QuizController } from '../controllers/QuizController.js';
+import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware.js';
+import { validate } from '../middleware/ValidationMiddleware.js';
 import {
   CreateQuizRequestSchema,
   UpdateQuizRequestSchema,
   SubmitQuizRequestSchema,
   AutoSaveQuizRequestSchema
-} from '../validators/quizSchemas';
+} from '../validators/quizSchemas.js';
 
 const router = Router();
 const quizController = new QuizController();

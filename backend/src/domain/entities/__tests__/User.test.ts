@@ -9,7 +9,7 @@
  * - 2.2: Role validation
  */
 
-import { User, Role, type UserProps } from '../User';
+import { User, Role, type UserProps } from '../User.js';
 
 describe('User Entity', () => {
   const validUserProps: UserProps = {

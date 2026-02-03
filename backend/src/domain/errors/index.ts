@@ -6,4 +6,4 @@ export {
   DomainError,
   InvalidStateError,
   InvalidOperationError
-} from './DomainErrors';
+} from './DomainErrors.js';

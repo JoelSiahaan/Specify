@@ -5,7 +5,7 @@
  * Security Requirement 20.2
  */
 
-import { HtmlSanitizer } from '../HtmlSanitizer';
+import { HtmlSanitizer } from '../HtmlSanitizer.js';
 
 describe('HtmlSanitizer', () => {
   let sanitizer: HtmlSanitizer;

@@ -6,8 +6,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { maintenanceMode, getMaintenanceStatus } from '../MaintenanceMiddleware';
-import { logger } from '../../../../infrastructure/logging/logger';
+import { maintenanceMode, getMaintenanceStatus } from '../MaintenanceMiddleware.js';
+import { logger } from '../../../../infrastructure/logging/logger.js';
 
 // Mock logger
 jest.mock('../../../../infrastructure/logging/logger', () => ({

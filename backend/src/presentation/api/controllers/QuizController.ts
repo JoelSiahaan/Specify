@@ -16,15 +16,15 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { container } from 'tsyringe';
-import { CreateQuizUseCase } from '../../../application/use-cases/quiz/CreateQuizUseCase';
-import { UpdateQuizUseCase } from '../../../application/use-cases/quiz/UpdateQuizUseCase';
-import { DeleteQuizUseCase } from '../../../application/use-cases/quiz/DeleteQuizUseCase';
-import { ListQuizzesUseCase } from '../../../application/use-cases/quiz/ListQuizzesUseCase';
-import { StartQuizUseCase } from '../../../application/use-cases/quiz/StartQuizUseCase';
-import { AutoSaveQuizAnswersUseCase } from '../../../application/use-cases/quiz/AutoSaveQuizAnswersUseCase';
-import { SubmitQuizUseCase } from '../../../application/use-cases/quiz/SubmitQuizUseCase';
-import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository';
-import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware';
+import { CreateQuizUseCase } from '../../../application/use-cases/quiz/CreateQuizUseCase.js';
+import { UpdateQuizUseCase } from '../../../application/use-cases/quiz/UpdateQuizUseCase.js';
+import { DeleteQuizUseCase } from '../../../application/use-cases/quiz/DeleteQuizUseCase.js';
+import { ListQuizzesUseCase } from '../../../application/use-cases/quiz/ListQuizzesUseCase.js';
+import { StartQuizUseCase } from '../../../application/use-cases/quiz/StartQuizUseCase.js';
+import { AutoSaveQuizAnswersUseCase } from '../../../application/use-cases/quiz/AutoSaveQuizAnswersUseCase.js';
+import { SubmitQuizUseCase } from '../../../application/use-cases/quiz/SubmitQuizUseCase.js';
+import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository.js';
+import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware.js';
 
 /**
  * Quiz Controller
@@ -153,7 +153,7 @@ export class QuizController {
       }
 
       // Convert to DTO
-      const { QuizMapper } = await import('../../../application/mappers/QuizMapper');
+      const { QuizMapper } = await import('../../../application/mappers/QuizMapper.js');
       const quizDTO = QuizMapper.toDTO(quiz);
       
       // Return quiz (200 OK)
@@ -678,7 +678,7 @@ export class QuizController {
       }
       
       // Convert to list DTOs with student info
-      const { QuizSubmissionMapper } = await import('../../../application/mappers/QuizSubmissionMapper');
+      const { QuizSubmissionMapper } = await import('../../../application/mappers/QuizSubmissionMapper.js');
       const submissionDTOs = QuizSubmissionMapper.toListDTOList(submissions, studentInfo);
       
       // Return submissions wrapped in data object (200 OK)
@@ -774,7 +774,7 @@ export class QuizController {
       }
 
       // Convert to DTO
-      const { QuizSubmissionMapper } = await import('../../../application/mappers/QuizSubmissionMapper');
+      const { QuizSubmissionMapper } = await import('../../../application/mappers/QuizSubmissionMapper.js');
       const submissionDTO = QuizSubmissionMapper.toDTO(submission);
       
       // Return submission (200 OK)

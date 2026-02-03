@@ -4,7 +4,7 @@
  * Tests for CourseCode validation and behavior
  */
 
-import { CourseCode } from '../CourseCode';
+import { CourseCode } from '../CourseCode.js';
 
 describe('CourseCode Value Object', () => {
   describe('create', () => {

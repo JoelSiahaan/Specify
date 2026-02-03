@@ -15,7 +15,7 @@
  * - Domain layer depends only on this interface (Dependency Inversion)
  */
 
-import { Assignment } from '../entities/Assignment';
+import { Assignment } from '../entities/Assignment.js';
 
 export interface IAssignmentRepository {
   /**

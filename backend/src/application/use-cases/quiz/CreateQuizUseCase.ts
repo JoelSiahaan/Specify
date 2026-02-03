@@ -13,15 +13,15 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { IQuizRepository } from '../../../domain/repositories/IQuizRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { User } from '../../../domain/entities/User';
-import { Course } from '../../../domain/entities/Course';
-import { CreateQuizDTO, QuizDTO } from '../../dtos/QuizDTO';
-import { QuizMapper } from '../../mappers/QuizMapper';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import type { IQuizRepository } from '../../../domain/repositories/IQuizRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { User } from '../../../domain/entities/User.js';
+import { Course } from '../../../domain/entities/Course.js';
+import { CreateQuizDTO, QuizDTO } from '../../dtos/QuizDTO.js';
+import { QuizMapper } from '../../mappers/QuizMapper.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 @injectable()
 export class CreateQuizUseCase {

@@ -17,7 +17,7 @@
  * - 13.5: Allow teachers to edit grades after saving
  */
 
-import { QuizSubmission, QuizSubmissionStatus, type QuizAnswer } from '../QuizSubmission';
+import { QuizSubmission, QuizSubmissionStatus, type QuizAnswer } from '../QuizSubmission.js';
 
 describe('QuizSubmission Entity', () => {
   const quizId = 'quiz-123';

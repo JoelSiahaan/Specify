@@ -15,7 +15,7 @@
  * - Domain layer depends only on this interface (Dependency Inversion)
  */
 
-import { Enrollment } from '../entities/Enrollment';
+import { Enrollment } from '../entities/Enrollment.js';
 
 export interface IEnrollmentRepository {
   /**

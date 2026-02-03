@@ -10,7 +10,7 @@
  * - 11.4: Questions (MCQ and Essay)
  */
 
-import { QuestionType } from '../../domain/entities/Quiz';
+import { QuestionType } from '../../domain/entities/Quiz.js';
 
 /**
  * Question DTO for API requests and responses

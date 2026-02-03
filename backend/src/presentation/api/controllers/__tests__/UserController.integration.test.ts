@@ -21,20 +21,20 @@ import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import userRoutes from '../../routes/userRoutes';
-import authRoutes from '../../routes/authRoutes';
-import { errorHandler } from '../../middleware/ErrorHandlerMiddleware';
-import { cleanupDatabase, getTestPrismaClient } from '../../../../test/test-utils';
+import userRoutes from '../../routes/userRoutes.js';
+import authRoutes from '../../routes/authRoutes.js';
+import { errorHandler } from '../../middleware/ErrorHandlerMiddleware.js';
+import { cleanupDatabase, getTestPrismaClient } from '../../../../test/test-utils.js';
 import {
   assertErrorResponse,
   assertSuccessResponse,
   assertValidationError,
   assertAuthenticationError
-} from '../../../../test/api-test-utils';
+} from '../../../../test/api-test-utils.js';
 import { container } from 'tsyringe';
-import { PrismaUserRepository } from '../../../../infrastructure/persistence/repositories/PrismaUserRepository';
-import { PasswordService } from '../../../../infrastructure/auth/PasswordService';
-import { JWTService } from '../../../../infrastructure/auth/JWTService';
+import { PrismaUserRepository } from '../../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
+import { PasswordService } from '../../../../infrastructure/auth/PasswordService.js';
+import { JWTService } from '../../../../infrastructure/auth/JWTService.js';
 
 /**
  * Helper function to generate unique email for tests

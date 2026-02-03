@@ -15,7 +15,7 @@
  * - Probability: 36^6 = 2.1 billion combinations (collision extremely rare)
  */
 
-import { CourseCode } from '../value-objects/CourseCode';
+import { CourseCode } from '../value-objects/CourseCode.js';
 
 /**
  * Interface for checking course code uniqueness

@@ -13,7 +13,7 @@
 
 import fc from 'fast-check';
 import { randomUUID } from 'crypto';
-import { AssignmentSubmission, AssignmentSubmissionStatus, type AssignmentAssignmentSubmissionProps } from '../AssignmentSubmission';
+import { AssignmentSubmission, AssignmentSubmissionStatus, type AssignmentAssignmentSubmissionProps } from '../AssignmentSubmission.js';
 
 describe('AssignmentSubmission Entity - Property-Based Tests', () => {
   /**

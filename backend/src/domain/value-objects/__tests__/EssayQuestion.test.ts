@@ -7,7 +7,7 @@
  * - 11.4: Essay questions require question text
  */
 
-import { EssayQuestion } from '../EssayQuestion';
+import { EssayQuestion } from '../EssayQuestion.js';
 
 describe('EssayQuestion Value Object', () => {
   describe('create', () => {

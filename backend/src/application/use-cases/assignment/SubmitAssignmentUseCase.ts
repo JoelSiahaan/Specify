@@ -21,23 +21,23 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository';
-import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { IFileStorage } from '../../../domain/storage/IFileStorage';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { User } from '../../../domain/entities/User';
-import { Course } from '../../../domain/entities/Course';
-import { Assignment, SubmissionType } from '../../../domain/entities/Assignment';
-import { AssignmentSubmission, AssignmentSubmissionStatus } from '../../../domain/entities/AssignmentSubmission';
-import { CreateAssignmentSubmissionDTO, AssignmentSubmissionDTO } from '../../dtos/AssignmentDTO';
-import { AssignmentSubmissionMapper } from '../../mappers/AssignmentSubmissionMapper';
-import { ApplicationError, NotFoundError, ForbiddenError } from '../../errors/ApplicationErrors';
+import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository.js';
+import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository.js';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IFileStorage } from '../../../domain/storage/IFileStorage.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { User } from '../../../domain/entities/User.js';
+import { Course } from '../../../domain/entities/Course.js';
+import { Assignment, SubmissionType } from '../../../domain/entities/Assignment.js';
+import { AssignmentSubmission, AssignmentSubmissionStatus } from '../../../domain/entities/AssignmentSubmission.js';
+import { CreateAssignmentSubmissionDTO, AssignmentSubmissionDTO } from '../../dtos/AssignmentDTO.js';
+import { AssignmentSubmissionMapper } from '../../mappers/AssignmentSubmissionMapper.js';
+import { ApplicationError, NotFoundError, ForbiddenError } from '../../errors/ApplicationErrors.js';
 import { randomUUID } from 'crypto';
 import sanitizeHtml from 'sanitize-html';
-import { FileValidator } from '../../../infrastructure/validation/FileValidator';
+import { FileValidator } from '../../../infrastructure/validation/FileValidator.js';
 
 @injectable()
 export class SubmitAssignmentUseCase {

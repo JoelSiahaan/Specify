@@ -15,18 +15,18 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { IQuizRepository } from '../../../domain/repositories/IQuizRepository';
-import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { User } from '../../../domain/entities/User';
-import { Course } from '../../../domain/entities/Course';
-import { Quiz } from '../../../domain/entities/Quiz';
-import { QuizSubmission } from '../../../domain/entities/QuizSubmission';
-import { QuizSubmissionDTO } from '../../dtos/QuizSubmissionDTO';
-import { QuizSubmissionMapper } from '../../mappers/QuizSubmissionMapper';
-import { ApplicationError, NotFoundError, ForbiddenError } from '../../errors/ApplicationErrors';
+import type { IQuizRepository } from '../../../domain/repositories/IQuizRepository.js';
+import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository.js';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { User } from '../../../domain/entities/User.js';
+import { Course } from '../../../domain/entities/Course.js';
+import { Quiz } from '../../../domain/entities/Quiz.js';
+import { QuizSubmission } from '../../../domain/entities/QuizSubmission.js';
+import { QuizSubmissionDTO } from '../../dtos/QuizSubmissionDTO.js';
+import { QuizSubmissionMapper } from '../../mappers/QuizSubmissionMapper.js';
+import { ApplicationError, NotFoundError, ForbiddenError } from '../../errors/ApplicationErrors.js';
 
 /**
  * DTO for grading quiz submission with per-question points

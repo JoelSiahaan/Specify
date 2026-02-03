@@ -17,7 +17,7 @@ export {
   type LoginRequest,
   type RefreshTokenRequest,
   type Role
-} from './authSchemas';
+} from './authSchemas.js';
 
 export {
   CreateCourseRequestSchema,
@@ -31,7 +31,7 @@ export {
   type UpdateCourseRequest,
   type CourseQuery,
   type CourseStatus
-} from './courseSchemas';
+} from './courseSchemas.js';
 
 export {
   MaterialTypeSchema,
@@ -60,7 +60,7 @@ export {
   type UpdateFileMaterialRequest,
   type UpdateMaterialRequest,
   type MaterialQuery
-} from './materialSchemas';
+} from './materialSchemas.js';
 
 export {
   EnrollCourseRequestSchema,
@@ -68,7 +68,7 @@ export {
   EnrollmentCourseCodeSchema,
   type EnrollCourseRequest,
   type BulkUnenrollRequest
-} from './enrollmentSchemas';
+} from './enrollmentSchemas.js';
 
 export {
   QuestionTypeSchema,
@@ -91,7 +91,7 @@ export {
   type AutoSaveQuizRequest,
   type SubmitQuizRequest,
   type GradeQuizSubmissionRequest
-} from './quizSchemas';
+} from './quizSchemas.js';
 
 export {
   SubmissionTypeSchema,
@@ -117,4 +117,4 @@ export {
   type SubmitAssignmentRequest,
   type GradeSubmissionRequest,
   type AssignmentQuery
-} from './assignmentSchemas';
+} from './assignmentSchemas.js';

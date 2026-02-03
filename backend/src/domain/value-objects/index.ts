@@ -4,8 +4,8 @@
  * Immutable objects representing domain concepts
  */
 
-export { Email } from './Email';
-export { CourseCode } from './CourseCode';
-export { MCQQuestion } from './MCQQuestion';
-export { EssayQuestion } from './EssayQuestion';
-export { Grade } from './Grade';
+export { Email } from './Email.js';
+export { CourseCode } from './CourseCode.js';
+export { MCQQuestion } from './MCQQuestion.js';
+export { EssayQuestion } from './EssayQuestion.js';
+export { Grade } from './Grade.js';

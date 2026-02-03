@@ -4,10 +4,10 @@
  * Central export point for all middleware functions.
  */
 
-export { authenticationMiddleware } from './AuthenticationMiddleware';
-export type { AuthenticatedRequest } from './AuthenticationMiddleware';
-export { errorHandler } from './ErrorHandlerMiddleware';
-export { validate, validateBody, validateQuery, validateParams } from './ValidationMiddleware';
-export type { ValidationTarget } from './ValidationMiddleware';
-export { requestLogger, errorLogger } from './LoggingMiddleware';
-export { maintenanceMode, getMaintenanceStatus } from './MaintenanceMiddleware';
+export { authenticationMiddleware } from './AuthenticationMiddleware.js';
+export type { AuthenticatedRequest } from './AuthenticationMiddleware.js';
+export { errorHandler } from './ErrorHandlerMiddleware.js';
+export { validate, validateBody, validateQuery, validateParams } from './ValidationMiddleware.js';
+export type { ValidationTarget } from './ValidationMiddleware.js';
+export { requestLogger, errorLogger } from './LoggingMiddleware.js';
+export { maintenanceMode, getMaintenanceStatus } from './MaintenanceMiddleware.js';

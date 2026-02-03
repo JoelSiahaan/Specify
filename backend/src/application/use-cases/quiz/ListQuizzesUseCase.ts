@@ -11,17 +11,17 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IQuizRepository } from '../../../domain/repositories/IQuizRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
-import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { User, Role } from '../../../domain/entities/User';
-import { QuizSubmissionStatus } from '../../../domain/entities/QuizSubmission';
-import { QuizListDTO } from '../../dtos/QuizDTO';
-import { QuizMapper } from '../../mappers/QuizMapper';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IQuizRepository } from '../../../domain/repositories/IQuizRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { User, Role } from '../../../domain/entities/User.js';
+import { QuizSubmissionStatus } from '../../../domain/entities/QuizSubmission.js';
+import { QuizListDTO } from '../../dtos/QuizDTO.js';
+import { QuizMapper } from '../../mappers/QuizMapper.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 /**
  * Quiz list item with submission status

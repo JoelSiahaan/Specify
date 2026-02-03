@@ -12,14 +12,14 @@
  */
 
 import * as fc from 'fast-check';
-import { Course, CourseStatus, type CourseProps } from '../Course';
+import { Course, CourseStatus, type CourseProps } from '../Course.js';
 import { 
   courseNameArbitrary,
   courseDescriptionArbitrary,
   courseCodeArbitrary,
   uuidArbitrary,
   propertyTestConfig 
-} from '../../../test/property-test-utils';
+} from '../../../test/property-test-utils.js';
 
 describe('Course Entity Properties', () => {
   /**

@@ -10,7 +10,7 @@
  * - 10.9: Reject submissions after grading starts
  */
 
-import { Assignment, SubmissionType, type AssignmentProps } from '../Assignment';
+import { Assignment, SubmissionType, type AssignmentProps } from '../Assignment.js';
 
 describe('Assignment Entity', () => {
   const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now

@@ -11,10 +11,10 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { PrismaMaterialRepository } from '../PrismaMaterialRepository';
-import { Material, MaterialType } from '../../../../domain/entities/Material';
+import { PrismaMaterialRepository } from '../PrismaMaterialRepository.js';
+import { Material, MaterialType } from '../../../../domain/entities/Material.js';
 import { randomUUID } from 'crypto';
-import { getTestPrismaClient } from '../../../../test/test-utils';
+import { getTestPrismaClient } from '../../../../test/test-utils.js';
 
 describe('PrismaMaterialRepository Integration Tests', () => {
   let prisma: PrismaClient;

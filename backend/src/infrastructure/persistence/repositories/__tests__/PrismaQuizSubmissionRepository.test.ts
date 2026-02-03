@@ -12,10 +12,10 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { PrismaQuizSubmissionRepository } from '../PrismaQuizSubmissionRepository';
-import { QuizSubmission, QuizSubmissionStatus } from '../../../../domain/entities/QuizSubmission';
+import { PrismaQuizSubmissionRepository } from '../PrismaQuizSubmissionRepository.js';
+import { QuizSubmission, QuizSubmissionStatus } from '../../../../domain/entities/QuizSubmission.js';
 import { randomUUID } from 'crypto';
-import { getTestPrismaClient } from '../../../../test/test-utils';
+import { getTestPrismaClient } from '../../../../test/test-utils.js';
 
 describe('PrismaQuizSubmissionRepository Integration Tests', () => {
   let prisma: PrismaClient;

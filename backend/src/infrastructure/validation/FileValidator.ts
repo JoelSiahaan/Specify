@@ -18,7 +18,7 @@
  * - Magic number (file signature) validation
  */
 
-import { ApplicationError } from '../../application/errors/ApplicationErrors';
+import { ApplicationError } from '../../application/errors/ApplicationErrors.js';
 
 /**
  * Allowed file MIME types (whitelist)

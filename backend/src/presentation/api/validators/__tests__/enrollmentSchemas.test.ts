@@ -15,7 +15,7 @@ import {
   EnrollCourseRequestSchema,
   BulkUnenrollRequestSchema,
   EnrollmentCourseCodeSchema
-} from '../enrollmentSchemas';
+} from '../enrollmentSchemas.js';
 
 describe('Enrollment Validation Schemas', () => {
   describe('EnrollmentCourseCodeSchema', () => {

@@ -8,7 +8,7 @@
  * - 18.4: Structured data transfer between layers
  */
 
-import { CourseStatus } from '../../domain/entities/Course';
+import { CourseStatus } from '../../domain/entities/Course.js';
 
 /**
  * Course DTO for API responses

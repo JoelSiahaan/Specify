@@ -11,20 +11,20 @@
  * - 6.8: Prevent duplicate enrollment
  */
 
-import { EnrollStudentUseCase } from '../EnrollStudentUseCase';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import { IEnrollmentRepository } from '../../../../domain/repositories/IEnrollmentRepository';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { Enrollment } from '../../../../domain/entities/Enrollment';
-import { CreateEnrollmentDTO } from '../../../dtos/EnrollmentDTO';
+import { EnrollStudentUseCase } from '../EnrollStudentUseCase.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import { IEnrollmentRepository } from '../../../../domain/repositories/IEnrollmentRepository.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { Enrollment } from '../../../../domain/entities/Enrollment.js';
+import { CreateEnrollmentDTO } from '../../../dtos/EnrollmentDTO.js';
 import {
   UnauthorizedError,
   ForbiddenError,
   NotFoundError,
   ConflictError
-} from '../../../errors/ApplicationErrors';
+} from '../../../errors/ApplicationErrors.js';
 
 describe('EnrollStudentUseCase', () => {
   let useCase: EnrollStudentUseCase;

@@ -22,9 +22,9 @@ import request from 'supertest';
 import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
-import materialRoutes from '../../routes/materialRoutes';
-import { errorHandler } from '../../middleware/ErrorHandlerMiddleware';
-import { cleanupDatabase, generateTestToken, createTestUsers } from '../../../../test/test-utils';
+import materialRoutes from '../../routes/materialRoutes.js';
+import { errorHandler } from '../../middleware/ErrorHandlerMiddleware.js';
+import { cleanupDatabase, generateTestToken, createTestUsers } from '../../../../test/test-utils.js';
 import {
   assertErrorResponse,
   assertSuccessResponse,
@@ -32,15 +32,15 @@ import {
   assertAuthenticationError,
   assertAuthorizationError,
   assertNotFoundError
-} from '../../../../test/api-test-utils';
+} from '../../../../test/api-test-utils.js';
 import { container } from 'tsyringe';
-import { PrismaUserRepository } from '../../../../infrastructure/persistence/repositories/PrismaUserRepository';
-import { PrismaCourseRepository } from '../../../../infrastructure/persistence/repositories/PrismaCourseRepository';
-import { PrismaMaterialRepository } from '../../../../infrastructure/persistence/repositories/PrismaMaterialRepository';
-import { PrismaEnrollmentRepository } from '../../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository';
-import { PasswordService } from '../../../../infrastructure/auth/PasswordService';
-import { JWTService } from '../../../../infrastructure/auth/JWTService';
-import { LocalFileStorage } from '../../../../infrastructure/storage/LocalFileStorage';
+import { PrismaUserRepository } from '../../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
+import { PrismaCourseRepository } from '../../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
+import { PrismaMaterialRepository } from '../../../../infrastructure/persistence/repositories/PrismaMaterialRepository.js';
+import { PrismaEnrollmentRepository } from '../../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository.js';
+import { PasswordService } from '../../../../infrastructure/auth/PasswordService.js';
+import { JWTService } from '../../../../infrastructure/auth/JWTService.js';
+import { LocalFileStorage } from '../../../../infrastructure/storage/LocalFileStorage.js';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 

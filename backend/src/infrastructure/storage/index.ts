@@ -4,4 +4,4 @@
  * Exports file storage implementations (Adapters).
  */
 
-export { LocalFileStorage } from './LocalFileStorage';
+export { LocalFileStorage } from './LocalFileStorage.js';

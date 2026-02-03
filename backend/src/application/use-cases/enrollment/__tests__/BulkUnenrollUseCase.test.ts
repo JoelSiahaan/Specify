@@ -8,20 +8,20 @@
  * - 5.8: Bulk unenroll students from archived courses
  */
 
-import { BulkUnenrollUseCase } from '../BulkUnenrollUseCase';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import { IEnrollmentRepository } from '../../../../domain/repositories/IEnrollmentRepository';
-import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { Enrollment } from '../../../../domain/entities/Enrollment';
+import { BulkUnenrollUseCase } from '../BulkUnenrollUseCase.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import { IEnrollmentRepository } from '../../../../domain/repositories/IEnrollmentRepository.js';
+import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { Enrollment } from '../../../../domain/entities/Enrollment.js';
 import {
   UnauthorizedError,
   ForbiddenError,
   NotFoundError,
   ConflictError
-} from '../../../errors/ApplicationErrors';
+} from '../../../errors/ApplicationErrors.js';
 
 describe('BulkUnenrollUseCase', () => {
   let useCase: BulkUnenrollUseCase;

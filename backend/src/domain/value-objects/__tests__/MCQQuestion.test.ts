@@ -8,7 +8,7 @@
  * - 11.4: MCQ must have valid correctAnswer index
  */
 
-import { MCQQuestion } from '../MCQQuestion';
+import { MCQQuestion } from '../MCQQuestion.js';
 
 describe('MCQQuestion Value Object', () => {
   describe('create', () => {

@@ -8,8 +8,8 @@
  * - 18.4: Data transformation between layers
  */
 
-import { User } from '../../domain/entities/User';
-import { UserDTO, CreateUserDTO, UserProfileDTO } from '../dtos/UserDTO';
+import { User } from '../../domain/entities/User.js';
+import { UserDTO, CreateUserDTO, UserProfileDTO } from '../dtos/UserDTO.js';
 import { randomUUID } from 'crypto';
 
 export class UserMapper {

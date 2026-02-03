@@ -4,11 +4,11 @@
  * Exports all quiz-related use cases for easy importing.
  */
 
-export { CreateQuizUseCase } from './CreateQuizUseCase';
-export { UpdateQuizUseCase } from './UpdateQuizUseCase';
-export { DeleteQuizUseCase } from './DeleteQuizUseCase';
-export { ListQuizzesUseCase } from './ListQuizzesUseCase';
-export { StartQuizUseCase } from './StartQuizUseCase';
-export { AutoSaveQuizAnswersUseCase } from './AutoSaveQuizAnswersUseCase';
-export { SubmitQuizUseCase } from './SubmitQuizUseCase';
-export { GradeQuizSubmissionUseCase } from './GradeQuizSubmissionUseCase';
+export { CreateQuizUseCase } from './CreateQuizUseCase.js';
+export { UpdateQuizUseCase } from './UpdateQuizUseCase.js';
+export { DeleteQuizUseCase } from './DeleteQuizUseCase.js';
+export { ListQuizzesUseCase } from './ListQuizzesUseCase.js';
+export { StartQuizUseCase } from './StartQuizUseCase.js';
+export { AutoSaveQuizAnswersUseCase } from './AutoSaveQuizAnswersUseCase.js';
+export { SubmitQuizUseCase } from './SubmitQuizUseCase.js';
+export { GradeQuizSubmissionUseCase } from './GradeQuizSubmissionUseCase.js';

@@ -13,11 +13,11 @@
  */
 
 import { Router } from 'express';
-import { GradingController } from '../controllers/GradingController';
-import { validateBody } from '../middleware/ValidationMiddleware';
-import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware';
-import { GradeSubmissionRequestSchema } from '../validators/assignmentSchemas';
-import { GradeQuizSubmissionRequestSchema } from '../validators/quizSchemas';
+import { GradingController } from '../controllers/GradingController.js';
+import { validateBody } from '../middleware/ValidationMiddleware.js';
+import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware.js';
+import { GradeSubmissionRequestSchema } from '../validators/assignmentSchemas.js';
+import { GradeQuizSubmissionRequestSchema } from '../validators/quizSchemas.js';
 
 const router = Router();
 const gradingController = new GradingController();

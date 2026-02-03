@@ -26,9 +26,9 @@ import request from 'supertest';
 import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
-import courseRoutes from '../../routes/courseRoutes';
-import { errorHandler } from '../../middleware/ErrorHandlerMiddleware';
-import { cleanupDatabase, generateTestToken, createTestUsers, generateUniqueEmail } from '../../../../test/test-utils';
+import courseRoutes from '../../routes/courseRoutes.js';
+import { errorHandler } from '../../middleware/ErrorHandlerMiddleware.js';
+import { cleanupDatabase, generateTestToken, createTestUsers, generateUniqueEmail } from '../../../../test/test-utils.js';
 import {
   assertErrorResponse,
   assertSuccessResponse,
@@ -36,14 +36,14 @@ import {
   assertAuthenticationError,
   assertAuthorizationError,
   assertNotFoundError
-} from '../../../../test/api-test-utils';
+} from '../../../../test/api-test-utils.js';
 import { container } from 'tsyringe';
-import { PrismaUserRepository } from '../../../../infrastructure/persistence/repositories/PrismaUserRepository';
-import { PrismaCourseRepository } from '../../../../infrastructure/persistence/repositories/PrismaCourseRepository';
-import { PrismaEnrollmentRepository } from '../../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository';
-import { PasswordService } from '../../../../infrastructure/auth/PasswordService';
-import { JWTService } from '../../../../infrastructure/auth/JWTService';
-import { CourseCodeGenerator } from '../../../../domain/services/CourseCodeGenerator';
+import { PrismaUserRepository } from '../../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
+import { PrismaCourseRepository } from '../../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
+import { PrismaEnrollmentRepository } from '../../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository.js';
+import { PasswordService } from '../../../../infrastructure/auth/PasswordService.js';
+import { JWTService } from '../../../../infrastructure/auth/JWTService.js';
+import { CourseCodeGenerator } from '../../../../domain/services/CourseCodeGenerator.js';
 
 describe('EnrollmentController Integration Tests', () => {
   let app: Express;

@@ -17,21 +17,21 @@
  */
 
 import { inject, injectable } from 'tsyringe';
-import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository';
-import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository';
-import type { IQuizRepository } from '../../../domain/repositories/IQuizRepository';
-import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository';
-import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
+import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository.js';
+import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository.js';
+import type { IQuizRepository } from '../../../domain/repositories/IQuizRepository.js';
+import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository.js';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
 import {
   StudentProgressDTO,
   AssignmentProgressItemDTO,
   QuizProgressItemDTO,
-} from '../../dtos/ProgressDTO';
-import { ForbiddenError, NotFoundError, UnauthorizedError } from '../../errors/ApplicationErrors';
-import { AssignmentSubmissionStatus } from '../../../domain/entities/AssignmentSubmission';
+} from '../../dtos/ProgressDTO.js';
+import { ForbiddenError, NotFoundError, UnauthorizedError } from '../../errors/ApplicationErrors.js';
+import { AssignmentSubmissionStatus } from '../../../domain/entities/AssignmentSubmission.js';
 
 @injectable()
 export class GetStudentProgressUseCase {

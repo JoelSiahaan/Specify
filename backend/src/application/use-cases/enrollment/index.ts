@@ -4,6 +4,6 @@
  * Export all enrollment-related use cases.
  */
 
-export { EnrollStudentUseCase } from './EnrollStudentUseCase';
-export { BulkUnenrollUseCase } from './BulkUnenrollUseCase';
-export { ListCourseEnrollmentsUseCase } from './ListCourseEnrollmentsUseCase';
+export { EnrollStudentUseCase } from './EnrollStudentUseCase.js';
+export { BulkUnenrollUseCase } from './BulkUnenrollUseCase.js';
+export { ListCourseEnrollmentsUseCase } from './ListCourseEnrollmentsUseCase.js';

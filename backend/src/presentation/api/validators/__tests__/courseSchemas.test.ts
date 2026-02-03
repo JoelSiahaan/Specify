@@ -13,7 +13,7 @@ import {
   CourseDescriptionSchema,
   CourseCodeSchema,
   CourseStatusSchema
-} from '../courseSchemas';
+} from '../courseSchemas.js';
 
 describe('Course Validation Schemas', () => {
   describe('CourseNameSchema', () => {

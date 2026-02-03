@@ -9,13 +9,13 @@
  * - 5.5: Automatically close all open assignments and quizzes
  */
 
-import { ArchiveCourseUseCase } from '../ArchiveCourseUseCase';
-import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { ApplicationError } from '../../../errors/ApplicationErrors';
+import { ArchiveCourseUseCase } from '../ArchiveCourseUseCase.js';
+import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { ApplicationError } from '../../../errors/ApplicationErrors.js';
 
 describe('ArchiveCourseUseCase', () => {
   let archiveCourseUseCase: ArchiveCourseUseCase;

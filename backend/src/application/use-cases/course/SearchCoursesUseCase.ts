@@ -12,11 +12,11 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import { CourseStatus } from '../../../domain/entities/Course';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { CourseStatus } from '../../../domain/entities/Course.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 /**
  * Course search result DTO

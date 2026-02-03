@@ -15,19 +15,19 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { container } from 'tsyringe';
-import { CreateCourseUseCase } from '../../../application/use-cases/course/CreateCourseUseCase';
-import { UpdateCourseUseCase } from '../../../application/use-cases/course/UpdateCourseUseCase';
-import { ArchiveCourseUseCase } from '../../../application/use-cases/course/ArchiveCourseUseCase';
-import { DeleteCourseUseCase } from '../../../application/use-cases/course/DeleteCourseUseCase';
-import { ListCoursesUseCase } from '../../../application/use-cases/course/ListCoursesUseCase';
-import { SearchCoursesUseCase } from '../../../application/use-cases/course/SearchCoursesUseCase';
-import { EnrollStudentUseCase } from '../../../application/use-cases/enrollment/EnrollStudentUseCase';
-import { BulkUnenrollUseCase } from '../../../application/use-cases/enrollment/BulkUnenrollUseCase';
-import { ListCourseEnrollmentsUseCase } from '../../../application/use-cases/enrollment/ListCourseEnrollmentsUseCase';
-import { GetStudentProgressUseCase } from '../../../application/use-cases/progress/GetStudentProgressUseCase';
-import { ExportGradesUseCase } from '../../../application/use-cases/progress/ExportGradesUseCase';
-import { CourseStatus } from '../../../domain/entities/Course';
-import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware';
+import { CreateCourseUseCase } from '../../../application/use-cases/course/CreateCourseUseCase.js';
+import { UpdateCourseUseCase } from '../../../application/use-cases/course/UpdateCourseUseCase.js';
+import { ArchiveCourseUseCase } from '../../../application/use-cases/course/ArchiveCourseUseCase.js';
+import { DeleteCourseUseCase } from '../../../application/use-cases/course/DeleteCourseUseCase.js';
+import { ListCoursesUseCase } from '../../../application/use-cases/course/ListCoursesUseCase.js';
+import { SearchCoursesUseCase } from '../../../application/use-cases/course/SearchCoursesUseCase.js';
+import { EnrollStudentUseCase } from '../../../application/use-cases/enrollment/EnrollStudentUseCase.js';
+import { BulkUnenrollUseCase } from '../../../application/use-cases/enrollment/BulkUnenrollUseCase.js';
+import { ListCourseEnrollmentsUseCase } from '../../../application/use-cases/enrollment/ListCourseEnrollmentsUseCase.js';
+import { GetStudentProgressUseCase } from '../../../application/use-cases/progress/GetStudentProgressUseCase.js';
+import { ExportGradesUseCase } from '../../../application/use-cases/progress/ExportGradesUseCase.js';
+import { CourseStatus } from '../../../domain/entities/Course.js';
+import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware.js';
 
 /**
  * Course Controller
@@ -162,7 +162,7 @@ export class CourseController {
       const enrollmentCount = enrollments.length;
 
       // Convert to DTO with teacher name and enrollment count
-      const { CourseMapper } = await import('../../../application/mappers/CourseMapper');
+      const { CourseMapper } = await import('../../../application/mappers/CourseMapper.js');
       const courseDTO = CourseMapper.toListDTO(course, teacherName, enrollmentCount);
       
       // Return course (200 OK)

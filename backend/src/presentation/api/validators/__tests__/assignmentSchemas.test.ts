@@ -20,7 +20,7 @@ import {
   SubmitAssignmentRequestSchema,
   GradeSubmissionRequestSchema,
   AssignmentQuerySchema
-} from '../assignmentSchemas';
+} from '../assignmentSchemas.js';
 
 describe('Assignment Validation Schemas', () => {
   describe('SubmissionTypeSchema', () => {

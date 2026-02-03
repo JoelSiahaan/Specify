@@ -4,6 +4,6 @@
  * Central export point for all progress and export use cases
  */
 
-export * from './GetStudentProgressUseCase';
-export * from './ExportGradesUseCase';
+export * from './GetStudentProgressUseCase.js';
+export * from './ExportGradesUseCase.js';
 

@@ -18,8 +18,8 @@
 
 import { PrismaClient, Role as PrismaRole } from '@prisma/client';
 import { injectable, inject } from 'tsyringe';
-import { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import { User, Role } from '../../../domain/entities/User';
+import { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { User, Role } from '../../../domain/entities/User.js';
 
 @injectable()
 export class PrismaUserRepository implements IUserRepository {

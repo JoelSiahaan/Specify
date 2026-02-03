@@ -8,14 +8,14 @@
  * - 5.3: Update course details (name and description)
  */
 
-import { UpdateCourseUseCase } from '../UpdateCourseUseCase';
-import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { UpdateCourseDTO } from '../../../dtos/CourseDTO';
-import { ApplicationError } from '../../../errors/ApplicationErrors';
+import { UpdateCourseUseCase } from '../UpdateCourseUseCase.js';
+import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { UpdateCourseDTO } from '../../../dtos/CourseDTO.js';
+import { ApplicationError } from '../../../errors/ApplicationErrors.js';
 
 describe('UpdateCourseUseCase', () => {
   let updateCourseUseCase: UpdateCourseUseCase;

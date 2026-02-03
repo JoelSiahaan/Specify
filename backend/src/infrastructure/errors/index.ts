@@ -5,4 +5,4 @@
 export {
   DatabaseError,
   FileSystemError
-} from './InfrastructureErrors';
+} from './InfrastructureErrors.js';

@@ -5,7 +5,7 @@
  */
 
 import { randomUUID } from 'crypto';
-import { AssignmentSubmission, AssignmentSubmissionStatus, type AssignmentSubmissionProps } from '../AssignmentSubmission';
+import { AssignmentSubmission, AssignmentSubmissionStatus, type AssignmentSubmissionProps } from '../AssignmentSubmission.js';
 
 describe('AssignmentSubmission Entity', () => {
   const createValidSubmissionProps = (): AssignmentSubmissionProps => ({

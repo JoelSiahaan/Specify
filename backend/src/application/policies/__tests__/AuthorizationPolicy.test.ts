@@ -11,10 +11,10 @@
  * - 2.4: Authorization enforcement on all protected routes
  */
 
-import { AuthorizationPolicy } from '../AuthorizationPolicy';
-import { User, Role } from '../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../domain/entities/Course';
-import { AuthorizationContext } from '../IAuthorizationPolicy';
+import { AuthorizationPolicy } from '../AuthorizationPolicy.js';
+import { User, Role } from '../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../domain/entities/Course.js';
+import { AuthorizationContext } from '../IAuthorizationPolicy.js';
 
 describe('AuthorizationPolicy', () => {
   let policy: AuthorizationPolicy;

@@ -15,7 +15,7 @@
  * - Domain layer depends only on this interface (Dependency Inversion)
  */
 
-import { Material } from '../entities/Material';
+import { Material } from '../entities/Material.js';
 
 export interface IMaterialRepository {
   /**

@@ -13,17 +13,17 @@
  * - 13.6: Allow teachers to add text feedback
  */
 
-import { GradeQuizSubmissionUseCase } from '../GradeQuizSubmissionUseCase';
-import { IQuizRepository } from '../../../../domain/repositories/IQuizRepository';
-import { IQuizSubmissionRepository } from '../../../../domain/repositories/IQuizSubmissionRepository';
-import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { Quiz, QuestionType } from '../../../../domain/entities/Quiz';
-import { QuizSubmission, QuizSubmissionStatus } from '../../../../domain/entities/QuizSubmission';
-import { NotFoundError, ForbiddenError, ApplicationError } from '../../../errors/ApplicationErrors';
+import { GradeQuizSubmissionUseCase } from '../GradeQuizSubmissionUseCase.js';
+import { IQuizRepository } from '../../../../domain/repositories/IQuizRepository.js';
+import { IQuizSubmissionRepository } from '../../../../domain/repositories/IQuizSubmissionRepository.js';
+import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { Quiz, QuestionType } from '../../../../domain/entities/Quiz.js';
+import { QuizSubmission, QuizSubmissionStatus } from '../../../../domain/entities/QuizSubmission.js';
+import { NotFoundError, ForbiddenError, ApplicationError } from '../../../errors/ApplicationErrors.js';
 import { randomUUID } from 'crypto';
 
 describe('GradeQuizSubmissionUseCase', () => {

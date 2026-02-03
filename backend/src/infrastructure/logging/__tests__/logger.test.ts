@@ -5,7 +5,7 @@
  * Requirements: 21.2, 21.3 - Logging and error tracking
  */
 
-import { logger, logRequest, logError } from '../logger';
+import { logger, logRequest, logError } from '../logger.js';
 
 describe('Winston Logger', () => {
   // Spy on logger methods

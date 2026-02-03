@@ -4,9 +4,9 @@
  * Central export point for all API controllers.
  */
 
-export { AuthController } from './AuthController';
-export { CourseController } from './CourseController';
-export { MaterialController } from './MaterialController';
-export { QuizController } from './QuizController';
-export { AssignmentController } from './AssignmentController';
-export { GradingController } from './GradingController';
+export { AuthController } from './AuthController.js';
+export { CourseController } from './CourseController.js';
+export { MaterialController } from './MaterialController.js';
+export { QuizController } from './QuizController.js';
+export { AssignmentController } from './AssignmentController.js';
+export { GradingController } from './GradingController.js';

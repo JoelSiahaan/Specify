@@ -5,7 +5,7 @@
  */
 
 import * as fc from 'fast-check';
-import { Role } from '../domain/entities/User';
+import { Role } from '../domain/entities/User.js';
 
 /**
  * Generator for valid email addresses

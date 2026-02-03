@@ -8,14 +8,14 @@
  * - 18.4: Data transformation between layers
  */
 
-import { Assignment } from '../../domain/entities/Assignment';
+import { Assignment } from '../../domain/entities/Assignment.js';
 import { 
   AssignmentDTO, 
   CreateAssignmentDTO, 
   UpdateAssignmentDTO,
   AssignmentListDTO 
-} from '../dtos/AssignmentDTO';
-import { AssignmentSubmissionStatus } from '../../domain/entities/AssignmentSubmission';
+} from '../dtos/AssignmentDTO.js';
+import { AssignmentSubmissionStatus } from '../../domain/entities/AssignmentSubmission.js';
 import { randomUUID } from 'crypto';
 
 export class AssignmentMapper {

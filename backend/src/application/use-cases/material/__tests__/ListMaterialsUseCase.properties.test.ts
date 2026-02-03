@@ -12,15 +12,15 @@
  */
 
 import * as fc from 'fast-check';
-import { ListMaterialsUseCase } from '../ListMaterialsUseCase';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { Material, MaterialType } from '../../../../domain/entities/Material';
-import type { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import type { IMaterialRepository } from '../../../../domain/repositories/IMaterialRepository';
-import type { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import type { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { propertyTestConfig } from '../../../../test/property-test-utils';
+import { ListMaterialsUseCase } from '../ListMaterialsUseCase.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { Material, MaterialType } from '../../../../domain/entities/Material.js';
+import type { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import type { IMaterialRepository } from '../../../../domain/repositories/IMaterialRepository.js';
+import type { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import type { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { propertyTestConfig } from '../../../../test/property-test-utils.js';
 import { randomUUID } from 'crypto';
 
 // Mock repositories using jest.Mocked

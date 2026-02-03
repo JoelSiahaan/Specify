@@ -9,10 +9,10 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import { UserProfileDTO } from '../../dtos/UserDTO';
-import { UserMapper } from '../../mappers/UserMapper';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { UserProfileDTO } from '../../dtos/UserDTO.js';
+import { UserMapper } from '../../mappers/UserMapper.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 @injectable()
 export class GetCurrentUserProfileUseCase {

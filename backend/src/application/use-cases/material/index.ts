@@ -4,8 +4,8 @@
  * Export all material-related use cases
  */
 
-export { CreateMaterialUseCase } from './CreateMaterialUseCase';
-export { UpdateMaterialUseCase } from './UpdateMaterialUseCase';
-export { DeleteMaterialUseCase } from './DeleteMaterialUseCase';
-export { ListMaterialsUseCase } from './ListMaterialsUseCase';
-export { DownloadMaterialUseCase } from './DownloadMaterialUseCase';
+export { CreateMaterialUseCase } from './CreateMaterialUseCase.js';
+export { UpdateMaterialUseCase } from './UpdateMaterialUseCase.js';
+export { DeleteMaterialUseCase } from './DeleteMaterialUseCase.js';
+export { ListMaterialsUseCase } from './ListMaterialsUseCase.js';
+export { DownloadMaterialUseCase } from './DownloadMaterialUseCase.js';

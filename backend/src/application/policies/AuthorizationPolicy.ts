@@ -18,9 +18,9 @@
  */
 
 import { injectable } from 'tsyringe';
-import { IAuthorizationPolicy, AuthorizationContext } from './IAuthorizationPolicy';
-import { User } from '../../domain/entities/User';
-import { Course } from '../../domain/entities/Course';
+import { IAuthorizationPolicy, AuthorizationContext } from './IAuthorizationPolicy.js';
+import { User } from '../../domain/entities/User.js';
+import { Course } from '../../domain/entities/Course.js';
 
 @injectable()
 export class AuthorizationPolicy implements IAuthorizationPolicy {

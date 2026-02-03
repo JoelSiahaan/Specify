@@ -5,12 +5,12 @@
  * valid credentials, invalid credentials, and missing user.
  */
 
-import { LoginUserUseCase } from '../LoginUserUseCase';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { PasswordService } from '../../../../infrastructure/auth/PasswordService';
-import { JWTService } from '../../../../infrastructure/auth/JWTService';
-import { User, Role } from '../../../../domain/entities/User';
-import { LoginDTO } from '../../../dtos/UserDTO';
+import { LoginUserUseCase } from '../LoginUserUseCase.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { PasswordService } from '../../../../infrastructure/auth/PasswordService.js';
+import { JWTService } from '../../../../infrastructure/auth/JWTService.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { LoginDTO } from '../../../dtos/UserDTO.js';
 
 describe('LoginUserUseCase', () => {
   let loginUserUseCase: LoginUserUseCase;

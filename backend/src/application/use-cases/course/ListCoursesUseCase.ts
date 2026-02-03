@@ -11,13 +11,13 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
-import { User, Role } from '../../../domain/entities/User';
-import { CourseStatus } from '../../../domain/entities/Course';
-import { CourseListDTO } from '../../dtos/CourseDTO';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import { User, Role } from '../../../domain/entities/User.js';
+import { CourseStatus } from '../../../domain/entities/Course.js';
+import { CourseListDTO } from '../../dtos/CourseDTO.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 /**
  * Filter options for listing courses

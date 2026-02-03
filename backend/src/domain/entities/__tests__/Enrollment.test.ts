@@ -8,7 +8,7 @@
  * - 6.8: Prevent duplicate enrollment
  */
 
-import { Enrollment, type EnrollmentProps } from '../Enrollment';
+import { Enrollment, type EnrollmentProps } from '../Enrollment.js';
 
 describe('Enrollment Entity', () => {
   const validEnrollmentProps: EnrollmentProps = {

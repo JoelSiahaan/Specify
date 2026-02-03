@@ -15,7 +15,7 @@
  * - Domain layer depends only on this interface (Dependency Inversion)
  */
 
-import { Course } from '../entities/Course';
+import { Course } from '../entities/Course.js';
 
 export interface ICourseRepository {
   /**

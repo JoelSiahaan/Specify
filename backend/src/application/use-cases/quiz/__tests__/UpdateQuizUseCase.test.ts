@@ -8,16 +8,16 @@
  * - 11.7: Editing only allowed before any submissions
  */
 
-import { UpdateQuizUseCase } from '../UpdateQuizUseCase';
-import { IQuizRepository } from '../../../../domain/repositories/IQuizRepository';
-import { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository';
-import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy';
-import { User, Role } from '../../../../domain/entities/User';
-import { Course, CourseStatus } from '../../../../domain/entities/Course';
-import { Quiz, QuestionType } from '../../../../domain/entities/Quiz';
-import { UpdateQuizDTO } from '../../../dtos/QuizDTO';
-import { ApplicationError } from '../../../errors/ApplicationErrors';
+import { UpdateQuizUseCase } from '../UpdateQuizUseCase.js';
+import { IQuizRepository } from '../../../../domain/repositories/IQuizRepository.js';
+import { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { ICourseRepository } from '../../../../domain/repositories/ICourseRepository.js';
+import { IAuthorizationPolicy } from '../../../policies/IAuthorizationPolicy.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import { Course, CourseStatus } from '../../../../domain/entities/Course.js';
+import { Quiz, QuestionType } from '../../../../domain/entities/Quiz.js';
+import { UpdateQuizDTO } from '../../../dtos/QuizDTO.js';
+import { ApplicationError } from '../../../errors/ApplicationErrors.js';
 import { randomUUID } from 'crypto';
 
 describe('UpdateQuizUseCase', () => {

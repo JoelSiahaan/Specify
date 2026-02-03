@@ -15,16 +15,16 @@
  */
 
 import { inject, injectable } from 'tsyringe';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
 import { 
   UnauthorizedError, 
   ForbiddenError, 
   NotFoundError,
   ConflictError
-} from '../../errors/ApplicationErrors';
+} from '../../errors/ApplicationErrors.js';
 
 /**
  * Response DTO for bulk unenroll operation

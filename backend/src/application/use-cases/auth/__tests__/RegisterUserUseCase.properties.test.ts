@@ -10,17 +10,17 @@
  */
 
 import * as fc from 'fast-check';
-import { RegisterUserUseCase } from '../RegisterUserUseCase';
-import { User, Role } from '../../../../domain/entities/User';
-import type { IUserRepository } from '../../../../domain/repositories/IUserRepository';
-import { PasswordService } from '../../../../infrastructure/auth/PasswordService';
+import { RegisterUserUseCase } from '../RegisterUserUseCase.js';
+import { User, Role } from '../../../../domain/entities/User.js';
+import type { IUserRepository } from '../../../../domain/repositories/IUserRepository.js';
+import { PasswordService } from '../../../../infrastructure/auth/PasswordService.js';
 import { 
   emailArbitrary, 
   nameArbitrary, 
   roleArbitrary,
   passwordArbitrary,
   propertyTestConfig 
-} from '../../../../test/property-test-utils';
+} from '../../../../test/property-test-utils.js';
 
 // Helper function to convert string role to Role enum
 function toRoleEnum(role: string): Role {

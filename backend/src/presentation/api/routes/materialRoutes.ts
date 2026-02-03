@@ -16,9 +16,9 @@
 
 import { Router } from 'express';
 import multer from 'multer';
-import { MaterialController } from '../controllers/MaterialController';
-import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware';
-import { validateBody } from '../middleware/ValidationMiddleware';
+import { MaterialController } from '../controllers/MaterialController.js';
+import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware.js';
+import { validateBody } from '../middleware/ValidationMiddleware.js';
 import {
   CreateFileMaterialRequestSchema,
   CreateTextMaterialRequestSchema,
@@ -26,7 +26,7 @@ import {
   UpdateTextMaterialRequestSchema,
   UpdateVideoLinkMaterialRequestSchema,
   UpdateFileMaterialRequestSchema
-} from '../validators/materialSchemas';
+} from '../validators/materialSchemas.js';
 
 const router = Router();
 const materialController = new MaterialController();

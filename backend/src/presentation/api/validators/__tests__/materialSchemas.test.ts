@@ -22,7 +22,7 @@ import {
   UpdateFileMaterialRequestSchema,
   UpdateMaterialRequestSchema,
   MaterialQuerySchema
-} from '../materialSchemas';
+} from '../materialSchemas.js';
 
 describe('Material Validation Schemas', () => {
   describe('MaterialTypeSchema', () => {

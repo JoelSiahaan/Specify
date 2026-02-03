@@ -8,7 +8,7 @@
  */
 
 import fc from 'fast-check';
-import { PasswordService } from '../PasswordService';
+import { PasswordService } from '../PasswordService.js';
 
 describe('PasswordService Property Tests', () => {
   let passwordService: PasswordService;

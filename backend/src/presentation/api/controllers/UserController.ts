@@ -13,10 +13,10 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { container } from 'tsyringe';
-import { GetCurrentUserProfileUseCase } from '../../../application/use-cases/user/GetCurrentUserProfileUseCase';
-import { UpdateUserProfileUseCase } from '../../../application/use-cases/user/UpdateUserProfileUseCase';
-import { ChangePasswordUseCase } from '../../../application/use-cases/user/ChangePasswordUseCase';
-import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware';
+import { GetCurrentUserProfileUseCase } from '../../../application/use-cases/user/GetCurrentUserProfileUseCase.js';
+import { UpdateUserProfileUseCase } from '../../../application/use-cases/user/UpdateUserProfileUseCase.js';
+import { ChangePasswordUseCase } from '../../../application/use-cases/user/ChangePasswordUseCase.js';
+import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware.js';
 
 /**
  * User Profile Controller

@@ -14,13 +14,13 @@
  */
 
 import { Router } from 'express';
-import { AssignmentController } from '../controllers/AssignmentController';
-import { validateBody } from '../middleware/ValidationMiddleware';
-import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware';
+import { AssignmentController } from '../controllers/AssignmentController.js';
+import { validateBody } from '../middleware/ValidationMiddleware.js';
+import { authenticationMiddleware } from '../middleware/AuthenticationMiddleware.js';
 import {
   CreateAssignmentRequestSchema,
   UpdateAssignmentRequestSchema
-} from '../validators/assignmentSchemas';
+} from '../validators/assignmentSchemas.js';
 
 const router = Router();
 const assignmentController = new AssignmentController();

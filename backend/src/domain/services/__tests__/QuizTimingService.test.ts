@@ -4,7 +4,7 @@
  * Tests for quiz timing calculations and validation
  */
 
-import { QuizTimingService } from '../QuizTimingService';
+import { QuizTimingService } from '../QuizTimingService.js';
 
 describe('QuizTimingService Domain Service', () => {
   describe('calculateRemainingTime', () => {

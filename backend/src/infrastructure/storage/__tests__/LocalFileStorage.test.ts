@@ -9,7 +9,7 @@
  * - 20.3: Prevent unauthorized file access (path traversal prevention)
  */
 
-import { LocalFileStorage } from '../LocalFileStorage';
+import { LocalFileStorage } from '../LocalFileStorage.js';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import { randomUUID } from 'crypto';

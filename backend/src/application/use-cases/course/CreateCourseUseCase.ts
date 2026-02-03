@@ -11,15 +11,15 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository';
-import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy';
-import { User } from '../../../domain/entities/User';
-import { CourseCodeGenerator, ICourseCodeChecker } from '../../../domain/services/CourseCodeGenerator';
-import { CourseCode } from '../../../domain/value-objects/CourseCode';
-import { CreateCourseDTO, CourseDTO } from '../../dtos/CourseDTO';
-import { CourseMapper } from '../../mappers/CourseMapper';
-import { ApplicationError } from '../../errors/ApplicationErrors';
+import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { User } from '../../../domain/entities/User.js';
+import { CourseCodeGenerator, ICourseCodeChecker } from '../../../domain/services/CourseCodeGenerator.js';
+import { CourseCode } from '../../../domain/value-objects/CourseCode.js';
+import { CreateCourseDTO, CourseDTO } from '../../dtos/CourseDTO.js';
+import { CourseMapper } from '../../mappers/CourseMapper.js';
+import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 /**
  * Course Code Checker Implementation
