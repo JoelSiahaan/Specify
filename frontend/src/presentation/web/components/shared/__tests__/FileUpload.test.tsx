@@ -61,7 +61,7 @@ describe('FileUpload Component', () => {
   it('should show uploading state with progress', async () => {
     mockOnUpload.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
 
-    render(<FileUpload onFileSelect={mockOnFileSelect} onUpload={mockOnUpload} />);
+    const { unmount } = render(<FileUpload onFileSelect={mockOnFileSelect} onUpload={mockOnUpload} />);
     
     const file = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
     const input = screen.getByLabelText(/File upload input/i) as HTMLInputElement;
@@ -71,6 +71,13 @@ describe('FileUpload Component', () => {
     await waitFor(() => {
       expect(screen.getByText(/Uploading\.\.\./i)).toBeInTheDocument();
     });
+
+    // Wait for upload to complete before unmounting
+    await waitFor(() => {
+      expect(mockOnUpload).toHaveBeenCalled();
+    }, { timeout: 200 });
+    
+    unmount();
   });
 
   it('should show success state after upload', async () => {
@@ -92,7 +99,7 @@ describe('FileUpload Component', () => {
   it('should show error state and retry button on upload failure', async () => {
     mockOnUpload.mockRejectedValue(new Error('Network error'));
 
-    render(<FileUpload onFileSelect={mockOnFileSelect} onUpload={mockOnUpload} />);
+    const { unmount } = render(<FileUpload onFileSelect={mockOnFileSelect} onUpload={mockOnUpload} />);
     
     const file = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
     const input = screen.getByLabelText(/File upload input/i) as HTMLInputElement;
@@ -103,6 +110,8 @@ describe('FileUpload Component', () => {
       expect(screen.getByText(/Network error/i)).toBeInTheDocument();
       expect(screen.getByText(/Retry/i)).toBeInTheDocument();
     });
+
+    unmount();
   });
 
   it('should handle retry after failed upload', async () => {

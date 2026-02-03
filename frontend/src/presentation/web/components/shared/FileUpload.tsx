@@ -38,7 +38,7 @@
  * />
  */
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { validateFile, formatFileSize } from '../../utils/fileValidator';
 import { Button } from './Button';
 
@@ -73,6 +73,18 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   });
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, []);
 
   /**
    * Handle file selection
@@ -121,10 +133,18 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
     try {
       // Simulate progress (in real implementation, use XMLHttpRequest or fetch with progress)
-      const progressInterval = setInterval(() => {
+      progressIntervalRef.current = setInterval(() => {
+        if (!isMountedRef.current) {
+          if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current);
+          }
+          return;
+        }
         setUploadState(prev => {
           if (prev.progress >= 90) {
-            clearInterval(progressInterval);
+            if (progressIntervalRef.current) {
+              clearInterval(progressIntervalRef.current);
+            }
             return prev;
           }
           return { ...prev, progress: prev.progress + 10 };
@@ -133,19 +153,30 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
       await onUpload(file);
 
-      clearInterval(progressInterval);
-      setUploadState(prev => ({
-        ...prev,
-        status: 'success',
-        progress: 100,
-      }));
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      
+      if (isMountedRef.current) {
+        setUploadState(prev => ({
+          ...prev,
+          status: 'success',
+          progress: 100,
+        }));
+      }
     } catch (error) {
-      setUploadState(prev => ({
-        ...prev,
-        status: 'error',
-        progress: 0,
-        error: error instanceof Error ? error.message : 'Upload failed',
-      }));
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      
+      if (isMountedRef.current) {
+        setUploadState(prev => ({
+          ...prev,
+          status: 'error',
+          progress: 0,
+          error: error instanceof Error ? error.message : 'Upload failed',
+        }));
+      }
     }
   };
 
