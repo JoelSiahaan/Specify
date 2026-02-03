@@ -43,9 +43,8 @@ FROM base AS build-deps
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install all dependencies with cache mounting
-RUN --mount=type=cache,target=/root/.npm,sharing=locked \
-    npm ci --no-audit --no-fund && \
+# Install all dependencies
+RUN npm ci --no-audit --no-fund && \
     npm cache clean --force
 
 # Generate Prisma client
