@@ -53,9 +53,9 @@ jobs:
         working-directory: backend
         run: npm ci
 
-      - name: Install frontend dependencies
+      - name: Install frontend dependencies (with optional deps)
         working-directory: frontend
-        run: npm ci
+        run: npm ci --include=optional
 
       - name: Check for console.log in backend
         run: |
@@ -112,9 +112,9 @@ jobs:
         with:
           node-version: '20.19.0'
 
-      - name: Install frontend dependencies
+      - name: Install frontend dependencies (with optional deps)
         working-directory: frontend
-        run: npm ci
+        run: npm ci --include=optional
 
       - name: Build frontend (production only, excludes tests)
         working-directory: frontend

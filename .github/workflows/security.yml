@@ -27,9 +27,10 @@ jobs:
           npm audit --json > backend-audit.json || true
           npm audit --audit-level=high
 
-      - name: Scan frontend dependencies
+      - name: Scan frontend dependencies (with optional deps)
         working-directory: frontend
         run: |
+          npm ci --include=optional
           npm audit --json > frontend-audit.json || true
           npm audit --audit-level=high
 
