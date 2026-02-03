@@ -97,6 +97,7 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci --include=optional
+            | npm rebuild
 
       - name: Run ESLint
         working-directory: frontend
