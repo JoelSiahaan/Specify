@@ -195,12 +195,11 @@ describe('EditNameForm', () => {
 
     it('should show error message on save failure', async () => {
       const user = userEvent.setup();
+      // Error structure from api.ts interceptor: { code, message, details, status }
       mockOnSave.mockRejectedValue({
-        response: {
-          data: {
-            message: 'Failed to update name',
-          },
-        },
+        code: 'UPDATE_FAILED',
+        message: 'Failed to update name',
+        status: 500,
       });
       
       render(<EditNameForm profile={mockProfile} onSave={mockOnSave} />);
