@@ -63,11 +63,11 @@ services:
       args:
         NODE_VERSION: 20.19.0-alpine
     container_name: lms-backend
-    restart: on-failure:3
+    restart: unless-stopped
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgresql://${DB_USER:-lms_user}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-lms_prod}?connection_limit=10&pool_timeout=30
+      DATABASE_URL: postgresql://${DB_USER:-lms_user}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-lms_prod}?connection_limit=10&pool_timeout=30&connect_timeout=10
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       JWT_ACCESS_EXPIRY: ${JWT_ACCESS_EXPIRY:-15m}
@@ -89,11 +89,11 @@ services:
     networks:
       - lms-network
     healthcheck:
-      test: ["CMD", "wget", "--spider", "--quiet", "--tries=1", "--timeout=5", "http://127.0.0.1:3000/health"]
+      test: ["CMD", "wget", "--spider", "--quiet", "--tries=1", "--timeout=10", "http://127.0.0.1:3000/health"]
       interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      timeout: 15s
+      retries: 5
+      start_period: 60s
 
   # Nginx Reverse Proxy (Production)
   nginx:
