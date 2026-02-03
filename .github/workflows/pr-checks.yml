@@ -49,8 +49,13 @@ jobs:
         with:
           node-version: '20.19.0'
 
-      - name: Install all dependencies (workspace mode)
+      - name: Install backend dependencies
+        working-directory: backend
         run: npm ci
+      
+      - name: Install frontend dependencies (with optional deps)
+        working-directory: frontend
+        run: npm ci --include=optional
 
       - name: Check for console.log in backend
         run: |
@@ -107,8 +112,9 @@ jobs:
         with:
           node-version: '20.19.0'
 
-      - name: Install all dependencies (workspace mode)
-        run: npm ci
+      - name: Install frontend dependencies (with optional deps)
+        working-directory: frontend
+        run: npm ci --include=optional
 
       - name: Build frontend (production only, excludes tests)
         working-directory: frontend
@@ -161,7 +167,8 @@ jobs:
         with:
           node-version: '20.19.0'
 
-      - name: Install all dependencies (workspace mode)
+      - name: Install backend dependencies
+        working-directory: backend
         run: npm ci
 
       - name: Generate Prisma Client
