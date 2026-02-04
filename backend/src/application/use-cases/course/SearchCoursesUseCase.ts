@@ -13,8 +13,11 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import { PrismaCourseRepository } from '../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
 import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import { PrismaEnrollmentRepository } from '../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import { CourseStatus } from '../../../domain/entities/Course.js';
 import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
@@ -48,9 +51,9 @@ export interface SearchCoursesFilter {
 @injectable()
 export class SearchCoursesUseCase {
   constructor(
-    @inject('ICourseRepository') private courseRepository: ICourseRepository,
-    @inject('IEnrollmentRepository') private enrollmentRepository: IEnrollmentRepository,
-    @inject('IUserRepository') private userRepository: IUserRepository
+    @inject(PrismaCourseRepository) private courseRepository: ICourseRepository,
+    @inject(PrismaEnrollmentRepository) private enrollmentRepository: IEnrollmentRepository,
+    @inject(PrismaUserRepository) private userRepository: IUserRepository
   ) {}
 
   /**

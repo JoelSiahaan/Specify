@@ -13,8 +13,11 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { IQuizRepository } from '../../../domain/repositories/IQuizRepository.js';
+import { PrismaQuizRepository } from '../../../infrastructure/persistence/repositories/PrismaQuizRepository.js';
 import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository.js';
+import { PrismaQuizSubmissionRepository } from '../../../infrastructure/persistence/repositories/PrismaQuizSubmissionRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import { User } from '../../../domain/entities/User.js';
 import { Quiz } from '../../../domain/entities/Quiz.js';
 import { QuizSubmission } from '../../../domain/entities/QuizSubmission.js';
@@ -25,9 +28,9 @@ import { ApplicationError } from '../../errors/ApplicationErrors.js';
 @injectable()
 export class SubmitQuizUseCase {
   constructor(
-    @inject('IQuizRepository') private quizRepository: IQuizRepository,
-    @inject('IQuizSubmissionRepository') private quizSubmissionRepository: IQuizSubmissionRepository,
-    @inject('IUserRepository') private userRepository: IUserRepository
+    @inject(PrismaQuizRepository) private quizRepository: IQuizRepository,
+    @inject(PrismaQuizSubmissionRepository) private quizSubmissionRepository: IQuizSubmissionRepository,
+    @inject(PrismaUserRepository) private userRepository: IUserRepository
   ) {}
 
   /**

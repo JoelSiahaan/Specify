@@ -14,9 +14,13 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository.js';
+import { PrismaAssignmentRepository } from '../../../infrastructure/persistence/repositories/PrismaAssignmentRepository.js';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import { PrismaCourseRepository } from '../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { AuthorizationPolicy } from '../../policies/AuthorizationPolicy.js';
 import { User } from '../../../domain/entities/User.js';
 import { Course } from '../../../domain/entities/Course.js';
 import { CreateAssignmentDTO, AssignmentDTO } from '../../dtos/AssignmentDTO.js';
@@ -26,10 +30,10 @@ import { ApplicationError, NotFoundError } from '../../errors/ApplicationErrors.
 @injectable()
 export class CreateAssignmentUseCase {
   constructor(
-    @inject('IAssignmentRepository') private assignmentRepository: IAssignmentRepository,
-    @inject('ICourseRepository') private courseRepository: ICourseRepository,
-    @inject('IUserRepository') private userRepository: IUserRepository,
-    @inject('IAuthorizationPolicy') private authPolicy: IAuthorizationPolicy
+    @inject(PrismaAssignmentRepository) private assignmentRepository: IAssignmentRepository,
+    @inject(PrismaCourseRepository) private courseRepository: ICourseRepository,
+    @inject(PrismaUserRepository) private userRepository: IUserRepository,
+    @inject(AuthorizationPolicy) private authPolicy: IAuthorizationPolicy
   ) {}
 
   /**

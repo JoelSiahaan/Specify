@@ -12,10 +12,15 @@
 
 import { inject, injectable } from 'tsyringe';
 import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository.js';
+import { PrismaAssignmentSubmissionRepository } from '../../../infrastructure/persistence/repositories/PrismaAssignmentSubmissionRepository.js';
 import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository.js';
+import { PrismaAssignmentRepository } from '../../../infrastructure/persistence/repositories/PrismaAssignmentRepository.js';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import { PrismaCourseRepository } from '../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { AuthorizationPolicy } from '../../policies/AuthorizationPolicy.js';
 import { AssignmentSubmissionMapper } from '../../mappers/AssignmentSubmissionMapper.js';
 import { ForbiddenError, NotFoundError } from '../../errors/ApplicationErrors.js';
 import type { AssignmentSubmissionDTO } from '../../dtos/index.js';
@@ -38,15 +43,15 @@ export interface ListSubmissionsResponse {
 @injectable()
 export class ListSubmissionsUseCase {
   constructor(
-    @inject('IAssignmentSubmissionRepository')
+    @inject(PrismaAssignmentSubmissionRepository)
     private readonly submissionRepository: IAssignmentSubmissionRepository,
-    @inject('IAssignmentRepository')
+    @inject(PrismaAssignmentRepository)
     private readonly assignmentRepository: IAssignmentRepository,
-    @inject('ICourseRepository')
+    @inject(PrismaCourseRepository)
     private readonly courseRepository: ICourseRepository,
-    @inject('IUserRepository')
+    @inject(PrismaUserRepository)
     private readonly userRepository: IUserRepository,
-    @inject('IAuthorizationPolicy')
+    @inject(AuthorizationPolicy)
     private readonly authPolicy: IAuthorizationPolicy
   ) {}
 

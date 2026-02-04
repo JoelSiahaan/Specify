@@ -10,21 +10,26 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import { PrismaCourseRepository } from '../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
 import type { IMaterialRepository } from '../../../domain/repositories/IMaterialRepository.js';
+import { PrismaMaterialRepository } from '../../../infrastructure/persistence/repositories/PrismaMaterialRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import type { IFileStorage } from '../../../domain/storage/IFileStorage.js';
+import { LocalFileStorage } from '../../../infrastructure/storage/LocalFileStorage.js';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { AuthorizationPolicy } from '../../policies/AuthorizationPolicy.js';
 import { User } from '../../../domain/entities/User.js';
 import { ApplicationError } from '../../errors/ApplicationErrors.js';
 
 @injectable()
 export class DeleteMaterialUseCase {
   constructor(
-    @inject('ICourseRepository') private courseRepository: ICourseRepository,
-    @inject('IMaterialRepository') private materialRepository: IMaterialRepository,
-    @inject('IUserRepository') private userRepository: IUserRepository,
-    @inject('IFileStorage') private fileStorage: IFileStorage,
-    @inject('IAuthorizationPolicy') private authPolicy: IAuthorizationPolicy
+    @inject(PrismaCourseRepository) private courseRepository: ICourseRepository,
+    @inject(PrismaMaterialRepository) private materialRepository: IMaterialRepository,
+    @inject(PrismaUserRepository) private userRepository: IUserRepository,
+    @inject(LocalFileStorage) private fileStorage: IFileStorage,
+    @inject(AuthorizationPolicy) private authPolicy: IAuthorizationPolicy
   ) {}
 
   /**

@@ -12,10 +12,15 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository.js';
+import { PrismaAssignmentSubmissionRepository } from '../../../infrastructure/persistence/repositories/PrismaAssignmentSubmissionRepository.js';
 import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository.js';
+import { PrismaAssignmentRepository } from '../../../infrastructure/persistence/repositories/PrismaAssignmentRepository.js';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import { PrismaCourseRepository } from '../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { AuthorizationPolicy } from '../../policies/AuthorizationPolicy.js';
 import { User } from '../../../domain/entities/User.js';
 import { Course } from '../../../domain/entities/Course.js';
 import { Assignment } from '../../../domain/entities/Assignment.js';
@@ -27,11 +32,11 @@ import { ApplicationError, NotFoundError, ForbiddenError } from '../../errors/Ap
 @injectable()
 export class UpdateGradeUseCase {
   constructor(
-    @inject('IAssignmentSubmissionRepository') private submissionRepository: IAssignmentSubmissionRepository,
-    @inject('IAssignmentRepository') private assignmentRepository: IAssignmentRepository,
-    @inject('ICourseRepository') private courseRepository: ICourseRepository,
-    @inject('IUserRepository') private userRepository: IUserRepository,
-    @inject('IAuthorizationPolicy') private authPolicy: IAuthorizationPolicy
+    @inject(PrismaAssignmentSubmissionRepository) private submissionRepository: IAssignmentSubmissionRepository,
+    @inject(PrismaAssignmentRepository) private assignmentRepository: IAssignmentRepository,
+    @inject(PrismaCourseRepository) private courseRepository: ICourseRepository,
+    @inject(PrismaUserRepository) private userRepository: IUserRepository,
+    @inject(AuthorizationPolicy) private authPolicy: IAuthorizationPolicy
   ) {}
 
   /**

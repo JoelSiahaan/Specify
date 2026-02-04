@@ -22,12 +22,19 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository.js';
+import { PrismaAssignmentRepository } from '../../../infrastructure/persistence/repositories/PrismaAssignmentRepository.js';
 import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository.js';
+import { PrismaAssignmentSubmissionRepository } from '../../../infrastructure/persistence/repositories/PrismaAssignmentSubmissionRepository.js';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import { PrismaCourseRepository } from '../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
 import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import { PrismaEnrollmentRepository } from '../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import type { IFileStorage } from '../../../domain/storage/IFileStorage.js';
+import { LocalFileStorage } from '../../../infrastructure/storage/LocalFileStorage.js';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { AuthorizationPolicy } from '../../policies/AuthorizationPolicy.js';
 import { User } from '../../../domain/entities/User.js';
 import { Course } from '../../../domain/entities/Course.js';
 import { Assignment, SubmissionType } from '../../../domain/entities/Assignment.js';
@@ -42,13 +49,13 @@ import { FileValidator } from '../../../infrastructure/validation/FileValidator.
 @injectable()
 export class SubmitAssignmentUseCase {
   constructor(
-    @inject('IAssignmentRepository') private assignmentRepository: IAssignmentRepository,
-    @inject('IAssignmentSubmissionRepository') private submissionRepository: IAssignmentSubmissionRepository,
-    @inject('ICourseRepository') private courseRepository: ICourseRepository,
-    @inject('IEnrollmentRepository') private enrollmentRepository: IEnrollmentRepository,
-    @inject('IUserRepository') private userRepository: IUserRepository,
-    @inject('IFileStorage') private fileStorage: IFileStorage,
-    @inject('IAuthorizationPolicy') private authPolicy: IAuthorizationPolicy
+    @inject(PrismaAssignmentRepository) private assignmentRepository: IAssignmentRepository,
+    @inject(PrismaAssignmentSubmissionRepository) private submissionRepository: IAssignmentSubmissionRepository,
+    @inject(PrismaCourseRepository) private courseRepository: ICourseRepository,
+    @inject(PrismaEnrollmentRepository) private enrollmentRepository: IEnrollmentRepository,
+    @inject(PrismaUserRepository) private userRepository: IUserRepository,
+    @inject(LocalFileStorage) private fileStorage: IFileStorage,
+    @inject(AuthorizationPolicy) private authPolicy: IAuthorizationPolicy
   ) {}
 
   /**

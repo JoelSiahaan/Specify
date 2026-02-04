@@ -14,13 +14,21 @@
 
 import { inject, injectable } from 'tsyringe';
 import type { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository.js';
+import { PrismaAssignmentRepository } from '../../../infrastructure/persistence/repositories/PrismaAssignmentRepository.js';
 import type { IAssignmentSubmissionRepository } from '../../../domain/repositories/IAssignmentSubmissionRepository.js';
+import { PrismaAssignmentSubmissionRepository } from '../../../infrastructure/persistence/repositories/PrismaAssignmentSubmissionRepository.js';
 import type { IQuizRepository } from '../../../domain/repositories/IQuizRepository.js';
+import { PrismaQuizRepository } from '../../../infrastructure/persistence/repositories/PrismaQuizRepository.js';
 import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository.js';
+import { PrismaQuizSubmissionRepository } from '../../../infrastructure/persistence/repositories/PrismaQuizSubmissionRepository.js';
 import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import { PrismaEnrollmentRepository } from '../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository.js';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import { PrismaCourseRepository } from '../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { AuthorizationPolicy } from '../../policies/AuthorizationPolicy.js';
 import {
   GradeExportDTO,
   GradeExportRowDTO,
@@ -32,21 +40,21 @@ import { AssignmentSubmissionStatus } from '../../../domain/entities/AssignmentS
 @injectable()
 export class ExportGradesUseCase {
   constructor(
-    @inject('IAssignmentRepository')
+    @inject(PrismaAssignmentRepository)
     private assignmentRepository: IAssignmentRepository,
-    @inject('IAssignmentSubmissionRepository')
+    @inject(PrismaAssignmentSubmissionRepository)
     private assignmentSubmissionRepository: IAssignmentSubmissionRepository,
-    @inject('IQuizRepository')
+    @inject(PrismaQuizRepository)
     private quizRepository: IQuizRepository,
-    @inject('IQuizSubmissionRepository')
+    @inject(PrismaQuizSubmissionRepository)
     private quizSubmissionRepository: IQuizSubmissionRepository,
-    @inject('IEnrollmentRepository')
+    @inject(PrismaEnrollmentRepository)
     private enrollmentRepository: IEnrollmentRepository,
-    @inject('ICourseRepository')
+    @inject(PrismaCourseRepository)
     private courseRepository: ICourseRepository,
-    @inject('IUserRepository')
+    @inject(PrismaUserRepository)
     private userRepository: IUserRepository,
-    @inject('IAuthorizationPolicy')
+    @inject(AuthorizationPolicy)
     private authPolicy: IAuthorizationPolicy
   ) {}
 

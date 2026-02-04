@@ -16,23 +16,14 @@
 
 import { container } from 'tsyringe';
 import { prisma } from '../persistence/prisma/client.js';
-import { IUserRepository } from '../../domain/repositories/IUserRepository.js';
 import { PrismaUserRepository } from '../persistence/repositories/PrismaUserRepository.js';
-import { ICourseRepository } from '../../domain/repositories/ICourseRepository.js';
 import { PrismaCourseRepository } from '../persistence/repositories/PrismaCourseRepository.js';
-import { IMaterialRepository } from '../../domain/repositories/IMaterialRepository.js';
 import { PrismaMaterialRepository } from '../persistence/repositories/PrismaMaterialRepository.js';
-import { IFileStorage } from '../../domain/storage/IFileStorage.js';
 import { LocalFileStorage } from '../storage/LocalFileStorage.js';
-import { IEnrollmentRepository } from '../../domain/repositories/IEnrollmentRepository.js';
 import { PrismaEnrollmentRepository } from '../persistence/repositories/PrismaEnrollmentRepository.js';
-import { IQuizRepository } from '../../domain/repositories/IQuizRepository.js';
 import { PrismaQuizRepository } from '../persistence/repositories/PrismaQuizRepository.js';
-import { IQuizSubmissionRepository } from '../../domain/repositories/IQuizSubmissionRepository.js';
 import { PrismaQuizSubmissionRepository } from '../persistence/repositories/PrismaQuizSubmissionRepository.js';
-import { IAssignmentRepository } from '../../domain/repositories/IAssignmentRepository.js';
 import { PrismaAssignmentRepository } from '../persistence/repositories/PrismaAssignmentRepository.js';
-import { IAssignmentSubmissionRepository } from '../../domain/repositories/IAssignmentSubmissionRepository.js';
 import { PrismaAssignmentSubmissionRepository } from '../persistence/repositories/PrismaAssignmentSubmissionRepository.js';
 import { JWTService } from '../auth/JWTService.js';
 import { PasswordService } from '../auth/PasswordService.js';
@@ -41,7 +32,6 @@ import { LoginUserUseCase } from '../../application/use-cases/auth/LoginUserUseC
 import { RefreshTokenUseCase } from '../../application/use-cases/auth/RefreshTokenUseCase.js';
 import { LogoutUserUseCase } from '../../application/use-cases/auth/LogoutUserUseCase.js';
 import { GetCurrentUserUseCase } from '../../application/use-cases/auth/GetCurrentUserUseCase.js';
-import { IAuthorizationPolicy } from '../../application/policies/IAuthorizationPolicy.js';
 import { AuthorizationPolicy } from '../../application/policies/AuthorizationPolicy.js';
 import { CreateCourseUseCase } from '../../application/use-cases/course/CreateCourseUseCase.js';
 import { UpdateCourseUseCase } from '../../application/use-cases/course/UpdateCourseUseCase.js';
@@ -103,27 +93,17 @@ export function configureContainer(): void {
   // Infrastructure Layer - Repositories
   // ========================================
   
-  // Register User Repository as singleton (TSyringe will auto-inject PrismaClient)
-  container.registerSingleton<IUserRepository>('IUserRepository', PrismaUserRepository);
+  // Register repositories as singletons using class tokens (ES Modules compatibility)
+  // TSyringe will auto-inject PrismaClient into repository constructors
   
-  // Register Course Repository as singleton (TSyringe will auto-inject PrismaClient)
-  container.registerSingleton<ICourseRepository>('ICourseRepository', PrismaCourseRepository);
-  
-  // Register Material Repository as singleton (TSyringe will auto-inject PrismaClient)
-  container.registerSingleton<IMaterialRepository>('IMaterialRepository', PrismaMaterialRepository);
-  // Register Enrollment Repository as singleton (TSyringe will auto-inject PrismaClient)
-  container.registerSingleton<IEnrollmentRepository>('IEnrollmentRepository', PrismaEnrollmentRepository);
-  
-  // Register Quiz Repository as singleton (TSyringe will auto-inject PrismaClient)
-  container.registerSingleton<IQuizRepository>('IQuizRepository', PrismaQuizRepository);
-  
-  // Register QuizSubmission Repository as singleton (TSyringe will auto-inject PrismaClient)
-  container.registerSingleton<IQuizSubmissionRepository>('IQuizSubmissionRepository', PrismaQuizSubmissionRepository);
-  // Register Assignment Repository as singleton (TSyringe will auto-inject PrismaClient)
-  container.registerSingleton<IAssignmentRepository>('IAssignmentRepository', PrismaAssignmentRepository);
-  
-  // Register AssignmentSubmission Repository as singleton (TSyringe will auto-inject PrismaClient)
-  container.registerSingleton<IAssignmentSubmissionRepository>('IAssignmentSubmissionRepository', PrismaAssignmentSubmissionRepository);
+  container.registerSingleton(PrismaUserRepository);
+  container.registerSingleton(PrismaCourseRepository);
+  container.registerSingleton(PrismaMaterialRepository);
+  container.registerSingleton(PrismaEnrollmentRepository);
+  container.registerSingleton(PrismaQuizRepository);
+  container.registerSingleton(PrismaQuizSubmissionRepository);
+  container.registerSingleton(PrismaAssignmentRepository);
+  container.registerSingleton(PrismaAssignmentSubmissionRepository);
   
   // Repository implementations will be registered here as they are created
   // Example pattern (to be implemented in future tasks):
@@ -147,7 +127,7 @@ export function configureContainer(): void {
   // ========================================
   
   // Register LocalFileStorage as singleton (file storage service)
-  container.registerSingleton<IFileStorage>('IFileStorage', LocalFileStorage);
+  container.registerSingleton(LocalFileStorage);
   
   // ========================================
   // Application Layer - Use Cases
@@ -439,11 +419,8 @@ export function configureContainer(): void {
   
   // Authorization policies are registered as singletons (stateless, reusable)
   console.log('[DI] Registering AuthorizationPolicy');
-  container.registerSingleton<IAuthorizationPolicy>(
-    'IAuthorizationPolicy',
-    AuthorizationPolicy
-  );
-  console.log('[DI] IAuthorizationPolicy registered');
+  container.registerSingleton(AuthorizationPolicy);
+  console.log('[DI] AuthorizationPolicy registered');
   
   // ========================================
   // Presentation Layer - Controllers

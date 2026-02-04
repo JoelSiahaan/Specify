@@ -11,6 +11,7 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import { PasswordService } from '../../../infrastructure/auth/PasswordService.js';
 import { JWTService } from '../../../infrastructure/auth/JWTService.js';
 import { LoginDTO, LoginResponseDTO } from '../../dtos/UserDTO.js';
@@ -20,7 +21,7 @@ import { ApplicationError } from '../../errors/ApplicationErrors.js';
 @injectable()
 export class LoginUserUseCase {
   constructor(
-    @inject('IUserRepository') private userRepository: IUserRepository,
+    @inject(PrismaUserRepository) private userRepository: IUserRepository,
     @inject(PasswordService) private passwordService: PasswordService,
     @inject(JWTService) private jwtService: JWTService
   ) {}

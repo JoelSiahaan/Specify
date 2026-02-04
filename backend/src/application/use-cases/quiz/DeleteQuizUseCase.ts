@@ -12,9 +12,13 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { IQuizRepository } from '../../../domain/repositories/IQuizRepository.js';
+import { PrismaQuizRepository } from '../../../infrastructure/persistence/repositories/PrismaQuizRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import { PrismaCourseRepository } from '../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { AuthorizationPolicy } from '../../policies/AuthorizationPolicy.js';
 import { User } from '../../../domain/entities/User.js';
 import { Course } from '../../../domain/entities/Course.js';
 import { ApplicationError } from '../../errors/ApplicationErrors.js';
@@ -22,10 +26,10 @@ import { ApplicationError } from '../../errors/ApplicationErrors.js';
 @injectable()
 export class DeleteQuizUseCase {
   constructor(
-    @inject('IQuizRepository') private quizRepository: IQuizRepository,
-    @inject('IUserRepository') private userRepository: IUserRepository,
-    @inject('ICourseRepository') private courseRepository: ICourseRepository,
-    @inject('IAuthorizationPolicy') private authPolicy: IAuthorizationPolicy
+    @inject(PrismaQuizRepository) private quizRepository: IQuizRepository,
+    @inject(PrismaUserRepository) private userRepository: IUserRepository,
+    @inject(PrismaCourseRepository) private courseRepository: ICourseRepository,
+    @inject(AuthorizationPolicy) private authPolicy: IAuthorizationPolicy
   ) {}
 
   /**

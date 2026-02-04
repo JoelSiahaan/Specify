@@ -19,8 +19,11 @@
 
 import { inject, injectable } from 'tsyringe';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import { PrismaCourseRepository } from '../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
 import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import { PrismaEnrollmentRepository } from '../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository.js';
 import { CreateEnrollmentDTO, EnrollmentDTO } from '../../dtos/EnrollmentDTO.js';
 import { EnrollmentMapper } from '../../mappers/EnrollmentMapper.js';
 import { 
@@ -33,9 +36,9 @@ import {
 @injectable()
 export class EnrollStudentUseCase {
   constructor(
-    @inject('IUserRepository') private readonly userRepository: IUserRepository,
-    @inject('ICourseRepository') private readonly courseRepository: ICourseRepository,
-    @inject('IEnrollmentRepository') private readonly enrollmentRepository: IEnrollmentRepository
+    @inject(PrismaUserRepository) private readonly userRepository: IUserRepository,
+    @inject(PrismaCourseRepository) private readonly courseRepository: ICourseRepository,
+    @inject(PrismaEnrollmentRepository) private readonly enrollmentRepository: IEnrollmentRepository
   ) {}
 
   /**

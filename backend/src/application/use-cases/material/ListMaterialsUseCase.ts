@@ -11,10 +11,15 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import { PrismaCourseRepository } from '../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
 import type { IMaterialRepository } from '../../../domain/repositories/IMaterialRepository.js';
+import { PrismaMaterialRepository } from '../../../infrastructure/persistence/repositories/PrismaMaterialRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import { PrismaEnrollmentRepository } from '../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository.js';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { AuthorizationPolicy } from '../../policies/AuthorizationPolicy.js';
 import { User } from '../../../domain/entities/User.js';
 import { MaterialDTO } from '../../dtos/MaterialDTO.js';
 import { MaterialMapper } from '../../mappers/MaterialMapper.js';
@@ -23,11 +28,11 @@ import { ApplicationError } from '../../errors/ApplicationErrors.js';
 @injectable()
 export class ListMaterialsUseCase {
   constructor(
-    @inject('ICourseRepository') private courseRepository: ICourseRepository,
-    @inject('IMaterialRepository') private materialRepository: IMaterialRepository,
-    @inject('IUserRepository') private userRepository: IUserRepository,
-    @inject('IEnrollmentRepository') private enrollmentRepository: IEnrollmentRepository,
-    @inject('IAuthorizationPolicy') private authPolicy: IAuthorizationPolicy
+    @inject(PrismaCourseRepository) private courseRepository: ICourseRepository,
+    @inject(PrismaMaterialRepository) private materialRepository: IMaterialRepository,
+    @inject(PrismaUserRepository) private userRepository: IUserRepository,
+    @inject(PrismaEnrollmentRepository) private enrollmentRepository: IEnrollmentRepository,
+    @inject(AuthorizationPolicy) private authPolicy: IAuthorizationPolicy
   ) {}
 
   /**

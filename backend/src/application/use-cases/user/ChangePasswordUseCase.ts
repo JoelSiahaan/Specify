@@ -13,6 +13,7 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import { PasswordService } from '../../../infrastructure/auth/PasswordService.js';
 import { ChangePasswordDTO, ChangePasswordResultDTO } from '../../dtos/UserDTO.js';
 import { ApplicationError } from '../../errors/ApplicationErrors.js';
@@ -20,7 +21,7 @@ import { ApplicationError } from '../../errors/ApplicationErrors.js';
 @injectable()
 export class ChangePasswordUseCase {
   constructor(
-    @inject('IUserRepository') private userRepository: IUserRepository,
+    @inject(PrismaUserRepository) private userRepository: IUserRepository,
     @inject(PasswordService) private passwordService: PasswordService
   ) {}
 

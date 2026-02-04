@@ -10,9 +10,13 @@
 
 import { inject, injectable } from 'tsyringe';
 import type { IEnrollmentRepository } from '../../../domain/repositories/IEnrollmentRepository.js';
+import { PrismaEnrollmentRepository } from '../../../infrastructure/persistence/repositories/PrismaEnrollmentRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import type { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
+import { PrismaCourseRepository } from '../../../infrastructure/persistence/repositories/PrismaCourseRepository.js';
 import type { IAuthorizationPolicy } from '../../policies/IAuthorizationPolicy.js';
+import { AuthorizationPolicy } from '../../policies/AuthorizationPolicy.js';
 import { EnrollmentWithStudentDTO } from '../../dtos/EnrollmentDTO.js';
 import { EnrollmentMapper } from '../../mappers/EnrollmentMapper.js';
 import { UnauthorizedError, ForbiddenError, NotFoundError } from '../../errors/ApplicationErrors.js';
@@ -20,10 +24,10 @@ import { UnauthorizedError, ForbiddenError, NotFoundError } from '../../errors/A
 @injectable()
 export class ListCourseEnrollmentsUseCase {
   constructor(
-    @inject('IEnrollmentRepository') private enrollmentRepository: IEnrollmentRepository,
-    @inject('IUserRepository') private userRepository: IUserRepository,
-    @inject('ICourseRepository') private courseRepository: ICourseRepository,
-    @inject('IAuthorizationPolicy') private authPolicy: IAuthorizationPolicy
+    @inject(PrismaEnrollmentRepository) private enrollmentRepository: IEnrollmentRepository,
+    @inject(PrismaUserRepository) private userRepository: IUserRepository,
+    @inject(PrismaCourseRepository) private courseRepository: ICourseRepository,
+    @inject(AuthorizationPolicy) private authPolicy: IAuthorizationPolicy
   ) {}
 
   /**

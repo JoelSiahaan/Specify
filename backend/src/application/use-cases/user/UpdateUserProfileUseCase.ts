@@ -11,6 +11,7 @@
 
 import { injectable, inject } from 'tsyringe';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { PrismaUserRepository } from '../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import { UpdateUserProfileDTO, UserProfileDTO } from '../../dtos/UserDTO.js';
 import { UserMapper } from '../../mappers/UserMapper.js';
 import { ApplicationError } from '../../errors/ApplicationErrors.js';
@@ -18,7 +19,7 @@ import { ApplicationError } from '../../errors/ApplicationErrors.js';
 @injectable()
 export class UpdateUserProfileUseCase {
   constructor(
-    @inject('IUserRepository') private userRepository: IUserRepository
+    @inject(PrismaUserRepository) private userRepository: IUserRepository
   ) {}
 
   /**
