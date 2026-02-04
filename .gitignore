@@ -30,6 +30,9 @@ dist-ssr
 .env.production
 .env.test
 
+# IMPORTANT: .env.dev is tracked in git as development template
+# Actual .env file should NEVER be committed (contains production secrets)
+
 # Database
 *.db
 *.sqlite

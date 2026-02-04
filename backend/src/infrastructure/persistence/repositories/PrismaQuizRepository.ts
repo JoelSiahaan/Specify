@@ -17,14 +17,18 @@
  * - Registered as singleton in DI container (shared connection pool)
  */
 
-import { PrismaClient } from '@prisma/client';
-import { injectable, inject } from 'tsyringe';
+import { injectable } from 'tsyringe';
 import { IQuizRepository } from '../../../domain/repositories/IQuizRepository.js';
 import { Quiz, Question } from '../../../domain/entities/Quiz.js';
+import { prisma as prismaClient } from '../prisma/client.js';
 
 @injectable()
 export class PrismaQuizRepository implements IQuizRepository {
-  constructor(@inject('PrismaClient') private readonly prisma: PrismaClient) {}
+  private readonly prisma = prismaClient;
+
+  constructor() {
+    // Use singleton prisma instance directly (ES Modules compatibility)
+  }
 
   /**
    * Save a quiz entity (create or update)

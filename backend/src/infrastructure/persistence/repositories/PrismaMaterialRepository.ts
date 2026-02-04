@@ -16,14 +16,19 @@
  * - Registered as singleton in DI container (shared connection pool)
  */
 
-import { PrismaClient, MaterialType as PrismaMaterialType } from '@prisma/client';
-import { injectable, inject } from 'tsyringe';
+import { MaterialType as PrismaMaterialType } from '@prisma/client';
+import { injectable } from 'tsyringe';
 import { IMaterialRepository } from '../../../domain/repositories/IMaterialRepository.js';
 import { Material, MaterialType } from '../../../domain/entities/Material.js';
+import { prisma as prismaClient } from '../prisma/client.js';
 
 @injectable()
 export class PrismaMaterialRepository implements IMaterialRepository {
-  constructor(@inject('PrismaClient') private readonly prisma: PrismaClient) {}
+  private readonly prisma = prismaClient;
+
+  constructor() {
+    // Use singleton prisma instance directly (ES Modules compatibility)
+  }
 
   /**
    * Save a material entity (create or update)

@@ -114,23 +114,15 @@ async function connectWithRetry(client: PrismaClient): Promise<void> {
 }
 
 // Create Prisma Client instance with logging configuration
-let prisma: PrismaClient | null = null;
+// Initialize immediately to avoid null checks in repositories (ES Modules compatibility)
+const prisma: PrismaClient = new PrismaClient({
+  log: process.env.NODE_ENV === 'development' 
+    ? ['query', 'info', 'warn', 'error']
+    : ['warn', 'error'],
+});
+
 let connectionPromise: Promise<void> | null = null;
 let isConnected = false;
-
-/**
- * Initialize Prisma Client
- */
-function initializePrismaClient(): PrismaClient {
-  if (!prisma) {
-    prisma = new PrismaClient({
-      log: process.env.NODE_ENV === 'development' 
-        ? ['query', 'info', 'warn', 'error']
-        : ['warn', 'error'],
-    });
-  }
-  return prisma;
-}
 
 /**
  * Get database connection with retry logic
@@ -138,13 +130,11 @@ function initializePrismaClient(): PrismaClient {
  * Handles reconnection on restart
  */
 export async function getPrismaClient(): Promise<PrismaClient> {
-  const client = initializePrismaClient();
-  
   // If already connected, verify connection is still alive
   if (isConnected) {
     try {
-      await client.$queryRaw`SELECT 1`;
-      return client;
+      await prisma.$queryRaw`SELECT 1`;
+      return prisma;
     } catch (error) {
       logger.warn('Existing connection lost, reconnecting...', {
         error: (error as Error).message
@@ -156,13 +146,13 @@ export async function getPrismaClient(): Promise<PrismaClient> {
   
   // If not connected or connection lost, establish new connection
   if (!connectionPromise) {
-    connectionPromise = connectWithRetry(client).then(() => {
+    connectionPromise = connectWithRetry(prisma).then(() => {
       isConnected = true;
     });
   }
   
   await connectionPromise;
-  return client;
+  return prisma;
 }
 
 /**

@@ -16,14 +16,19 @@
  * - Registered as singleton in DI container (shared connection pool)
  */
 
-import { PrismaClient, SubmissionType as PrismaSubmissionType } from '@prisma/client';
-import { injectable, inject } from 'tsyringe';
+import { SubmissionType as PrismaSubmissionType } from '@prisma/client';
+import { injectable } from 'tsyringe';
 import { IAssignmentRepository } from '../../../domain/repositories/IAssignmentRepository.js';
 import { Assignment, SubmissionType } from '../../../domain/entities/Assignment.js';
+import { prisma as prismaClient } from '../prisma/client.js';
 
 @injectable()
 export class PrismaAssignmentRepository implements IAssignmentRepository {
-  constructor(@inject('PrismaClient') private readonly prisma: PrismaClient) {}
+  private readonly prisma = prismaClient;
+
+  constructor() {
+    // Use singleton prisma instance directly (ES Modules compatibility)
+  }
 
   /**
    * Save an assignment entity (create or update)

@@ -16,15 +16,18 @@
  * - Registered as singleton in DI container (shared connection pool)
  */
 
-import { PrismaClient, Role as PrismaRole } from '@prisma/client';
-import { injectable, inject } from 'tsyringe';
+import { Role as PrismaRole } from '@prisma/client';
+import { injectable } from 'tsyringe';
 import { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
 import { User, Role } from '../../../domain/entities/User.js';
+import { prisma as prismaClient } from '../prisma/client.js';
 
 @injectable()
 export class PrismaUserRepository implements IUserRepository {
-  constructor(@inject('PrismaClient') private readonly prisma: PrismaClient) {
-    // Prisma client injected via DI
+  private readonly prisma = prismaClient;
+
+  constructor() {
+    // Use singleton prisma instance directly (ES Modules compatibility)
   }
 
   /**

@@ -16,14 +16,19 @@
  * - Registered as singleton in DI container (shared connection pool)
  */
 
-import { PrismaClient, CourseStatus as PrismaCourseStatus } from '@prisma/client';
-import { injectable, inject } from 'tsyringe';
+import { CourseStatus as PrismaCourseStatus } from '@prisma/client';
+import { injectable } from 'tsyringe';
 import { ICourseRepository } from '../../../domain/repositories/ICourseRepository.js';
 import { Course, CourseStatus } from '../../../domain/entities/Course.js';
+import { prisma as prismaClient } from '../prisma/client.js';
 
 @injectable()
 export class PrismaCourseRepository implements ICourseRepository {
-  constructor(@inject('PrismaClient') private readonly prisma: PrismaClient) {}
+  private readonly prisma = prismaClient;
+
+  constructor() {
+    // Use singleton prisma instance directly (ES Modules compatibility)
+  }
 
   /**
    * Save a course entity (create or update)
