@@ -90,6 +90,10 @@ COPY --from=deps --chown=nodejs:nodejs /app/prisma ./prisma
 # Copy built application from build stage
 COPY --from=build --chown=nodejs:nodejs /app/dist ./dist
 
+# Create uploads directory with proper permissions
+RUN mkdir -p /app/uploads/assignments /app/uploads/courses/materials && \
+    chown -R nodejs:nodejs /app/uploads
+
 # Switch to non-root user
 USER nodejs
 

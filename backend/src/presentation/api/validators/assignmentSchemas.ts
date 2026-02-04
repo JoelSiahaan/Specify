@@ -116,6 +116,10 @@ export const CreateAssignmentRequestSchema = z.object({
   acceptedFileFormats: AcceptedFileFormatsSchema
 }).refine(
   (data) => {
+    // If submission type is TEXT, acceptedFileFormats should not be provided or should be empty
+    if (data.submissionType === 'TEXT') {
+      return !data.acceptedFileFormats || data.acceptedFileFormats.length === 0;
+    }
     // If submission type is FILE or BOTH, acceptedFileFormats must be provided
     if (data.submissionType === 'FILE' || data.submissionType === 'BOTH') {
       return data.acceptedFileFormats && data.acceptedFileFormats.length > 0;
@@ -123,7 +127,7 @@ export const CreateAssignmentRequestSchema = z.object({
     return true;
   },
   {
-    message: 'Accepted file formats must be specified when submission type is FILE or BOTH',
+    message: 'Accepted file formats must be specified when submission type is FILE or BOTH, and should be empty for TEXT',
     path: ['acceptedFileFormats']
   }
 );
