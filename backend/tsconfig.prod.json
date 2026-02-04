@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    /* Override module system for production build */
-    "module": "CommonJS",
-    "moduleResolution": "node"
-  }
-}
