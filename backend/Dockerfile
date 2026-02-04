@@ -24,9 +24,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install production dependencies with cache mounting
-RUN --mount=type=cache,target=/root/.npm,sharing=locked \
-    npm ci --omit=dev && \
-    npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -43,7 +41,7 @@ FROM base AS build-deps
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install all dependencies
+# Install all dependencies with cache mounting
 RUN npm ci --no-audit --no-fund && \
     npm cache clean --force
 
@@ -104,5 +102,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=15s --start-period=60s --retries=5 \
   CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Use entrypoint script
+# Use entrypoint script (handles directory creation, Prisma generation, and app startup)
 ENTRYPOINT ["./docker-entrypoint.sh"]
