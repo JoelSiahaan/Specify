@@ -22,6 +22,8 @@ import { UpdateMaterialUseCase } from '../../../application/use-cases/material/U
 import { DeleteMaterialUseCase } from '../../../application/use-cases/material/DeleteMaterialUseCase.js';
 import { ListMaterialsUseCase } from '../../../application/use-cases/material/ListMaterialsUseCase.js';
 import { DownloadMaterialUseCase } from '../../../application/use-cases/material/DownloadMaterialUseCase.js';
+import { GetMaterialByIdUseCase } from '../../../application/use-cases/material/GetMaterialByIdUseCase.js';
+import { UploadMaterialFileUseCase } from '../../../application/use-cases/material/UploadMaterialFileUseCase.js';
 import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware.js';
 import type { CreateMaterialDTO } from '../../../application/dtos/MaterialDTO.js';
 import { MaterialType } from '../../../domain/entities/Material.js';
@@ -139,25 +141,15 @@ export class MaterialController {
         return;
       }
       
-      // For now, we'll use the repository directly
-      // Authorization will be checked when accessing the material
-      const materialRepository = container.resolve('IMaterialRepository' as any);
-      const material = await (materialRepository as any).findById(materialId);
-      
-      if (!material) {
-        res.status(404).json({
-          code: 'RESOURCE_NOT_FOUND',
-          message: 'Material not found'
-        });
-        return;
-      }
-
-      // Convert to DTO
-      const { MaterialMapper } = await import('../../../application/mappers/MaterialMapper.js');
-      const materialDTO = MaterialMapper.toDTO(material);
+      // Execute use case
+      const getMaterialByIdUseCase = container.resolve(GetMaterialByIdUseCase);
+      const material = await getMaterialByIdUseCase.execute(
+        materialId,
+        authenticatedReq.user.userId
+      );
       
       // Return material (200 OK)
-      res.status(200).json(materialDTO);
+      res.status(200).json(material);
     } catch (error) {
       // Pass error to error handler middleware
       next(error);
@@ -226,9 +218,10 @@ export class MaterialController {
         return;
       }
 
-      // Upload file to storage first
-      const fileStorage = container.resolve('IFileStorage' as any);
-      const fileMetadata = await (fileStorage as any).upload(req.file.buffer, {
+      // Upload file to storage using use case
+      const uploadFileUseCase = container.resolve(UploadMaterialFileUseCase);
+      const fileMetadata = await uploadFileUseCase.execute({
+        buffer: req.file.buffer,
         originalName: req.file.originalname,
         mimeType: req.file.mimetype,
         size: req.file.size,

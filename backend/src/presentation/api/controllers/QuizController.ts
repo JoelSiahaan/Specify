@@ -23,7 +23,10 @@ import { ListQuizzesUseCase } from '../../../application/use-cases/quiz/ListQuiz
 import { StartQuizUseCase } from '../../../application/use-cases/quiz/StartQuizUseCase.js';
 import { AutoSaveQuizAnswersUseCase } from '../../../application/use-cases/quiz/AutoSaveQuizAnswersUseCase.js';
 import { SubmitQuizUseCase } from '../../../application/use-cases/quiz/SubmitQuizUseCase.js';
-import type { IQuizSubmissionRepository } from '../../../domain/repositories/IQuizSubmissionRepository.js';
+import { GetQuizByIdUseCase } from '../../../application/use-cases/quiz/GetQuizByIdUseCase.js';
+import { GetQuizSubmissionByQuizAndStudentUseCase } from '../../../application/use-cases/quiz/GetQuizSubmissionByQuizAndStudentUseCase.js';
+import { ListQuizSubmissionsUseCase } from '../../../application/use-cases/quiz/ListQuizSubmissionsUseCase.js';
+import { GetQuizSubmissionDetailsUseCase } from '../../../application/use-cases/quiz/GetQuizSubmissionDetailsUseCase.js';
 import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware.js';
 
 /**
@@ -139,25 +142,15 @@ export class QuizController {
         return;
       }
       
-      // For now, we'll use the repository directly
-      // Authorization will be checked when accessing the quiz
-      const quizRepository = container.resolve('IQuizRepository' as any);
-      const quiz = await (quizRepository as any).findById(quizId);
-      
-      if (!quiz) {
-        res.status(404).json({
-          code: 'RESOURCE_NOT_FOUND',
-          message: 'Quiz not found'
-        });
-        return;
-      }
-
-      // Convert to DTO
-      const { QuizMapper } = await import('../../../application/mappers/QuizMapper.js');
-      const quizDTO = QuizMapper.toDTO(quiz);
+      // Execute use case
+      const getQuizByIdUseCase = container.resolve(GetQuizByIdUseCase);
+      const quiz = await getQuizByIdUseCase.execute(
+        quizId,
+        authenticatedReq.user.userId
+      );
       
       // Return quiz (200 OK)
-      res.status(200).json(quizDTO);
+      res.status(200).json(quiz);
     } catch (error) {
       // Pass error to error handler middleware
       next(error);
@@ -474,25 +467,17 @@ export class QuizController {
         return;
       }
       
-      // Find the submission by quiz and student
-      const quizSubmissionRepository = container.resolve<IQuizSubmissionRepository>('IQuizSubmissionRepository');
-      const existingSubmission = await quizSubmissionRepository.findByQuizAndStudent(
+      // Find the submission by quiz and student using use case
+      const getSubmissionUseCase = container.resolve(GetQuizSubmissionByQuizAndStudentUseCase);
+      const submissionId = await getSubmissionUseCase.execute(
         quizId,
         authenticatedReq.user.userId
       );
       
-      if (!existingSubmission) {
-        res.status(404).json({
-          code: 'RESOURCE_NOT_FOUND',
-          message: 'Quiz submission not found. You must start the quiz first.'
-        });
-        return;
-      }
-      
       // Execute use case with submissionId
       const autoSaveQuizAnswersUseCase = container.resolve(AutoSaveQuizAnswersUseCase);
       const updatedSubmission = await autoSaveQuizAnswersUseCase.execute(
-        existingSubmission.getId(),
+        submissionId,
         authenticatedReq.user.userId,
         req.body  // Pass the whole body (AutoSaveQuizDTO)
       );
@@ -554,25 +539,17 @@ export class QuizController {
         return;
       }
       
-      // Find the submission by quiz and student
-      const quizSubmissionRepository = container.resolve<IQuizSubmissionRepository>('IQuizSubmissionRepository');
-      const existingSubmission = await quizSubmissionRepository.findByQuizAndStudent(
+      // Find the submission by quiz and student using use case
+      const getSubmissionUseCase = container.resolve(GetQuizSubmissionByQuizAndStudentUseCase);
+      const submissionId = await getSubmissionUseCase.execute(
         quizId,
         authenticatedReq.user.userId
       );
       
-      if (!existingSubmission) {
-        res.status(404).json({
-          code: 'RESOURCE_NOT_FOUND',
-          message: 'Quiz submission not found. You must start the quiz first.'
-        });
-        return;
-      }
-      
       // Execute use case
       const submitQuizUseCase = container.resolve(SubmitQuizUseCase);
       const submission = await submitQuizUseCase.execute(
-        existingSubmission.getId(),
+        submissionId,
         authenticatedReq.user.userId,
         req.body  // Pass the whole body, not just req.body.answers
       );
@@ -630,59 +607,15 @@ export class QuizController {
         return;
       }
       
-      // For now, we'll use the repository directly
-      // Authorization will be checked by verifying course ownership
-      const quizRepository = container.resolve('IQuizRepository' as any);
-      const quiz = await (quizRepository as any).findById(quizId);
-      
-      if (!quiz) {
-        res.status(404).json({
-          code: 'RESOURCE_NOT_FOUND',
-          message: 'Quiz not found'
-        });
-        return;
-      }
-
-      // Check authorization
-      const courseRepository = container.resolve('ICourseRepository' as any);
-      const course = await (courseRepository as any).findById(quiz.getCourseId());
-      
-      if (!course || course.getTeacherId() !== authenticatedReq.user.userId) {
-        res.status(403).json({
-          code: 'NOT_OWNER',
-          message: 'You do not have permission to view submissions for this quiz'
-        });
-        return;
-      }
-
-      // Get submissions
-      const quizSubmissionRepository = container.resolve('IQuizSubmissionRepository' as any);
-      const submissions = await (quizSubmissionRepository as any).findByQuizId(quizId);
-      
-      // Get student info for each submission
-      const userRepository = container.resolve('IUserRepository' as any);
-      const studentInfo = new Map<string, { name: string; email: string }>();
-      
-      for (const submission of submissions) {
-        const studentId = submission.getStudentId();
-        if (!studentInfo.has(studentId)) {
-          const student = await (userRepository as any).findById(studentId);
-          if (student) {
-            // User.getEmail() returns string directly, not Email value object
-            studentInfo.set(studentId, {
-              name: student.getName(),
-              email: student.getEmail()
-            });
-          }
-        }
-      }
-      
-      // Convert to list DTOs with student info
-      const { QuizSubmissionMapper } = await import('../../../application/mappers/QuizSubmissionMapper.js');
-      const submissionDTOs = QuizSubmissionMapper.toListDTOList(submissions, studentInfo);
+      // Execute use case
+      const listQuizSubmissionsUseCase = container.resolve(ListQuizSubmissionsUseCase);
+      const result = await listQuizSubmissionsUseCase.execute(
+        quizId,
+        authenticatedReq.user.userId
+      );
       
       // Return submissions wrapped in data object (200 OK)
-      res.status(200).json({ data: submissionDTOs });
+      res.status(200).json(result);
     } catch (error) {
       // Pass error to error handler middleware
       next(error);
@@ -734,48 +667,12 @@ export class QuizController {
         return;
       }
       
-      // Get submission
-      const quizSubmissionRepository = container.resolve('IQuizSubmissionRepository' as any);
-      const submission = await (quizSubmissionRepository as any).findById(submissionId);
-      
-      if (!submission) {
-        res.status(404).json({
-          code: 'RESOURCE_NOT_FOUND',
-          message: 'Submission not found'
-        });
-        return;
-      }
-
-      // Get quiz to check authorization
-      const quizRepository = container.resolve('IQuizRepository' as any);
-      const quiz = await (quizRepository as any).findById(submission.getQuizId());
-      
-      if (!quiz) {
-        res.status(404).json({
-          code: 'RESOURCE_NOT_FOUND',
-          message: 'Quiz not found'
-        });
-        return;
-      }
-
-      // Check authorization: teacher owns course OR student owns submission
-      const courseRepository = container.resolve('ICourseRepository' as any);
-      const course = await (courseRepository as any).findById(quiz.getCourseId());
-      
-      const isTeacher = course && course.getTeacherId() === authenticatedReq.user.userId;
-      const isStudent = submission.getStudentId() === authenticatedReq.user.userId;
-      
-      if (!isTeacher && !isStudent) {
-        res.status(403).json({
-          code: 'NOT_AUTHORIZED',
-          message: 'You do not have permission to view this submission'
-        });
-        return;
-      }
-
-      // Convert to DTO
-      const { QuizSubmissionMapper } = await import('../../../application/mappers/QuizSubmissionMapper.js');
-      const submissionDTO = QuizSubmissionMapper.toDTO(submission);
+      // Execute use case
+      const getQuizSubmissionDetailsUseCase = container.resolve(GetQuizSubmissionDetailsUseCase);
+      const submissionDTO = await getQuizSubmissionDetailsUseCase.execute(
+        submissionId,
+        authenticatedReq.user.userId
+      );
       
       // Return submission (200 OK)
       res.status(200).json(submissionDTO);

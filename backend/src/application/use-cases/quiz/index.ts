@@ -12,3 +12,7 @@ export { StartQuizUseCase } from './StartQuizUseCase.js';
 export { AutoSaveQuizAnswersUseCase } from './AutoSaveQuizAnswersUseCase.js';
 export { SubmitQuizUseCase } from './SubmitQuizUseCase.js';
 export { GradeQuizSubmissionUseCase } from './GradeQuizSubmissionUseCase.js';
+export { GetQuizByIdUseCase } from './GetQuizByIdUseCase.js';
+export { GetQuizSubmissionByQuizAndStudentUseCase } from './GetQuizSubmissionByQuizAndStudentUseCase.js';
+export { ListQuizSubmissionsUseCase } from './ListQuizSubmissionsUseCase.js';
+export { GetQuizSubmissionDetailsUseCase } from './GetQuizSubmissionDetailsUseCase.js';

@@ -33,6 +33,7 @@ import { RefreshTokenUseCase } from '../../application/use-cases/auth/RefreshTok
 import { LogoutUserUseCase } from '../../application/use-cases/auth/LogoutUserUseCase.js';
 import { GetCurrentUserUseCase } from '../../application/use-cases/auth/GetCurrentUserUseCase.js';
 import { AuthorizationPolicy } from '../../application/policies/AuthorizationPolicy.js';
+import { GetCourseByIdUseCase } from '../../application/use-cases/course/GetCourseByIdUseCase.js';
 import { CreateCourseUseCase } from '../../application/use-cases/course/CreateCourseUseCase.js';
 import { UpdateCourseUseCase } from '../../application/use-cases/course/UpdateCourseUseCase.js';
 import { ArchiveCourseUseCase } from '../../application/use-cases/course/ArchiveCourseUseCase.js';
@@ -43,6 +44,8 @@ import { UpdateMaterialUseCase } from '../../application/use-cases/material/Upda
 import { DeleteMaterialUseCase } from '../../application/use-cases/material/DeleteMaterialUseCase.js';
 import { ListMaterialsUseCase } from '../../application/use-cases/material/ListMaterialsUseCase.js';
 import { DownloadMaterialUseCase } from '../../application/use-cases/material/DownloadMaterialUseCase.js';
+import { GetMaterialByIdUseCase } from '../../application/use-cases/material/GetMaterialByIdUseCase.js';
+import { UploadMaterialFileUseCase } from '../../application/use-cases/material/UploadMaterialFileUseCase.js';
 import { SearchCoursesUseCase } from '../../application/use-cases/course/SearchCoursesUseCase.js';
 import { EnrollStudentUseCase } from '../../application/use-cases/enrollment/EnrollStudentUseCase.js';
 import { BulkUnenrollUseCase } from '../../application/use-cases/enrollment/BulkUnenrollUseCase.js';
@@ -54,6 +57,10 @@ import { StartQuizUseCase } from '../../application/use-cases/quiz/StartQuizUseC
 import { AutoSaveQuizAnswersUseCase } from '../../application/use-cases/quiz/AutoSaveQuizAnswersUseCase.js';
 import { SubmitQuizUseCase } from '../../application/use-cases/quiz/SubmitQuizUseCase.js';
 import { GradeQuizSubmissionUseCase } from '../../application/use-cases/quiz/GradeQuizSubmissionUseCase.js';
+import { GetQuizByIdUseCase } from '../../application/use-cases/quiz/GetQuizByIdUseCase.js';
+import { GetQuizSubmissionByQuizAndStudentUseCase } from '../../application/use-cases/quiz/GetQuizSubmissionByQuizAndStudentUseCase.js';
+import { ListQuizSubmissionsUseCase } from '../../application/use-cases/quiz/ListQuizSubmissionsUseCase.js';
+import { GetQuizSubmissionDetailsUseCase } from '../../application/use-cases/quiz/GetQuizSubmissionDetailsUseCase.js';
 import { CreateAssignmentUseCase } from '../../application/use-cases/assignment/CreateAssignmentUseCase.js';
 import { UpdateAssignmentUseCase } from '../../application/use-cases/assignment/UpdateAssignmentUseCase.js';
 import { DeleteAssignmentUseCase } from '../../application/use-cases/assignment/DeleteAssignmentUseCase.js';
@@ -64,6 +71,7 @@ import { GetMySubmissionUseCase } from '../../application/use-cases/assignment/G
 import { ListSubmissionsUseCase } from '../../application/use-cases/assignment/ListSubmissionsUseCase.js';
 import { GradeSubmissionUseCase } from '../../application/use-cases/assignment/GradeSubmissionUseCase.js';
 import { UpdateGradeUseCase } from '../../application/use-cases/assignment/UpdateGradeUseCase.js';
+import { GetAssignmentByIdUseCase } from '../../application/use-cases/assignment/GetAssignmentByIdUseCase.js';
 import { GetStudentProgressUseCase } from '../../application/use-cases/progress/GetStudentProgressUseCase.js';
 import { ExportGradesUseCase } from '../../application/use-cases/progress/ExportGradesUseCase.js';
 import { GetCurrentUserProfileUseCase } from '../../application/use-cases/user/GetCurrentUserProfileUseCase.js';
@@ -165,6 +173,13 @@ export function configureContainer(): void {
     useClass: CreateCourseUseCase
   });
   
+  // Register GetCourseByIdUseCase as transient
+  console.log('[DI] Registering GetCourseByIdUseCase');
+  container.register(GetCourseByIdUseCase, {
+    useClass: GetCourseByIdUseCase
+  });
+  console.log('[DI] GetCourseByIdUseCase registered');
+  
   // Register UpdateCourseUseCase as transient
   console.log('[DI] Registering UpdateCourseUseCase');
   container.register(UpdateCourseUseCase, {
@@ -227,6 +242,21 @@ export function configureContainer(): void {
     useClass: DownloadMaterialUseCase
   });
   console.log('[DI] DownloadMaterialUseCase registered');
+  
+  // Register GetMaterialByIdUseCase as transient
+  console.log('[DI] Registering GetMaterialByIdUseCase');
+  container.register(GetMaterialByIdUseCase, {
+    useClass: GetMaterialByIdUseCase
+  });
+  console.log('[DI] GetMaterialByIdUseCase registered');
+  
+  // Register UploadMaterialFileUseCase as transient
+  console.log('[DI] Registering UploadMaterialFileUseCase');
+  container.register(UploadMaterialFileUseCase, {
+    useClass: UploadMaterialFileUseCase
+  });
+  console.log('[DI] UploadMaterialFileUseCase registered');
+  
   // Register SearchCoursesUseCase as transient
   console.log('[DI] Registering SearchCoursesUseCase');
   container.register(SearchCoursesUseCase, {
@@ -303,6 +333,35 @@ export function configureContainer(): void {
     useClass: GradeQuizSubmissionUseCase
   });
   console.log('[DI] GradeQuizSubmissionUseCase registered');
+  
+  // Register GetQuizByIdUseCase as transient
+  console.log('[DI] Registering GetQuizByIdUseCase');
+  container.register(GetQuizByIdUseCase, {
+    useClass: GetQuizByIdUseCase
+  });
+  console.log('[DI] GetQuizByIdUseCase registered');
+  
+  // Register GetQuizSubmissionByQuizAndStudentUseCase as transient
+  console.log('[DI] Registering GetQuizSubmissionByQuizAndStudentUseCase');
+  container.register(GetQuizSubmissionByQuizAndStudentUseCase, {
+    useClass: GetQuizSubmissionByQuizAndStudentUseCase
+  });
+  console.log('[DI] GetQuizSubmissionByQuizAndStudentUseCase registered');
+  
+  // Register ListQuizSubmissionsUseCase as transient
+  console.log('[DI] Registering ListQuizSubmissionsUseCase');
+  container.register(ListQuizSubmissionsUseCase, {
+    useClass: ListQuizSubmissionsUseCase
+  });
+  console.log('[DI] ListQuizSubmissionsUseCase registered');
+  
+  // Register GetQuizSubmissionDetailsUseCase as transient
+  console.log('[DI] Registering GetQuizSubmissionDetailsUseCase');
+  container.register(GetQuizSubmissionDetailsUseCase, {
+    useClass: GetQuizSubmissionDetailsUseCase
+  });
+  console.log('[DI] GetQuizSubmissionDetailsUseCase registered');
+  
   // Register CreateAssignmentUseCase as transient
   console.log('[DI] Registering CreateAssignmentUseCase');
   container.register(CreateAssignmentUseCase, {
@@ -372,6 +431,13 @@ export function configureContainer(): void {
     useClass: UpdateGradeUseCase
   });
   console.log('[DI] UpdateGradeUseCase registered');
+  
+  // Register GetAssignmentByIdUseCase as transient
+  console.log('[DI] Registering GetAssignmentByIdUseCase');
+  container.register(GetAssignmentByIdUseCase, {
+    useClass: GetAssignmentByIdUseCase
+  });
+  console.log('[DI] GetAssignmentByIdUseCase registered');
   
   // Register GetStudentProgressUseCase as transient
   console.log('[DI] Registering GetStudentProgressUseCase');

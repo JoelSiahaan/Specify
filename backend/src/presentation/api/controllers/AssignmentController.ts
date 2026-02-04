@@ -23,6 +23,7 @@ import { ListAssignmentsUseCase } from '../../../application/use-cases/assignmen
 import { SubmitAssignmentUseCase } from '../../../application/use-cases/assignment/SubmitAssignmentUseCase.js';
 import { GetSubmissionUseCase } from '../../../application/use-cases/assignment/GetSubmissionUseCase.js';
 import { GetMySubmissionUseCase } from '../../../application/use-cases/assignment/GetMySubmissionUseCase.js';
+import { GetAssignmentByIdUseCase } from '../../../application/use-cases/assignment/GetAssignmentByIdUseCase.js';
 import type { AuthenticatedRequest } from '../middleware/AuthenticationMiddleware.js';
 
 /**
@@ -158,25 +159,15 @@ export class AssignmentController {
         return;
       }
       
-      // For now, we'll use the repository directly
-      // In future, this should be a GetAssignmentUseCase
-      const assignmentRepository = container.resolve('IAssignmentRepository' as any);
-      const assignment = await (assignmentRepository as any).findById(assignmentId);
-      
-      if (!assignment) {
-        res.status(404).json({
-          code: 'RESOURCE_NOT_FOUND',
-          message: 'Assignment not found'
-        });
-        return;
-      }
-
-      // Convert to DTO
-      const { AssignmentMapper } = await import('../../../application/mappers/AssignmentMapper.js');
-      const assignmentDTO = AssignmentMapper.toDTO(assignment);
+      // Execute use case
+      const getAssignmentByIdUseCase = container.resolve(GetAssignmentByIdUseCase);
+      const assignment = await getAssignmentByIdUseCase.execute(
+        assignmentId,
+        authenticatedReq.user.userId
+      );
       
       // Return assignment (200 OK)
-      res.status(200).json(assignmentDTO);
+      res.status(200).json(assignment);
     } catch (error) {
       // Pass error to error handler middleware
       next(error);

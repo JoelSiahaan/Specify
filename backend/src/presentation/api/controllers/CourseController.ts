@@ -16,6 +16,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { container } from 'tsyringe';
 import { CreateCourseUseCase } from '../../../application/use-cases/course/CreateCourseUseCase.js';
+import { GetCourseByIdUseCase } from '../../../application/use-cases/course/GetCourseByIdUseCase.js';
 import { UpdateCourseUseCase } from '../../../application/use-cases/course/UpdateCourseUseCase.js';
 import { ArchiveCourseUseCase } from '../../../application/use-cases/course/ArchiveCourseUseCase.js';
 import { DeleteCourseUseCase } from '../../../application/use-cases/course/DeleteCourseUseCase.js';
@@ -137,36 +138,12 @@ export class CourseController {
         return;
       }
       
-      // Load repositories (same pattern as other controllers)
-      const courseRepository = container.resolve('ICourseRepository' as any);
-      const userRepository = container.resolve('IUserRepository' as any);
-      const enrollmentRepository = container.resolve('IEnrollmentRepository' as any);
-      
-      // Load course
-      const course = await (courseRepository as any).findById(courseId);
-      
-      if (!course) {
-        res.status(404).json({
-          code: 'RESOURCE_NOT_FOUND',
-          message: 'Course not found'
-        });
-        return;
-      }
-
-      // Load teacher
-      const teacher = await (userRepository as any).findById(course.getTeacherId());
-      const teacherName = teacher ? teacher.getName() : undefined;
-
-      // Load enrollment count
-      const enrollments = await (enrollmentRepository as any).findByCourse(courseId);
-      const enrollmentCount = enrollments.length;
-
-      // Convert to DTO with teacher name and enrollment count
-      const { CourseMapper } = await import('../../../application/mappers/CourseMapper.js');
-      const courseDTO = CourseMapper.toListDTO(course, teacherName, enrollmentCount);
+      // Execute use case
+      const getCourseByIdUseCase = container.resolve(GetCourseByIdUseCase);
+      const course = await getCourseByIdUseCase.execute(courseId);
       
       // Return course (200 OK)
-      res.status(200).json(courseDTO);
+      res.status(200).json(course);
     } catch (error) {
       // Pass error to error handler middleware
       next(error);

@@ -9,3 +9,5 @@ export { UpdateMaterialUseCase } from './UpdateMaterialUseCase.js';
 export { DeleteMaterialUseCase } from './DeleteMaterialUseCase.js';
 export { ListMaterialsUseCase } from './ListMaterialsUseCase.js';
 export { DownloadMaterialUseCase } from './DownloadMaterialUseCase.js';
+export { GetMaterialByIdUseCase } from './GetMaterialByIdUseCase.js';
+export { UploadMaterialFileUseCase } from './UploadMaterialFileUseCase.js';

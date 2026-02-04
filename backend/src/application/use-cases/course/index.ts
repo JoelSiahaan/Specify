@@ -10,3 +10,4 @@ export * from './ArchiveCourseUseCase.js';
 export * from './DeleteCourseUseCase.js';
 export * from './ListCoursesUseCase.js';
 export * from './SearchCoursesUseCase.js';
+export * from './GetCourseByIdUseCase.js';

@@ -14,3 +14,4 @@ export { GetMySubmissionUseCase } from './GetMySubmissionUseCase.js';
 export { ListSubmissionsUseCase } from './ListSubmissionsUseCase.js';
 export { GradeSubmissionUseCase } from './GradeSubmissionUseCase.js';
 export { UpdateGradeUseCase } from './UpdateGradeUseCase.js';
+export { GetAssignmentByIdUseCase } from './GetAssignmentByIdUseCase.js';
