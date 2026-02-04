@@ -200,12 +200,16 @@ export const GradeQuizSubmission: React.FC<GradeQuizSubmissionProps> = ({
       setError(null);
       setSuccessMessage(null);
       
-      // Convert question grades to array of points (backend expects questionPoints array)
-      const questionPoints = questionGrades.map(qg => parseFloat(qg.points));
+      // Convert question grades to the format expected by backend
+      const questionGradesData = questionGrades.map((qg, index) => ({
+        questionIndex: index,
+        points: parseFloat(qg.points),
+        // feedback per question not supported in UI yet, only general feedback
+      }));
       
       const gradeData = {
-        questionPoints,
-        feedback: feedback.trim() || undefined,
+        questionGrades: questionGradesData,
+        generalFeedback: feedback.trim() || undefined,
       };
       
       // Use appropriate endpoint based on whether submission is already graded

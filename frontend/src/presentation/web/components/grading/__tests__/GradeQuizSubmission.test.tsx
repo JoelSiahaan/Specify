@@ -217,8 +217,11 @@ describe('GradeQuizSubmission', () => {
     
     await waitFor(() => {
       expect(quizService.gradeQuizSubmission).toHaveBeenCalledWith('submission-1', {
-        questionPoints: [50, 50],
-        feedback: 'Excellent work!',
+        questionGrades: [
+          { questionIndex: 0, points: 50 },
+          { questionIndex: 1, points: 50 }
+        ],
+        generalFeedback: 'Excellent work!',
       });
     });
     
