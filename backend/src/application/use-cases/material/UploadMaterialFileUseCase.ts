@@ -72,7 +72,7 @@ export class UploadMaterialFileUseCase {
     }
 
     // Upload file to storage
-    const filePath = await this.fileStorage.upload(dto.buffer, {
+    const fileMetadata = await this.fileStorage.upload(dto.buffer, {
       originalName: dto.originalName,
       mimeType: dto.mimeType,
       size: dto.size,
@@ -81,7 +81,7 @@ export class UploadMaterialFileUseCase {
 
     // Return file metadata
     return {
-      path: filePath,
+      path: fileMetadata.path,
       originalName: dto.originalName,
       mimeType: dto.mimeType,
       size: dto.size
