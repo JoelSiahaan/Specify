@@ -90,9 +90,9 @@ COPY --from=deps --chown=nodejs:nodejs /app/prisma ./prisma
 # Copy built application from build stage
 COPY --from=build --chown=nodejs:nodejs /app/dist ./dist
 
-# Create uploads directory with proper permissions
-RUN mkdir -p /app/uploads/assignments /app/uploads/courses/materials && \
-    chown -R nodejs:nodejs /app/uploads
+# Copy entrypoint script
+COPY --chown=nodejs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
 # Switch to non-root user
 USER nodejs
@@ -104,5 +104,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=15s --start-period=60s --retries=5 \
   CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start production server with Prisma generation
-CMD ["sh", "-c", "npx prisma generate && node dist/main.js"]
+# Use entrypoint script
+ENTRYPOINT ["./docker-entrypoint.sh"]
