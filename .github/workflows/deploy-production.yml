@@ -1,0 +1,276 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  NODE_VERSION: '20.19.0'
+
+jobs:
+  # Run tests first
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: lms_test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: lms_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: backend
+        run: npx prisma generate
+
+      - name: Run database migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://lms_test_user:test_password@localhost:5433/lms_test
+        run: npx prisma migrate deploy
+
+      - name: Run backend tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://lms_test_user:test_password@localhost:5433/lms_test
+          JWT_ACCESS_SECRET: test_access_secret_minimum_32_characters_long
+          JWT_REFRESH_SECRET: test_refresh_secret_minimum_32_characters_long
+          NODE_ENV: test
+        run: npm test -- --verbose --forceExit
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: frontend
+        run: npm test
+
+  # Deploy to production
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.EC2_HOST }}
+          SSH_USER: ${{ secrets.EC2_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        env:
+          SSH_HOST: ${{ secrets.EC2_HOST }}
+          SSH_USER: ${{ secrets.EC2_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << 'ENDSSH'
+            set -e
+            
+            echo "🚀 Starting deployment..."
+            
+            # Navigate to project directory
+            cd Specify
+            
+            # Pull latest code
+            echo "📥 Pulling latest code from main branch..."
+            git fetch origin
+            git reset --hard origin/main
+            
+            # Check if .env exists
+            if [ ! -f .env ]; then
+              echo "❌ .env not found! Please create it first."
+              exit 1
+            fi
+            
+            # Create backups directory if not exists
+            mkdir -p backups
+            
+            # Backup database before deployment (only if postgres is running)
+            echo "💾 Creating database backup..."
+            if docker ps | grep -q postgres; then
+              docker-compose -f docker-compose.prod.yml exec -T postgres pg_dump -U lms_user lms_prod 2>/dev/null | gzip > backups/pre-deploy-$(date +%Y%m%d-%H%M%S).sql.gz || echo "⚠️  Database backup skipped (database not ready)"
+            else
+              echo "⚠️  Database backup skipped (postgres not running)"
+            fi
+            
+            # Build backend Docker image
+            echo "🔨 Building backend Docker image..."
+            cd backend
+            docker build -t lms-backend:latest -f Dockerfile .
+            cd ..
+            
+            # Build frontend (npm run build)
+            echo "🔨 Building frontend..."
+            cd frontend
+            
+            # Install dependencies if node_modules doesn't exist
+            if [ ! -d "node_modules" ]; then
+              echo "📦 Installing frontend dependencies..."
+              npm ci
+            fi
+            
+            # Build frontend
+            echo "🏗️  Running npm run build..."
+            npm run build
+            cd ..
+            
+            # Stop old containers
+            echo "� StRopping old containers..."
+            docker-compose -f docker-compose.prod.yml down
+            
+            # Start new containers with docker-compose
+            echo "▶️  Starting containers with docker-compose..."
+            docker-compose -f docker-compose.prod.yml up -d
+            
+            # Wait for backend to be healthy
+            echo "⏳ Waiting for backend to be healthy..."
+            for i in {1..30}; do
+              if docker-compose -f docker-compose.prod.yml exec -T backend wget --quiet --tries=1 --spider http://localhost:3000/health 2>/dev/null; then
+                echo "✅ Backend is healthy"
+                break
+              fi
+              if [ $i -eq 30 ]; then
+                echo "❌ Backend health check failed after 30 attempts"
+                docker-compose -f docker-compose.prod.yml logs backend
+                exit 1
+              fi
+              echo "Attempt $i/30: Backend not ready yet..."
+              sleep 2
+            done
+            
+            # Run database migrations
+            echo "🗄️  Running database migrations..."
+            docker-compose -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
+            
+            # Clean up old Docker images
+            echo "🧹 Cleaning up old Docker images..."
+            docker image prune -f
+            
+            # Verify deployment
+            echo "✅ Verifying deployment..."
+            docker-compose -f docker-compose.prod.yml ps
+            
+            echo ""
+            echo "🎉 Deployment completed successfully!"
+            echo "📊 Application status:"
+            docker-compose -f docker-compose.prod.yml ps
+          ENDSSH
+
+      - name: Verify deployment
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+        run: |
+          echo "🔍 Verifying production deployment..."
+          
+          # Wait a bit for services to stabilize
+          sleep 10
+          
+          # Check health endpoint
+          response=$(curl -s -o /dev/null -w "%{http_code}" $PRODUCTION_URL/health || echo "000")
+          
+          if [ "$response" = "200" ]; then
+            echo "✅ Production health check passed!"
+          else
+            echo "❌ Production health check failed with status: $response"
+            exit 1
+          fi
+
+      - name: Notify deployment success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commit = context.sha.substring(0, 7);
+            const actor = context.actor;
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: `## ✅ Deployment Successful
+              
+**Deployed to**: Production (AWS EC2)
+**Commit**: ${commit}
+**Deployed by**: @${actor}
+**Workflow**: [View Run](${runUrl})
+
+🎉 Your changes are now live in production!`
+            });
+
+      - name: Notify deployment failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commit = context.sha.substring(0, 7);
+            const actor = context.actor;
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `❌ Deployment Failed - ${commit}`,
+              body: `## Deployment Failure Report
+              
+**Commit**: ${commit}
+**Triggered by**: @${actor}
+**Workflow**: [View Run](${runUrl})
+
+### Action Required
+The deployment to production has failed. Please check the workflow logs and fix the issues.
+
+### Rollback Instructions
+If needed, you can rollback to the previous version:
+
+\`\`\`bash
+ssh -i poc-kiro.pem ec2-user@16.78.80.218
+cd ~/Specify
+git checkout <previous-commit-hash>
+docker-compose -f docker-compose.prod.yml up -d --build
+\`\`\`
+
+---
+*This issue was automatically created by GitHub Actions*`,
+              labels: ['deployment-failure', 'critical'],
+              assignees: [actor]
+            });
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
