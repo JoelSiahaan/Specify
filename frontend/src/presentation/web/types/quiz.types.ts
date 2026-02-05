@@ -166,11 +166,21 @@ export interface AutoSaveQuizRequest {
 }
 
 /**
+ * Question Grade interface (for detailed grading)
+ */
+export interface QuestionGrade {
+  questionIndex: number;
+  points: number;
+  feedback?: string;
+}
+
+/**
  * Grade Quiz Submission Request interface
  */
 export interface GradeQuizSubmissionRequest {
-  questionPoints: number[];  // Array of points per question (0-100 each)
-  feedback?: string;
+  questionGrades: QuestionGrade[];  // Array of question grades with index and points
+  generalFeedback?: string;  // Overall feedback for the entire quiz
+  version?: number;  // Optimistic locking version (optional)
 }
 
 /**

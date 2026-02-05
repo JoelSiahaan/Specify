@@ -154,10 +154,10 @@ export const CreateAssignment: React.FC<CreateAssignmentProps> = ({
         description,
         dueDate: dueDateISO,
         submissionType,
-        acceptedFileFormats: 
-          submissionType === SubmissionType.TEXT 
-            ? [] 
-            : allowedFileTypes,
+        // Only include acceptedFileFormats if submission type is FILE or BOTH
+        ...(submissionType !== SubmissionType.TEXT && {
+          acceptedFileFormats: allowedFileTypes
+        })
       });
       
       // Success callback
